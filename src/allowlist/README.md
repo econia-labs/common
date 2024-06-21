@@ -54,3 +54,9 @@ SISMEMBER allowlist "0x123"
 ```sh
 SISMEMBER allowlist "0xbee"
 ```
+
+Exit the session:
+
+```sh
+exit
+```
