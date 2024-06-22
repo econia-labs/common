@@ -1,7 +1,10 @@
 use axum::{
     routing::{get, post},
-    Router,
+    http::StatusCode,
+    Json, Router,
 };
+use move_core_types::account_address::AccountAddress;
+use serde::{Deserialize, Serialize};
 use tokio;
 
 #[tokio::main]
@@ -18,6 +21,34 @@ async fn is_allowed() -> &'static str {
     "You are allowed"
 }
 
-async fn add_to_allowlist() -> &'static str {
-    "Added to allowlist"
+async fn add_to_allowlist(
+    Json(payload): Json<AddAddressRequest>
+) -> (StatusCode, Json<AddAddressResult>) {
+
+    if let Ok(account_address) = AccountAddress::try_from(payload.address.clone()) {
+        let result = AddAddressResult {
+            requested_address: payload.address,
+            parsed_address: Some(account_address.to_hex_literal()),
+            result: "Added".to_string(),
+        };
+        (StatusCode::CREATED, Json(result))
+    } else {
+        (StatusCode::BAD_REQUEST, Json(AddAddressResult {
+            requested_address: payload.address,
+            parsed_address: None,
+            result: "Could not parse address".to_string(),
+        }))
+    }
+}
+
+#[derive(Deserialize)]
+struct AddAddressRequest {
+    address: String,
+}
+
+#[derive(Serialize)]
+struct AddAddressResult {
+    requested_address: String,
+    parsed_address: Option<String>,
+    result: String,
 }

@@ -60,3 +60,16 @@ Exit the session:
 ```sh
 exit
 ```
+
+## Server commands, local mockup
+
+```sh
+curl 0.0.0.0:3000
+```
+
+```sh
+curl 0.0.0.0:3000 \
+    -d '{ "address": "0x000g23" }' \
+    -H 'Content-Type: application/json' \
+    -X POST
+```
