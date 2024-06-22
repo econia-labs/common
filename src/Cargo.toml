@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "src/allowlist"
+    "allowlist"
 ]
 resolver = "2"
 
