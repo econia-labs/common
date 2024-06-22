@@ -1,8 +1,11 @@
 # cspell:word serde
 
 [dependencies]
-axum = "0.7.5"
+axum = {version = "0.7.5", features = ["macros"]}
+bb8 =  "0.8.5"
+bb8-redis = "0.15.0"
 move-core-types = {workspace = true}
+redis = "0.25.4"
 serde = {workspace = true}
 tokio = {workspace = true}
 

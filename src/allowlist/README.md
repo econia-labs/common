@@ -64,12 +64,23 @@ exit
 ## Server commands, local mockup
 
 ```sh
-curl 0.0.0.0:3000
+curl 0.0.0.0:3000 \
+    -d '{ "address": "0x12345" }' \
+    -H 'Content-Type: application/json' \
+    -X GET
 ```
 
 ```sh
 curl 0.0.0.0:3000 \
-    -d '{ "address": "0x000g23" }' \
+    -d '{ "address": "0x12345" }' \
     -H 'Content-Type: application/json' \
     -X POST
 ```
+
+## References
+
+* [Basic `axum` example]
+* [`axum` with Redis example]
+
+[`axum` with Redis example]: https://github.com/tokio-rs/axum/blob/main/examples/tokio-redis/src/main.rs
+[Basic `axum` example]: https://github.com/tokio-rs/axum/tree/main?tab=readme-ov-file#usage-example
