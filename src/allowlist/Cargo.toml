@@ -1,10 +1,12 @@
-[package]
-name = "allowlist"
-version = "1.0.0"
-edition = "2021"
+# cspell:word serde
 
 [dependencies]
 axum = "0.7.5"
-move-core-types = { workspace = true }
-serde = { workspace = true }
-tokio = { workspace = true }
+move-core-types = {workspace = true}
+serde = {workspace = true}
+tokio = {workspace = true}
+
+[package]
+edition = "2021"
+name = "allowlist"
+version = "1.0.0"

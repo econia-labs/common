@@ -1,17 +1,19 @@
+# cspell:word serde
+
 [workspace]
 members = [
-    "allowlist"
+  "allowlist"
 ]
 resolver = "2"
 
+[workspace.dependencies]
+move-core-types = {git = "https://github.com/aptos-labs/aptos-core"}
+serde = {version = "1.0", features = ["derive", "rc"]}
+tokio = {version = "1.37.0", features = ["rt-multi-thread"]}
+
 [workspace.package]
 authors = ["Econia Labs <developers@econialabs.com>"]
-license = "Apache-2.0"
-homepage = "https://www.econialabs.com"
 edition = "2021"
+homepage = "https://www.econialabs.com"
+license = "Apache-2.0"
 rust-version = "1.70"
-
-[workspace.dependencies]
-move-core-types = { git = "https://github.com/aptos-labs/aptos-core"}
-serde = { version = "1.0", features = ["derive", "rc"] }
-tokio = {version = "1.37.0", features = ["rt-multi-thread"]}

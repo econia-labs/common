@@ -1,6 +1,6 @@
 use axum::{
-    routing::{get, post},
     http::StatusCode,
+    routing::{get, post},
     Json, Router,
 };
 use move_core_types::account_address::AccountAddress;
@@ -10,8 +10,8 @@ use tokio;
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-    .route("/", get(is_allowed))
-    .route("/", post(add_to_allowlist));
+        .route("/", get(is_allowed))
+        .route("/", post(add_to_allowlist));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -22,9 +22,8 @@ async fn is_allowed() -> &'static str {
 }
 
 async fn add_to_allowlist(
-    Json(payload): Json<AddAddressRequest>
+    Json(payload): Json<AddAddressRequest>,
 ) -> (StatusCode, Json<AddAddressResult>) {
-
     if let Ok(account_address) = AccountAddress::try_from(payload.address.clone()) {
         let result = AddAddressResult {
             requested_address: payload.address,
@@ -33,11 +32,14 @@ async fn add_to_allowlist(
         };
         (StatusCode::CREATED, Json(result))
     } else {
-        (StatusCode::BAD_REQUEST, Json(AddAddressResult {
-            requested_address: payload.address,
-            parsed_address: None,
-            result: "Could not parse address".to_string(),
-        }))
+        (
+            StatusCode::BAD_REQUEST,
+            Json(AddAddressResult {
+                requested_address: payload.address,
+                parsed_address: None,
+                result: "Could not parse address".to_string(),
+            }),
+        )
     }
 }
 
