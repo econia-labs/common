@@ -26,7 +26,8 @@ struct RequestAddress {
 struct RequestResult {
     requested_address: String,
     parsed_address: Option<String>,
-    result: String,
+    is_allowed: Option<bool>,
+    message: String,
 }
 
 #[tokio::main]
@@ -54,8 +55,7 @@ async fn is_allowed(
     Json(payload): Json<RequestAddress>,
 ) -> (StatusCode, Json<RequestResult>) {
     if let Ok(account_address) = AccountAddress::try_from(payload.address.clone()) {
-        let mut result =
-            default_result(payload.address, account_address, "Not allowed".to_string());
+        let mut result = default_result(payload.address, account_address, "Not allowed");
         match pool.get().await {
             Ok(mut conn) => {
                 match conn
@@ -64,7 +64,7 @@ async fn is_allowed(
                 {
                     Ok(lookup_result) => {
                         if lookup_result == IN_SET {
-                            result.result = "Allowed".to_string();
+                            result.message = "Allowed".to_string();
                         };
                         (StatusCode::OK, Json(result))
                     }
@@ -83,11 +83,7 @@ async fn add_to_allowlist(
     Json(payload): Json<RequestAddress>,
 ) -> (StatusCode, Json<RequestResult>) {
     if let Ok(account_address) = AccountAddress::try_from(payload.address.clone()) {
-        let mut result = default_result(
-            payload.address,
-            account_address,
-            "Added to allowlist".to_string(),
-        );
+        let mut result = default_result(payload.address, account_address, "Added to allowlist");
         match pool.get().await {
             Ok(mut conn) => {
                 match conn
@@ -96,7 +92,7 @@ async fn add_to_allowlist(
                 {
                     Ok(add_result) => {
                         if add_result == NOT_ADDED {
-                            result.result = "Already allowed".to_string();
+                            result.message = "Already allowed".to_string();
                         };
                         (StatusCode::OK, Json(result))
                     }
@@ -113,12 +109,13 @@ async fn add_to_allowlist(
 fn default_result(
     payload_address: String,
     account_address: AccountAddress,
-    result_message: String,
+    result_message: &str,
 ) -> RequestResult {
     RequestResult {
         requested_address: payload_address,
         parsed_address: Some(account_address.to_hex_literal()),
-        result: result_message,
+        is_allowed: Some(true),
+        message: result_message.to_string(),
     }
 }
 fn invalid_address(address: String) -> (StatusCode, Json<RequestResult>) {
@@ -127,7 +124,8 @@ fn invalid_address(address: String) -> (StatusCode, Json<RequestResult>) {
         Json(RequestResult {
             requested_address: address,
             parsed_address: None,
-            result: "Could not parse address".to_string(),
+            is_allowed: None,
+            message: "Could not parse address".to_string(),
         }),
     )
 }
@@ -137,7 +135,7 @@ fn internal_server_error(
     message_header: &str,
     e: redis::RedisError,
 ) -> (StatusCode, Json<RequestResult>) {
-    request_result.result = format!("{}: {}", message_header, e);
+    request_result.message = format!("{}: {}", message_header, e);
     (StatusCode::INTERNAL_SERVER_ERROR, Json(request_result))
 }
 
@@ -145,6 +143,6 @@ fn redis_connection_error(
     mut request_result: RequestResult,
     e: bb8::RunError<redis::RedisError>,
 ) -> (StatusCode, Json<RequestResult>) {
-    request_result.result = format!("Redis connection issue: {}", e);
+    request_result.message = format!("Redis connection issue: {}", e);
     (StatusCode::INTERNAL_SERVER_ERROR, Json(request_result))
 }
