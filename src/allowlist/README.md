@@ -79,8 +79,8 @@ curl 0.0.0.0:3000 \
 
 ## References
 
-* [Basic `axum` example]
-* [`axum` with Redis example]
+- [Basic `axum` example]
+- [`axum` with Redis example]
 
-[`axum` with Redis example]: https://github.com/tokio-rs/axum/blob/main/examples/tokio-redis/src/main.rs
-[Basic `axum` example]: https://github.com/tokio-rs/axum/tree/main?tab=readme-ov-file#usage-example
+[basic `axum` example]: https://github.com/tokio-rs/axum/tree/main?tab=readme-ov-file#usage-example
+[`axum` with redis example]: https://github.com/tokio-rs/axum/blob/main/examples/tokio-redis/src/main.rs

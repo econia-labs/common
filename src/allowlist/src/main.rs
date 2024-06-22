@@ -1,3 +1,6 @@
+// cspell:word sadd
+// cspell:word sismember
+
 use axum::{extract::State, http::StatusCode, routing::get, Json, Router};
 use bb8::Pool;
 use bb8_redis::RedisConnectionManager;
