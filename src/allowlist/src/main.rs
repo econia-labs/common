@@ -1,30 +1,30 @@
 // cspell:word sadd
 // cspell:word sismember
 
-use axum::{extract::State, http::StatusCode, routing::get, Json, Router};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    routing::get,
+    Json, Router,
+};
 use bb8::Pool;
 use bb8_redis::RedisConnectionManager;
 use move_core_types::account_address::AccountAddress;
 use redis::AsyncCommands;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 /// The name of the Redis set that contains the allowlist.
 const SET_NAME: &str = "allowlist";
 
-/// The value that indicates a member is in the set.
-const IN_SET: i32 = 1;
+/// The value that indicates a member is not in the set.
+const NOT_IN_SET: i32 = 0;
 
 /// The value that indicates a member was not added to the set, since it was already present.
 const NOT_ADDED: i32 = 0;
 
-#[derive(Deserialize)]
-struct RequestAddress {
-    address: String,
-}
-
 #[derive(Serialize)]
 struct RequestResult {
-    requested_address: String,
+    request_address: String,
     parsed_address: Option<String>,
     is_allowed: Option<bool>,
     message: String,
@@ -43,7 +43,7 @@ async fn main() {
     }
 
     let app = Router::new()
-        .route("/", get(is_allowed).post(add_to_allowlist))
+        .route("/:request_address", get(is_allowed).post(add_to_allowlist))
         .with_state(pool);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -52,10 +52,10 @@ async fn main() {
 
 async fn is_allowed(
     State(pool): State<Pool<RedisConnectionManager>>,
-    Json(payload): Json<RequestAddress>,
+    Path(request_address): Path<String>,
 ) -> (StatusCode, Json<RequestResult>) {
-    if let Ok(account_address) = AccountAddress::try_from(payload.address.clone()) {
-        let mut result = default_result(payload.address, account_address, "Not allowed");
+    if let Ok(account_address) = AccountAddress::try_from(request_address.clone()) {
+        let mut result = default_result(request_address, account_address, "Found in allowlist");
         match pool.get().await {
             Ok(mut conn) => {
                 match conn
@@ -63,8 +63,9 @@ async fn is_allowed(
                     .await
                 {
                     Ok(lookup_result) => {
-                        if lookup_result == IN_SET {
-                            result.message = "Allowed".to_string();
+                        if lookup_result == NOT_IN_SET {
+                            result.is_allowed = Some(false);
+                            result.message = "Not found in allowlist".to_string();
                         };
                         (StatusCode::OK, Json(result))
                     }
@@ -74,16 +75,16 @@ async fn is_allowed(
             Err(e) => redis_connection_error(result, e),
         }
     } else {
-        invalid_address(payload.address)
+        invalid_address(request_address)
     }
 }
 
 async fn add_to_allowlist(
     State(pool): State<Pool<RedisConnectionManager>>,
-    Json(payload): Json<RequestAddress>,
+    Path(request_address): Path<String>,
 ) -> (StatusCode, Json<RequestResult>) {
-    if let Ok(account_address) = AccountAddress::try_from(payload.address.clone()) {
-        let mut result = default_result(payload.address, account_address, "Added to allowlist");
+    if let Ok(account_address) = AccountAddress::try_from(request_address.clone()) {
+        let mut result = default_result(request_address, account_address, "Added to allowlist");
         match pool.get().await {
             Ok(mut conn) => {
                 match conn
@@ -102,7 +103,7 @@ async fn add_to_allowlist(
             Err(e) => redis_connection_error(result, e),
         }
     } else {
-        invalid_address(payload.address)
+        invalid_address(request_address)
     }
 }
 
@@ -112,7 +113,7 @@ fn default_result(
     result_message: &str,
 ) -> RequestResult {
     RequestResult {
-        requested_address: payload_address,
+        request_address: payload_address,
         parsed_address: Some(account_address.to_hex_literal()),
         is_allowed: Some(true),
         message: result_message.to_string(),
@@ -122,7 +123,7 @@ fn invalid_address(address: String) -> (StatusCode, Json<RequestResult>) {
     (
         StatusCode::BAD_REQUEST,
         Json(RequestResult {
-            requested_address: address,
+            request_address: address,
             parsed_address: None,
             is_allowed: None,
             message: "Could not parse address".to_string(),

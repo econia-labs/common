@@ -64,17 +64,13 @@ exit
 ## Server commands, local mockup
 
 ```sh
-curl 0.0.0.0:3000 \
-    -d '{ "address": "0x12345" }' \
-    -H 'Content-Type: application/json' \
-    -X GET
+REQUESTED_ADDRESS=0x123
+curl localhost:3000/$REQUESTED_ADDRESS
 ```
 
 ```sh
-curl 0.0.0.0:3000 \
-    -d '{ "address": "0x12345" }' \
-    -H 'Content-Type: application/json' \
-    -X POST
+REQUESTED_ADDRESS=0x1234
+curl localhost:3000/$REQUESTED_ADDRESS -X POST
 ```
 
 ## References
