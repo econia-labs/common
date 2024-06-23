@@ -53,7 +53,7 @@ async fn main() {
 async fn is_allowed(
     State(pool): State<Pool<RedisConnectionManager>>,
     Path(request_address): Path<String>,
-) -> (StatusCode, Json<RequestResult>) {
+) -> Result<(StatusCode, Json<RequestResult>), (StatusCode, Json<RequestResult>)> {
     if let Ok(account_address) = AccountAddress::try_from(request_address.clone()) {
         let mut result = default_result(request_address, account_address, "Found in allowlist");
         match pool.get().await {
@@ -67,22 +67,22 @@ async fn is_allowed(
                             result.is_allowed = Some(false);
                             result.message = "Not found in allowlist".to_string();
                         };
-                        (StatusCode::OK, Json(result))
+                        Ok((StatusCode::OK, Json(result)))
                     }
-                    Err(e) => internal_server_error(result, "Lookup issue", e),
+                    Err(e) => Err(internal_server_error(result, "Lookup issue", e)),
                 }
             }
-            Err(e) => redis_connection_error(result, e),
+            Err(e) => Err(redis_connection_error(result, e)),
         }
     } else {
-        invalid_address(request_address)
+        Err(invalid_address(request_address))
     }
 }
 
 async fn add_to_allowlist(
     State(pool): State<Pool<RedisConnectionManager>>,
     Path(request_address): Path<String>,
-) -> (StatusCode, Json<RequestResult>) {
+) -> Result<(StatusCode, Json<RequestResult>), (StatusCode, Json<RequestResult>)> {
     if let Ok(account_address) = AccountAddress::try_from(request_address.clone()) {
         let mut result = default_result(request_address, account_address, "Added to allowlist");
         match pool.get().await {
@@ -95,15 +95,15 @@ async fn add_to_allowlist(
                         if add_result == NOT_ADDED {
                             result.message = "Already allowed".to_string();
                         };
-                        (StatusCode::OK, Json(result))
+                        Ok((StatusCode::OK, Json(result)))
                     }
-                    Err(e) => internal_server_error(result, "Add member issue", e),
+                    Err(e) => Err(internal_server_error(result, "Add member issue", e)),
                 }
             }
-            Err(e) => redis_connection_error(result, e),
+            Err(e) => Err(redis_connection_error(result, e)),
         }
     } else {
-        invalid_address(request_address)
+        Err(invalid_address(request_address))
     }
 }
 
