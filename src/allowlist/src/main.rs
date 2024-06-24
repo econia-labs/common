@@ -13,6 +13,7 @@ use bb8_redis::RedisConnectionManager;
 use move_core_types::account_address::AccountAddress;
 use redis::AsyncCommands;
 use serde::Serialize;
+use std::fmt;
 
 /// The name of the Redis set that contains the allowlist.
 const SET_NAME: &str = "allowlist";
@@ -34,6 +35,32 @@ struct DatabaseConnection(PooledConnection<'static, RedisConnectionManager>);
 
 /// The connection pool for the Redis database.
 type ConnectionPool = Pool<RedisConnectionManager>;
+
+enum SummaryMessage {
+    FoundInAllowlist,
+    NotFoundInAllowlist,
+    AddedToAllowlist,
+    AlreadyAllowed,
+    CouldNotParseAddress,
+    IsMemberLookupIssue,
+    AddMemberIssue,
+    RedisConnectionIssue,
+}
+
+impl fmt::Display for SummaryMessage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::FoundInAllowlist => write!(f, "Found in allowlist"),
+            Self::NotFoundInAllowlist => write!(f, "Not found in allowlist"),
+            Self::AddedToAllowlist => write!(f, "Added to allowlist"),
+            Self::AlreadyAllowed => write!(f, "Already allowed"),
+            Self::CouldNotParseAddress => write!(f, "Could not parse address"),
+            Self::IsMemberLookupIssue => write!(f, "Is member lookup issue"),
+            Self::AddMemberIssue => write!(f, "Add member issue"),
+            Self::RedisConnectionIssue => write!(f, "Redis connection issue"),
+        }
+    }
+}
 
 #[derive(Clone, Serialize)]
 struct RequestSummary {
@@ -60,7 +87,7 @@ where
                     request_address: "".to_string(),
                     parsed_address: None,
                     is_allowed: None,
-                    message: format!("Redis connection issue: {}", e),
+                    message: format!("{}: {}", SummaryMessage::RedisConnectionIssue, e),
                 }),
             )
         })?;
@@ -92,16 +119,24 @@ async fn is_allowed(
     DatabaseConnection(mut connection): DatabaseConnection,
     Path(request_address): Path<String>,
 ) -> RequestResult {
-    let (mut result_summary, parsed_address) =
-        default_result_summary_with_parsed_address(request_address.clone(), "Found in allowlist")?;
+    let (mut result_summary, parsed_address) = default_result_summary_with_parsed_address(
+        request_address.clone(),
+        &SummaryMessage::FoundInAllowlist.to_string(),
+    )?;
     if connection
         .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
-        .map_err(|e| query_error(result_summary.clone(), "Is member lookup issue", e))?
+        .map_err(|e| {
+            query_error(
+                result_summary.clone(),
+                &SummaryMessage::IsMemberLookupIssue.to_string(),
+                e,
+            )
+        })?
         == NOT_IN_SET
     {
         result_summary.is_allowed = Some(false);
-        result_summary.message = "Not found in allowlist".to_string();
+        result_summary.message = SummaryMessage::NotFoundInAllowlist.to_string();
     };
     Ok((StatusCode::OK, Json(result_summary)))
 }
@@ -110,15 +145,23 @@ async fn add_to_allowlist(
     DatabaseConnection(mut connection): DatabaseConnection,
     Path(request_address): Path<String>,
 ) -> RequestResult {
-    let (mut result_summary, parsed_address) =
-        default_result_summary_with_parsed_address(request_address.clone(), "Added to allowlist")?;
+    let (mut result_summary, parsed_address) = default_result_summary_with_parsed_address(
+        request_address.clone(),
+        &SummaryMessage::AddedToAllowlist.to_string(),
+    )?;
     if connection
         .sadd::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
-        .map_err(|e| query_error(result_summary.clone(), "Add member issue", e))?
+        .map_err(|e| {
+            query_error(
+                result_summary.clone(),
+                &SummaryMessage::AddMemberIssue.to_string(),
+                e,
+            )
+        })?
         == NOT_ADDED
     {
-        result_summary.message = "Already allowed".to_string();
+        result_summary.message = SummaryMessage::AlreadyAllowed.to_string();
     };
     Ok((StatusCode::OK, Json(result_summary)))
 }
@@ -134,7 +177,7 @@ fn default_result_summary_with_parsed_address(
                 request_address: request_address.clone(),
                 parsed_address: None,
                 is_allowed: None,
-                message: "Could not parse address".to_string(),
+                message: SummaryMessage::CouldNotParseAddress.to_string(),
             }),
         )
     })?;
