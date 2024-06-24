@@ -97,7 +97,7 @@ async fn is_allowed(
     if connection
         .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
-        .map_err(|e| query_error(result_summary.clone(), "Add member issue", e))?
+        .map_err(|e| query_error(result_summary.clone(), "Is member lookup issue", e))?
         == NOT_IN_SET
     {
         result_summary.is_allowed = Some(false);
