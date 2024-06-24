@@ -22,7 +22,9 @@ const NOT_IN_SET: i32 = 0;
 /// The value that indicates a member was not added to the set, since it was already present.
 const NOT_ADDED: i32 = 0;
 
-type RequestResult = Result<(StatusCode, Json<RequestSummary>), (StatusCode, Json<RequestSummary>)>;
+type CodedSummary = (StatusCode, Json<RequestSummary>);
+
+type RequestResult = Result<CodedSummary, CodedSummary>;
 
 #[derive(Serialize)]
 struct RequestSummary {
