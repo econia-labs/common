@@ -2,12 +2,13 @@
 // cspell:word sismember
 
 use axum::{
-    extract::{Path, State},
-    http::StatusCode,
+    async_trait,
+    extract::{FromRef, FromRequestParts, Path},
+    http::{request::Parts, StatusCode},
     routing::get,
     Json, Router,
 };
-use bb8::Pool;
+use bb8::{Pool, PooledConnection};
 use bb8_redis::RedisConnectionManager;
 use move_core_types::account_address::AccountAddress;
 use redis::AsyncCommands;
@@ -22,9 +23,17 @@ const NOT_IN_SET: i32 = 0;
 /// The value that indicates a member was not added to the set, since it was already present.
 const NOT_ADDED: i32 = 0;
 
+/// A tuple containing a status code and a JSON-serializable request summary.
 type CodedSummary = (StatusCode, Json<RequestSummary>);
 
+/// The result of a request, which is either a successful response or an error response.
 type RequestResult = Result<CodedSummary, CodedSummary>;
+
+/// Connection to the Redis database.
+struct DatabaseConnection(PooledConnection<'static, RedisConnectionManager>);
+
+/// The connection pool for the Redis database.
+type ConnectionPool = Pool<RedisConnectionManager>;
 
 #[derive(Clone, Serialize)]
 struct RequestSummary {
@@ -32,6 +41,31 @@ struct RequestSummary {
     parsed_address: Option<String>,
     is_allowed: Option<bool>,
     message: String,
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for DatabaseConnection
+where
+    ConnectionPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = CodedSummary;
+
+    async fn from_request_parts(_parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let pool = ConnectionPool::from_ref(state);
+        let conn = pool.get_owned().await.map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(RequestSummary {
+                    request_address: "".to_string(),
+                    parsed_address: None,
+                    is_allowed: None,
+                    message: format!("Redis connection issue: {}", e),
+                }),
+            )
+        })?;
+        Ok(Self(conn))
+    }
 }
 
 #[tokio::main]
@@ -55,19 +89,15 @@ async fn main() {
 }
 
 async fn is_allowed(
-    State(pool): State<Pool<RedisConnectionManager>>,
+    DatabaseConnection(mut connection): DatabaseConnection,
     Path(request_address): Path<String>,
 ) -> RequestResult {
     let (mut result_summary, parsed_address) =
         default_result_summary_with_parsed_address(request_address.clone(), "Found in allowlist")?;
-    let mut connection = pool
-        .get()
-        .await
-        .map_err(|e| redis_connection_error(result_summary.clone(), e))?;
     if connection
         .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
-        .map_err(|e| internal_server_error(result_summary.clone(), "Add member issue", e))?
+        .map_err(|e| query_error(result_summary.clone(), "Add member issue", e))?
         == NOT_IN_SET
     {
         result_summary.is_allowed = Some(false);
@@ -77,19 +107,15 @@ async fn is_allowed(
 }
 
 async fn add_to_allowlist(
-    State(pool): State<Pool<RedisConnectionManager>>,
+    DatabaseConnection(mut connection): DatabaseConnection,
     Path(request_address): Path<String>,
 ) -> RequestResult {
     let (mut result_summary, parsed_address) =
         default_result_summary_with_parsed_address(request_address.clone(), "Added to allowlist")?;
-    let mut connection = pool
-        .get()
-        .await
-        .map_err(|e| redis_connection_error(result_summary.clone(), e))?;
     if connection
         .sadd::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
-        .map_err(|e| internal_server_error(result_summary.clone(), "Add member issue", e))?
+        .map_err(|e| query_error(result_summary.clone(), "Add member issue", e))?
         == NOT_ADDED
     {
         result_summary.message = "Already allowed".to_string();
@@ -124,19 +150,11 @@ fn default_result_summary_with_parsed_address(
     ))
 }
 
-fn internal_server_error(
+fn query_error(
     mut request_summary: RequestSummary,
     message_header: &str,
     e: redis::RedisError,
 ) -> CodedSummary {
     request_summary.message = format!("{}: {}", message_header, e);
-    (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
-}
-
-fn redis_connection_error(
-    mut request_summary: RequestSummary,
-    e: bb8::RunError<redis::RedisError>,
-) -> CodedSummary {
-    request_summary.message = format!("Redis connection issue: {}", e);
     (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
 }
