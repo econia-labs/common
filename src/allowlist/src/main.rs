@@ -26,7 +26,7 @@ type CodedSummary = (StatusCode, Json<RequestSummary>);
 
 type RequestResult = Result<CodedSummary, CodedSummary>;
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 struct RequestSummary {
     request_address: String,
     parsed_address: Option<String>,
@@ -58,58 +58,49 @@ async fn is_allowed(
     State(pool): State<Pool<RedisConnectionManager>>,
     Path(request_address): Path<String>,
 ) -> RequestResult {
-    let mut result_summary = default_result_summary(request_address.clone(), "Added to allowlist")?;
-    match pool.get().await {
-        Ok(mut conn) => {
-            match conn
-                .sismember::<&str, &str, i32>(
-                    SET_NAME,
-                    &result_summary.parsed_address.clone().unwrap(),
-                )
-                .await
-            {
-                Ok(lookup_result) => {
-                    if lookup_result == NOT_IN_SET {
-                        result_summary.is_allowed = Some(false);
-                        result_summary.message = "Not found in allowlist".to_string();
-                    };
-                    Ok((StatusCode::OK, Json(result_summary)))
-                }
-                Err(e) => Err(internal_server_error(result_summary, "Lookup issue", e)),
-            }
-        }
-        Err(e) => Err(redis_connection_error(result_summary, e)),
-    }
+    let (mut result_summary, parsed_address) =
+        default_result_summary_with_parsed_address(request_address.clone(), "Found in allowlist")?;
+    let mut connection = pool
+        .get()
+        .await
+        .map_err(|e| redis_connection_error(result_summary.clone(), e))?;
+    if connection
+        .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
+        .await
+        .map_err(|e| internal_server_error(result_summary.clone(), "Add member issue", e))?
+        == NOT_IN_SET
+    {
+        result_summary.is_allowed = Some(false);
+        result_summary.message = "Not found in allowlist".to_string();
+    };
+    Ok((StatusCode::OK, Json(result_summary)))
 }
 
 async fn add_to_allowlist(
     State(pool): State<Pool<RedisConnectionManager>>,
     Path(request_address): Path<String>,
 ) -> RequestResult {
-    let mut result_summary = default_result_summary(request_address.clone(), "Added to allowlist")?;
-    match pool.get().await {
-        Ok(mut conn) => {
-            match conn
-                .sadd::<&str, &str, i32>(SET_NAME, &result_summary.parsed_address.clone().unwrap())
-                .await
-            {
-                Ok(add_result) => {
-                    if add_result == NOT_ADDED {
-                        result_summary.message = "Already allowed".to_string();
-                    };
-                    Ok((StatusCode::OK, Json(result_summary)))
-                }
-                Err(e) => Err(internal_server_error(result_summary, "Add member issue", e)),
-            }
-        }
-        Err(e) => Err(redis_connection_error(result_summary, e)),
-    }
+    let (mut result_summary, parsed_address) =
+        default_result_summary_with_parsed_address(request_address.clone(), "Added to allowlist")?;
+    let mut connection = pool
+        .get()
+        .await
+        .map_err(|e| redis_connection_error(result_summary.clone(), e))?;
+    if connection
+        .sadd::<&str, &str, i32>(SET_NAME, &parsed_address)
+        .await
+        .map_err(|e| internal_server_error(result_summary.clone(), "Add member issue", e))?
+        == NOT_ADDED
+    {
+        result_summary.message = "Already allowed".to_string();
+    };
+    Ok((StatusCode::OK, Json(result_summary)))
 }
 
-fn default_result_summary(
+fn default_result_summary_with_parsed_address(
     request_address: String,
     result_message: &str,
-) -> Result<RequestSummary, (StatusCode, Json<RequestSummary>)> {
+) -> Result<(RequestSummary, String), CodedSummary> {
     let account_address = AccountAddress::try_from(request_address.clone()).map_err(|_| {
         (
             StatusCode::BAD_REQUEST,
@@ -121,19 +112,23 @@ fn default_result_summary(
             }),
         )
     })?;
-    Ok(RequestSummary {
-        request_address,
-        parsed_address: Some(account_address.to_hex_literal()),
-        is_allowed: Some(true),
-        message: result_message.to_string(),
-    })
+    let parsed_address = account_address.to_hex_literal();
+    Ok((
+        RequestSummary {
+            request_address,
+            parsed_address: Some(parsed_address.clone()),
+            is_allowed: Some(true),
+            message: result_message.to_string(),
+        },
+        parsed_address,
+    ))
 }
 
 fn internal_server_error(
     mut request_summary: RequestSummary,
     message_header: &str,
     e: redis::RedisError,
-) -> (StatusCode, Json<RequestSummary>) {
+) -> CodedSummary {
     request_summary.message = format!("{}: {}", message_header, e);
     (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
 }
@@ -141,7 +136,7 @@ fn internal_server_error(
 fn redis_connection_error(
     mut request_summary: RequestSummary,
     e: bb8::RunError<redis::RedisError>,
-) -> (StatusCode, Json<RequestSummary>) {
+) -> CodedSummary {
     request_summary.message = format!("Redis connection issue: {}", e);
     (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
 }
