@@ -1,6 +1,8 @@
 // cspell:word sadd
 // cspell:word sismember
 
+use std::env::VarError;
+
 use axum::{
     async_trait,
     extract::{rejection::PathRejection, FromRef, FromRequestParts, Path},
@@ -39,6 +41,44 @@ enum CodedRequestSummary {
     SuccessfulRequest { request_summary: RequestSummary },
 }
 
+#[derive(strum_macros::Display)]
+enum EnvironmentVariable {
+    #[strum(to_string = "REDIS_URL")]
+    RedisURL,
+    #[strum(to_string = "LISTENER_URL")]
+    ListenerURL,
+}
+
+#[derive(thiserror::Error, Debug)]
+enum EnvironmentVariableError {
+    #[error("Could not parse Redis URL environment variable: {0}")]
+    RedisURL(VarError),
+    #[error("Could not listener URL environment variable: {0}")]
+    ListenerURL(VarError),
+}
+
+#[derive(strum_macros::Display)]
+enum PingPong {
+    #[strum(to_string = "PING")]
+    Ping,
+    #[strum(to_string = "PONG")]
+    Pong,
+}
+
+#[derive(thiserror::Error, Debug)]
+enum RedisInitError {
+    #[error("Could not get a connection from the connection manager: {0}")]
+    Connection(RunError<RedisError>),
+    #[error("Could not start a Redis connection manager: {0}")]
+    ConnectionManager(RedisError),
+    #[error("Redis connection init ping unsuccessful: {0}")]
+    Ping(RunError<RedisError>),
+    #[error("Redis connection init ping did not pong correctly: {0}")]
+    Pong(String),
+    #[error("Redis connection init pool error: {0}")]
+    Pool(RedisError),
+}
+
 #[derive(thiserror::Error, Debug)]
 enum RequestError {
     #[error("Add member error: {0}")]
@@ -52,7 +92,6 @@ enum RequestError {
     #[error("Redis connection error: {0}")]
     RedisConnection(RunError<RedisError>),
 }
-
 #[derive(Clone, Serialize)]
 /// REST API response summary.
 struct RequestSummary {
@@ -81,23 +120,43 @@ enum SummaryMessage {
 }
 
 #[tokio::main]
-async fn main() {
-    // Get a Redis connection, verify a key can be set and retrieved.
-    let manager = RedisConnectionManager::new("redis://localhost").unwrap();
-    let pool = bb8::Pool::builder().build(manager).await.unwrap();
+async fn main() -> Result<(), String> {
+    // Get environment variables.
+    let redis_url = std::env::var(EnvironmentVariable::RedisURL.to_string())
+        .map_err(|error| EnvironmentVariableError::RedisURL(error).to_string())?;
+    let listener_url = std::env::var(EnvironmentVariable::ListenerURL.to_string())
+        .map_err(|error| EnvironmentVariableError::ListenerURL(error).to_string())?;
+
+    // Start Redis connection.
+    let manager = RedisConnectionManager::new(redis_url)
+        .map_err(|error| RedisInitError::ConnectionManager(error).to_string())?;
+    let pool = bb8::Pool::builder()
+        .build(manager)
+        .await
+        .map_err(|error| RedisInitError::Pool(error).to_string())?;
+
+    // Verify Redis ping pong check.
     {
-        let mut conn = pool.get().await.unwrap();
-        conn.set::<&str, &str, ()>("foo", "bar").await.unwrap();
-        let result: String = conn.get("foo").await.unwrap();
-        assert_eq!(result, "bar");
+        let mut connection = pool
+            .get()
+            .await
+            .map_err(|error| RedisInitError::Connection(error).to_string())?;
+        let pong = redis::cmd(&PingPong::Ping.to_string())
+            .query_async(&mut *connection)
+            .await
+            .map_err(|error| RedisInitError::Ping(RunError::User(error)).to_string())?;
+        if pong != PingPong::Pong.to_string() {
+            return Err(RedisInitError::Pong(pong).to_string());
+        };
     }
 
+    // Start the server.
     let app = Router::new()
         .route("/:request_address", get(is_allowed).post(add_to_allowlist))
         .with_state(pool);
-
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind(listener_url).await.unwrap();
     axum::serve(listener, app).await.unwrap();
+    Ok(())
 }
 
 async fn is_allowed(
