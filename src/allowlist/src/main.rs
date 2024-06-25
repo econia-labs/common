@@ -63,12 +63,8 @@ enum CodedRequestSummary {
 impl From<CodedRequestSummary> for RequestResult {
     fn from(result: CodedRequestSummary) -> Self {
         match result {
-            CodedRequestSummary::SuccessfulRequest { request_summary } => {
-                Ok((StatusCode::OK, Json(request_summary)))
-            }
-            CodedRequestSummary::InternalError { request_summary } => {
-                Err((StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary)))
-            }
+            CodedRequestSummary::SuccessfulRequest { .. } => Ok(CodedSummary::from(result)),
+            CodedRequestSummary::InternalError { .. } => Err(CodedSummary::from(result)),
         }
     }
 }
@@ -162,9 +158,11 @@ async fn is_allowed(
         .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
         .map_err(|error| {
-            request_summary.message = SummaryMessage::IsMemberLookupError { error }.to_string();
             CodedSummary::from(CodedRequestSummary::InternalError {
-                request_summary: request_summary.clone(),
+                request_summary: RequestSummary {
+                    message: SummaryMessage::IsMemberLookupError { error }.to_string(),
+                    ..request_summary.clone()
+                },
             })
         })?
         == NOT_IN_SET
@@ -187,9 +185,11 @@ async fn add_to_allowlist(
         .sadd::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
         .map_err(|error| {
-            request_summary.message = SummaryMessage::AddMemberError { error }.to_string();
             CodedSummary::from(CodedRequestSummary::InternalError {
-                request_summary: request_summary.clone(),
+                request_summary: RequestSummary {
+                    message: SummaryMessage::AddMemberError { error }.to_string(),
+                    ..request_summary.clone()
+                },
             })
         })?
         == NOT_ADDED
