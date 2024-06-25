@@ -55,44 +55,31 @@ enum SummaryMessage {
     RedisConnectionError { error: RunError<RedisError> },
 }
 
-enum CodedSummaryResult {
-    SuccessfulRequest {
-        request_summary: RequestSummary,
-    },
-    InternalError {
-        request_summary: RequestSummary,
-        error: SummaryMessage,
-    },
+enum CodedRequestSummary {
+    SuccessfulRequest { request_summary: RequestSummary },
+    InternalError { request_summary: RequestSummary },
 }
 
-impl From<CodedSummaryResult> for RequestResult {
-    fn from(result: CodedSummaryResult) -> Self {
+impl From<CodedRequestSummary> for RequestResult {
+    fn from(result: CodedRequestSummary) -> Self {
         match result {
-            CodedSummaryResult::SuccessfulRequest { request_summary } => {
+            CodedRequestSummary::SuccessfulRequest { request_summary } => {
                 Ok((StatusCode::OK, Json(request_summary)))
             }
-            CodedSummaryResult::InternalError {
-                mut request_summary,
-                error,
-            } => {
-                request_summary.message = error.to_string();
+            CodedRequestSummary::InternalError { request_summary } => {
                 Err((StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary)))
             }
         }
     }
 }
 
-impl From<CodedSummaryResult> for CodedSummary {
-    fn from(result: CodedSummaryResult) -> Self {
+impl From<CodedRequestSummary> for CodedSummary {
+    fn from(result: CodedRequestSummary) -> Self {
         match result {
-            CodedSummaryResult::SuccessfulRequest { request_summary } => {
+            CodedRequestSummary::SuccessfulRequest { request_summary } => {
                 (StatusCode::OK, Json(request_summary))
             }
-            CodedSummaryResult::InternalError {
-                mut request_summary,
-                error,
-            } => {
-                request_summary.message = error.to_string();
+            CodedRequestSummary::InternalError { request_summary } => {
                 (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
             }
         }
@@ -175,9 +162,9 @@ async fn is_allowed(
         .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
         .map_err(|error| {
-            CodedSummary::from(CodedSummaryResult::InternalError {
+            request_summary.message = SummaryMessage::IsMemberLookupError { error }.to_string();
+            CodedSummary::from(CodedRequestSummary::InternalError {
                 request_summary: request_summary.clone(),
-                error: SummaryMessage::IsMemberLookupError { error },
             })
         })?
         == NOT_IN_SET
@@ -185,7 +172,7 @@ async fn is_allowed(
         request_summary.is_allowed = Some(false);
         request_summary.message = SummaryMessage::NotFoundInAllowlist.to_string();
     };
-    CodedSummaryResult::SuccessfulRequest { request_summary }.into()
+    CodedRequestSummary::SuccessfulRequest { request_summary }.into()
 }
 
 async fn add_to_allowlist(
@@ -200,16 +187,16 @@ async fn add_to_allowlist(
         .sadd::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
         .map_err(|error| {
-            CodedSummary::from(CodedSummaryResult::InternalError {
+            request_summary.message = SummaryMessage::AddMemberError { error }.to_string();
+            CodedSummary::from(CodedRequestSummary::InternalError {
                 request_summary: request_summary.clone(),
-                error: SummaryMessage::AddMemberError { error },
             })
         })?
         == NOT_ADDED
     {
         request_summary.message = SummaryMessage::AlreadyAllowed.to_string();
     };
-    CodedSummaryResult::SuccessfulRequest { request_summary }.into()
+    CodedRequestSummary::SuccessfulRequest { request_summary }.into()
 }
 
 fn default_request_summary_with_parsed_address(
