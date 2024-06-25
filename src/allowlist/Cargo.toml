@@ -2,15 +2,15 @@
 
 [dependencies]
 axum = {version = "0.7.5", features = ["macros"]}
-bb8 = "0.8.5"
+bb8 = {version = "0.8.5"}
 bb8-redis = "0.15.0"
-move-core-types = {workspace = true}
+move-core-types = {git = "https://github.com/aptos-labs/aptos-core"}
 redis = "0.25.4"
 thiserror = "1.0.61"
-serde = {workspace = true}
+serde = {version = "1.0", features = ["derive", "rc"]}
 strum = "0.26"
 strum_macros = "0.26"
-tokio = {workspace = true}
+tokio = {version = "1.37.0", features = ["rt-multi-thread"]}
 
 [package]
 edition = "2021"

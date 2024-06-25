@@ -6,12 +6,6 @@ members = [
 ]
 resolver = "2"
 
-[workspace.dependencies]
-bb8 = {version = "0.8.5"}
-move-core-types = {git = "https://github.com/aptos-labs/aptos-core"}
-serde = {version = "1.0", features = ["derive", "rc"]}
-tokio = {version = "1.37.0", features = ["rt-multi-thread"]}
-
 [workspace.package]
 authors = ["Econia Labs <developers@econialabs.com>"]
 edition = "2021"
