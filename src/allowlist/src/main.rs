@@ -16,6 +16,9 @@ use move_core_types::account_address::{AccountAddress, AccountAddressParseError}
 use redis::{AsyncCommands, RedisError};
 use serde::Serialize;
 
+/// The request path specifier for the request address.
+const REQUEST_PATH: &str = "/:request_address";
+
 /// The name of the Redis set that contains the allowlist.
 const SET_NAME: &str = "allowlist";
 
@@ -35,12 +38,7 @@ struct PreparedConnection(
     String,
 );
 
-enum CodedRequestSummary {
-    BadRequest { request_summary: RequestSummary },
-    InternalError { request_summary: RequestSummary },
-    SuccessfulRequest { request_summary: RequestSummary },
-}
-
+/// Environment variables used by the server.
 #[derive(strum_macros::Display)]
 enum EnvironmentVariable {
     #[strum(to_string = "REDIS_URL")]
@@ -49,6 +47,7 @@ enum EnvironmentVariable {
     ListenerURL,
 }
 
+/// Errors that can occur when reading environment variables.
 #[derive(thiserror::Error, Debug)]
 enum EnvironmentVariableError {
     #[error("Could not parse Redis URL environment variable: {0}")]
@@ -57,6 +56,7 @@ enum EnvironmentVariableError {
     ListenerURL(VarError),
 }
 
+/// Literals for Redis ping pong check.
 #[derive(strum_macros::Display)]
 enum PingPong {
     #[strum(to_string = "PING")]
@@ -65,6 +65,7 @@ enum PingPong {
     Pong,
 }
 
+/// Errors that can occur when initializing the Redis connection.
 #[derive(thiserror::Error, Debug)]
 enum RedisInitError {
     #[error("Could not get a connection from the connection manager: {0}")]
@@ -79,25 +80,31 @@ enum RedisInitError {
     Pool(RedisError),
 }
 
+/// Errors that can occur when processing a request.
 #[derive(thiserror::Error, Debug)]
 enum RequestError {
     #[error("Add member error: {0}")]
     AddMember(RedisError),
     #[error("Could not parse address: {0}")]
     CouldNotParseAddress(AccountAddressParseError),
-    #[error("Could not parse address: {0}")]
+    #[error("Could not parse address request path: {0}")]
     CouldNotParseRequestPath(PathRejection),
     #[error("Is member lookup error: {0}")]
     IsMemberLookup(RedisError),
     #[error("Redis connection error: {0}")]
     RedisConnection(RunError<RedisError>),
 }
+
+/// Summary of a server request, returned to user upon query.
 #[derive(Clone, Serialize)]
-/// REST API response summary.
 struct RequestSummary {
+    /// The address provided by the user during the request, for example `0001234`.
     request_address: String,
+    /// AIP-40 hex literal used for database operations, for example `0x1234`.
     parsed_address: Option<String>,
+    /// Whether the address is allowed.
     is_allowed: Option<bool>,
+    /// Additional information about the request.
     message: String,
 }
 
@@ -107,6 +114,7 @@ enum SetOperationResult {
     IsMember,
 }
 
+/// Happy path summary messages.
 #[derive(strum_macros::Display)]
 enum SummaryMessage {
     #[strum(to_string = "Added to allowlist")]
@@ -119,6 +127,17 @@ enum SummaryMessage {
     NotFoundInAllowlist,
 }
 
+/// Integer representation of a Redis set operation result.
+impl From<SetOperationResult> for i32 {
+    fn from(result: SetOperationResult) -> Self {
+        match result {
+            SetOperationResult::AddedToSet => 1,
+            SetOperationResult::IsMember => 1,
+        }
+    }
+}
+
+/// Load environment variables and start the server.
 #[tokio::main]
 async fn main() -> Result<(), String> {
     // Get environment variables.
@@ -152,13 +171,14 @@ async fn main() -> Result<(), String> {
 
     // Start the server.
     let app = Router::new()
-        .route("/:request_address", get(is_allowed).post(add_to_allowlist))
+        .route(REQUEST_PATH, get(is_allowed).post(add_to_allowlist))
         .with_state(pool);
     let listener = tokio::net::TcpListener::bind(listener_url).await.unwrap();
     axum::serve(listener, app).await.unwrap();
     Ok(())
 }
 
+/// Check if an address is allowed.
 async fn is_allowed(
     PreparedConnection(mut connection, mut request_summary, parsed_address): PreparedConnection,
 ) -> RequestResult {
@@ -166,16 +186,24 @@ async fn is_allowed(
         .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
         .map_err(|error| {
-            map_internal_error(request_summary.clone(), RequestError::IsMemberLookup(error))
+            map_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                request_summary.clone(),
+                RequestError::IsMemberLookup(error),
+            )
         })?
-        != i32::from(SetOperationResult::IsMember)
+        == i32::from(SetOperationResult::IsMember)
     {
+        request_summary.is_allowed = Some(true);
+        request_summary.message = SummaryMessage::FoundInAllowlist.to_string();
+    } else {
         request_summary.is_allowed = Some(false);
         request_summary.message = SummaryMessage::NotFoundInAllowlist.to_string();
-    };
-    CodedRequestSummary::SuccessfulRequest { request_summary }.into()
+    }
+    Ok((StatusCode::OK, Json(request_summary)))
 }
 
+/// Add an address to the allowlist.
 async fn add_to_allowlist(
     PreparedConnection(mut connection, mut request_summary, parsed_address): PreparedConnection,
 ) -> RequestResult {
@@ -183,7 +211,11 @@ async fn add_to_allowlist(
         .sadd::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
         .map_err(|error| {
-            map_internal_error(request_summary.clone(), RequestError::AddMember(error))
+            map_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                request_summary.clone(),
+                RequestError::AddMember(error),
+            )
         })?
         == i32::from(SetOperationResult::AddedToSet)
     {
@@ -191,18 +223,30 @@ async fn add_to_allowlist(
     } else {
         request_summary.message = SummaryMessage::AlreadyAllowed.to_string();
     };
-    CodedRequestSummary::SuccessfulRequest { request_summary }.into()
+    request_summary.is_allowed = Some(true);
+    Ok((StatusCode::OK, Json(request_summary)))
 }
 
-fn map_internal_error(request_summary: RequestSummary, error: RequestError) -> CodedSummary {
-    CodedSummary::from(CodedRequestSummary::InternalError {
-        request_summary: RequestSummary {
-            message: error.to_string(),
+/// Map an arbitrary error into a status code and a request summary.
+fn map_error(
+    status_code: StatusCode,
+    request_summary: RequestSummary,
+    request_error: RequestError,
+) -> CodedSummary {
+    (
+        status_code,
+        Json(RequestSummary {
+            message: request_error.to_string(),
             ..request_summary
-        },
-    })
+        }),
+    )
 }
 
+/// Custom extractor to parse an address and a get a connection to the Redis database.
+///
+/// See:
+/// - https://docs.rs/axum/0.7.5/axum/extract/index.html
+/// - https://github.com/tokio-rs/axum/blob/main/examples/tokio-redis/src/main.rs
 #[async_trait]
 impl<S> FromRequestParts<S> for PreparedConnection
 where
@@ -212,34 +256,34 @@ where
     type Rejection = CodedSummary;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        // Try to extract the request address from the path.
+        // Construct default request summary.
         let mut request_summary = RequestSummary {
             request_address: "".to_string(),
             parsed_address: None,
             is_allowed: None,
             message: "".to_string(),
         };
+
+        // Parse request address.
         let Path(request_address): Path<String> = Path::from_request_parts(parts, state)
             .await
             .map_err(|error| {
-                CodedSummary::from(CodedRequestSummary::BadRequest {
-                    request_summary: RequestSummary {
-                        message: RequestError::CouldNotParseRequestPath(error).to_string(),
-                        ..request_summary.clone()
-                    },
-                })
+                map_error(
+                    StatusCode::BAD_REQUEST,
+                    request_summary.clone(),
+                    RequestError::CouldNotParseRequestPath(error),
+                )
             })?;
         request_summary.request_address.clone_from(&request_address);
 
-        // Try parsing address.
+        // Parse account address.
         let account_address =
             AccountAddress::try_from(request_address.clone()).map_err(|error| {
-                CodedSummary::from(CodedRequestSummary::BadRequest {
-                    request_summary: RequestSummary {
-                        message: RequestError::CouldNotParseAddress(error).to_string(),
-                        ..request_summary.clone()
-                    },
-                })
+                map_error(
+                    StatusCode::BAD_REQUEST,
+                    request_summary.clone(),
+                    RequestError::CouldNotParseAddress(error),
+                )
             })?;
         let parsed_address = account_address.to_hex_literal();
         request_summary.parsed_address = Some(parsed_address.clone());
@@ -247,53 +291,12 @@ where
         // Get a connection to the Redis database.
         let pool = ConnectionPool::from_ref(state);
         let connection = pool.get_owned().await.map_err(|error| {
-            CodedSummary::from(CodedRequestSummary::InternalError {
-                request_summary: RequestSummary {
-                    message: RequestError::RedisConnection(error).to_string(),
-                    ..request_summary.clone()
-                },
-            })
+            map_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                request_summary.clone(),
+                RequestError::RedisConnection(error),
+            )
         })?;
-
-        // Assume the address is allowed by default.
-        request_summary.is_allowed = Some(true);
-        request_summary.message = SummaryMessage::FoundInAllowlist.to_string();
         Ok(Self(connection, request_summary, parsed_address))
-    }
-}
-
-impl From<CodedRequestSummary> for CodedSummary {
-    fn from(result: CodedRequestSummary) -> Self {
-        match result {
-            CodedRequestSummary::BadRequest { request_summary } => {
-                (StatusCode::BAD_REQUEST, Json(request_summary))
-            }
-            CodedRequestSummary::InternalError { request_summary } => {
-                (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
-            }
-            CodedRequestSummary::SuccessfulRequest { request_summary } => {
-                (StatusCode::OK, Json(request_summary))
-            }
-        }
-    }
-}
-
-impl From<CodedRequestSummary> for RequestResult {
-    fn from(result: CodedRequestSummary) -> Self {
-        match result {
-            CodedRequestSummary::BadRequest { .. } => Err(CodedSummary::from(result)),
-            CodedRequestSummary::InternalError { .. } => Err(CodedSummary::from(result)),
-            CodedRequestSummary::SuccessfulRequest { .. } => Ok(CodedSummary::from(result)),
-        }
-    }
-}
-
-/// Integer representation of a Redis set operation result.
-impl From<SetOperationResult> for i32 {
-    fn from(result: SetOperationResult) -> Self {
-        match result {
-            SetOperationResult::AddedToSet => 1,
-            SetOperationResult::IsMember => 1,
-        }
     }
 }
