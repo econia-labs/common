@@ -10,10 +10,9 @@ use axum::{
 };
 use bb8::{Pool, PooledConnection, RunError};
 use bb8_redis::RedisConnectionManager;
-use move_core_types::account_address::AccountAddress;
+use move_core_types::account_address::{AccountAddress, AccountAddressParseError};
 use redis::{AsyncCommands, RedisError};
 use serde::Serialize;
-use std::fmt;
 
 /// The name of the Redis set that contains the allowlist.
 const SET_NAME: &str = "allowlist";
@@ -44,15 +43,30 @@ struct RequestSummary {
     message: String,
 }
 
+#[derive(strum_macros::Display)]
 enum SummaryMessage {
+    #[strum(to_string = "Found in allowlist")]
     FoundInAllowlist,
+    #[strum(to_string = "Not found in allowlist")]
     NotFoundInAllowlist,
+    #[strum(to_string = "Added to allowlist")]
     AddedToAllowlist,
+    #[strum(to_string = "Already allowed")]
     AlreadyAllowed,
+    #[strum(to_string = "Could not parse address")]
     CouldNotParseAddress,
-    IsMemberLookupError { error: RedisError },
-    AddMemberError { error: RedisError },
-    RedisConnectionError { error: RunError<RedisError> },
+}
+
+#[derive(thiserror::Error, Debug)]
+enum RequestError {
+    #[error("Add member error: {0}")]
+    AddMember(RedisError),
+    #[error("Could not parse address: {0}")]
+    CouldNotParseAddress(AccountAddressParseError),
+    #[error("Is member lookup error: {0}")]
+    IsMemberLookup(RedisError),
+    #[error("Redis connection error: {0}")]
+    RedisConnection(RunError<RedisError>),
 }
 
 enum CodedRequestSummary {
@@ -82,25 +96,6 @@ impl From<CodedRequestSummary> for CodedSummary {
     }
 }
 
-impl fmt::Display for SummaryMessage {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::FoundInAllowlist => write!(f, "Found in allowlist"),
-            Self::NotFoundInAllowlist => write!(f, "Not found in allowlist"),
-            Self::AddedToAllowlist => write!(f, "Added to allowlist"),
-            Self::AlreadyAllowed => write!(f, "Already allowed"),
-            Self::CouldNotParseAddress => write!(f, "Could not parse address"),
-            Self::IsMemberLookupError { error } => {
-                write!(f, "Is member lookup error: {error}")
-            }
-            Self::AddMemberError { error } => write!(f, "Add member error: {error}"),
-            Self::RedisConnectionError { error } => {
-                write!(f, "Redis connection error: {error}")
-            }
-        }
-    }
-}
-
 #[async_trait]
 impl<S> FromRequestParts<S> for DatabaseConnection
 where
@@ -110,17 +105,20 @@ where
     type Rejection = CodedSummary;
 
     async fn from_request_parts(_parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let request_summary = RequestSummary {
+            request_address: "".to_string(),
+            parsed_address: None,
+            is_allowed: None,
+            message: "".to_string(),
+        };
         let pool = ConnectionPool::from_ref(state);
-        let conn = pool.get_owned().await.map_err(|e| {
-            internal_error(
-                RequestSummary {
-                    request_address: "".to_string(),
-                    parsed_address: None,
-                    is_allowed: None,
-                    message: "".to_string(),
+        let conn = pool.get_owned().await.map_err(|error| {
+            CodedSummary::from(CodedRequestSummary::InternalError {
+                request_summary: RequestSummary {
+                    message: RequestError::RedisConnection(error).to_string(),
+                    ..request_summary.clone()
                 },
-                SummaryMessage::RedisConnectionError { error: e },
-            )
+            })
         })?;
         Ok(Self(conn))
     }
@@ -160,7 +158,7 @@ async fn is_allowed(
         .map_err(|error| {
             CodedSummary::from(CodedRequestSummary::InternalError {
                 request_summary: RequestSummary {
-                    message: SummaryMessage::IsMemberLookupError { error }.to_string(),
+                    message: RequestError::IsMemberLookup(error).to_string(),
                     ..request_summary.clone()
                 },
             })
@@ -187,7 +185,7 @@ async fn add_to_allowlist(
         .map_err(|error| {
             CodedSummary::from(CodedRequestSummary::InternalError {
                 request_summary: RequestSummary {
-                    message: SummaryMessage::AddMemberError { error }.to_string(),
+                    message: RequestError::AddMember(error).to_string(),
                     ..request_summary.clone()
                 },
             })
@@ -224,12 +222,4 @@ fn default_request_summary_with_parsed_address(
         },
         parsed_address,
     ))
-}
-
-fn internal_error(
-    mut request_summary: RequestSummary,
-    summary_message: SummaryMessage,
-) -> CodedSummary {
-    request_summary.message = summary_message.to_string();
-    (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
 }
