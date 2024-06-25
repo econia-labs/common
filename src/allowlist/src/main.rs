@@ -17,12 +17,6 @@ use serde::Serialize;
 /// The name of the Redis set that contains the allowlist.
 const SET_NAME: &str = "allowlist";
 
-/// The value that indicates a member is not in the set.
-const NOT_IN_SET: i32 = 0;
-
-/// The value that indicates a member was not added to the set, since it was already present.
-const NOT_ADDED: i32 = 0;
-
 /// A tuple containing a status code and a JSON-serialized request summary.
 type CodedSummary = (StatusCode, Json<RequestSummary>);
 
@@ -59,6 +53,12 @@ enum SummaryMessage {
     NotFoundInAllowlist,
 }
 
+/// Result of a Redis set operation.
+enum SetOperationResult {
+    AddedToSet,
+    IsMember,
+}
+
 #[derive(thiserror::Error, Debug)]
 enum RequestError {
     #[error("Add member error: {0}")]
@@ -79,30 +79,69 @@ enum CodedRequestSummary {
     SuccessfulRequest { request_summary: RequestSummary },
 }
 
-impl From<CodedRequestSummary> for RequestResult {
-    fn from(result: CodedRequestSummary) -> Self {
-        match result {
-            CodedRequestSummary::BadRequest { .. } => Err(CodedSummary::from(result)),
-            CodedRequestSummary::InternalError { .. } => Err(CodedSummary::from(result)),
-            CodedRequestSummary::SuccessfulRequest { .. } => Ok(CodedSummary::from(result)),
-        }
+#[tokio::main]
+async fn main() {
+    // Get a Redis connection, verify a key can be set and retrieved.
+    let manager = RedisConnectionManager::new("redis://localhost").unwrap();
+    let pool = bb8::Pool::builder().build(manager).await.unwrap();
+    {
+        let mut conn = pool.get().await.unwrap();
+        conn.set::<&str, &str, ()>("foo", "bar").await.unwrap();
+        let result: String = conn.get("foo").await.unwrap();
+        assert_eq!(result, "bar");
     }
+
+    let app = Router::new()
+        .route("/:request_address", get(is_allowed).post(add_to_allowlist))
+        .with_state(pool);
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
 
-impl From<CodedRequestSummary> for CodedSummary {
-    fn from(result: CodedRequestSummary) -> Self {
-        match result {
-            CodedRequestSummary::BadRequest { request_summary } => {
-                (StatusCode::BAD_REQUEST, Json(request_summary))
-            }
-            CodedRequestSummary::InternalError { request_summary } => {
-                (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
-            }
-            CodedRequestSummary::SuccessfulRequest { request_summary } => {
-                (StatusCode::OK, Json(request_summary))
-            }
-        }
-    }
+async fn is_allowed(
+    PreparedConnection(mut connection, mut request_summary, parsed_address): PreparedConnection,
+) -> RequestResult {
+    if connection
+        .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
+        .await
+        .map_err(|error| {
+            CodedSummary::from(CodedRequestSummary::InternalError {
+                request_summary: RequestSummary {
+                    message: RequestError::IsMemberLookup(error).to_string(),
+                    ..request_summary.clone()
+                },
+            })
+        })?
+        != i32::from(SetOperationResult::IsMember)
+    {
+        request_summary.is_allowed = Some(false);
+        request_summary.message = SummaryMessage::NotFoundInAllowlist.to_string();
+    };
+    CodedRequestSummary::SuccessfulRequest { request_summary }.into()
+}
+
+async fn add_to_allowlist(
+    PreparedConnection(mut connection, mut request_summary, parsed_address): PreparedConnection,
+) -> RequestResult {
+    if connection
+        .sadd::<&str, &str, i32>(SET_NAME, &parsed_address)
+        .await
+        .map_err(|error| {
+            CodedSummary::from(CodedRequestSummary::InternalError {
+                request_summary: RequestSummary {
+                    message: RequestError::AddMember(error).to_string(),
+                    ..request_summary.clone()
+                },
+            })
+        })?
+        == i32::from(SetOperationResult::AddedToSet)
+    {
+        request_summary.message = SummaryMessage::AddedToAllowlist.to_string();
+    } else {
+        request_summary.message = SummaryMessage::AlreadyAllowed.to_string();
+    };
+    CodedRequestSummary::SuccessfulRequest { request_summary }.into()
 }
 
 #[async_trait]
@@ -164,67 +203,38 @@ where
     }
 }
 
-#[tokio::main]
-async fn main() {
-    // Get a Redis connection, verify a key can be set and retrieved.
-    let manager = RedisConnectionManager::new("redis://localhost").unwrap();
-    let pool = bb8::Pool::builder().build(manager).await.unwrap();
-    {
-        let mut conn = pool.get().await.unwrap();
-        conn.set::<&str, &str, ()>("foo", "bar").await.unwrap();
-        let result: String = conn.get("foo").await.unwrap();
-        assert_eq!(result, "bar");
+/// Integer representation of a Redis set operation result.
+impl From<SetOperationResult> for i32 {
+    fn from(result: SetOperationResult) -> Self {
+        match result {
+            SetOperationResult::AddedToSet => 1,
+            SetOperationResult::IsMember => 1,
+        }
     }
-
-    let app = Router::new()
-        .route("/:request_address", get(is_allowed).post(add_to_allowlist))
-        .with_state(pool);
-
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
 }
 
-async fn is_allowed(
-    PreparedConnection(mut connection, mut request_summary, parsed_address): PreparedConnection,
-) -> RequestResult {
-    if connection
-        .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
-        .await
-        .map_err(|error| {
-            CodedSummary::from(CodedRequestSummary::InternalError {
-                request_summary: RequestSummary {
-                    message: RequestError::IsMemberLookup(error).to_string(),
-                    ..request_summary.clone()
-                },
-            })
-        })?
-        == NOT_IN_SET
-    {
-        request_summary.is_allowed = Some(false);
-        request_summary.message = SummaryMessage::NotFoundInAllowlist.to_string();
-    };
-    CodedRequestSummary::SuccessfulRequest { request_summary }.into()
+impl From<CodedRequestSummary> for RequestResult {
+    fn from(result: CodedRequestSummary) -> Self {
+        match result {
+            CodedRequestSummary::BadRequest { .. } => Err(CodedSummary::from(result)),
+            CodedRequestSummary::InternalError { .. } => Err(CodedSummary::from(result)),
+            CodedRequestSummary::SuccessfulRequest { .. } => Ok(CodedSummary::from(result)),
+        }
+    }
 }
 
-async fn add_to_allowlist(
-    PreparedConnection(mut connection, mut request_summary, parsed_address): PreparedConnection,
-) -> RequestResult {
-    if connection
-        .sadd::<&str, &str, i32>(SET_NAME, &parsed_address)
-        .await
-        .map_err(|error| {
-            CodedSummary::from(CodedRequestSummary::InternalError {
-                request_summary: RequestSummary {
-                    message: RequestError::AddMember(error).to_string(),
-                    ..request_summary.clone()
-                },
-            })
-        })?
-        == NOT_ADDED
-    {
-        request_summary.message = SummaryMessage::AlreadyAllowed.to_string();
-    } else {
-        request_summary.message = SummaryMessage::AddedToAllowlist.to_string();
+impl From<CodedRequestSummary> for CodedSummary {
+    fn from(result: CodedRequestSummary) -> Self {
+        match result {
+            CodedRequestSummary::BadRequest { request_summary } => {
+                (StatusCode::BAD_REQUEST, Json(request_summary))
+            }
+            CodedRequestSummary::InternalError { request_summary } => {
+                (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
+            }
+            CodedRequestSummary::SuccessfulRequest { request_summary } => {
+                (StatusCode::OK, Json(request_summary))
+            }
+        }
     }
-    CodedRequestSummary::SuccessfulRequest { request_summary }.into()
 }
