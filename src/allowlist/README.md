@@ -65,12 +65,12 @@ exit
 
 ```sh
 REQUESTED_ADDRESS=0x123
-curl localhost:3000/$REQUESTED_ADDRESS
+curl localhost:3000/$REQUESTED_ADDRESS | jq
 ```
 
 ```sh
-REQUESTED_ADDRESS=0x1234
-curl localhost:3000/$REQUESTED_ADDRESS -X POST
+REQUESTED_ADDRESS=0x12345
+curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 ```
 
 ## References
