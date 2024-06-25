@@ -20,6 +20,9 @@ const SET_NAME: &str = "allowlist";
 /// A tuple containing a status code and a JSON-serialized request summary.
 type CodedSummary = (StatusCode, Json<RequestSummary>);
 
+/// The connection pool for the Redis database.
+type ConnectionPool = Pool<RedisConnectionManager>;
+
 /// The result of a request, which is either a successful response or an error response.
 type RequestResult = Result<CodedSummary, CodedSummary>;
 
@@ -30,33 +33,10 @@ struct PreparedConnection(
     String,
 );
 
-/// The connection pool for the Redis database.
-type ConnectionPool = Pool<RedisConnectionManager>;
-
-#[derive(Clone, Serialize)]
-struct RequestSummary {
-    request_address: String,
-    parsed_address: Option<String>,
-    is_allowed: Option<bool>,
-    message: String,
-}
-
-#[derive(strum_macros::Display)]
-enum SummaryMessage {
-    #[strum(to_string = "Added to allowlist")]
-    AddedToAllowlist,
-    #[strum(to_string = "Already allowed")]
-    AlreadyAllowed,
-    #[strum(to_string = "Found in allowlist")]
-    FoundInAllowlist,
-    #[strum(to_string = "Not found in allowlist")]
-    NotFoundInAllowlist,
-}
-
-/// Result of a Redis set operation.
-enum SetOperationResult {
-    AddedToSet,
-    IsMember,
+enum CodedRequestSummary {
+    BadRequest { request_summary: RequestSummary },
+    InternalError { request_summary: RequestSummary },
+    SuccessfulRequest { request_summary: RequestSummary },
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -73,10 +53,31 @@ enum RequestError {
     RedisConnection(RunError<RedisError>),
 }
 
-enum CodedRequestSummary {
-    BadRequest { request_summary: RequestSummary },
-    InternalError { request_summary: RequestSummary },
-    SuccessfulRequest { request_summary: RequestSummary },
+#[derive(Clone, Serialize)]
+/// REST API response summary.
+struct RequestSummary {
+    request_address: String,
+    parsed_address: Option<String>,
+    is_allowed: Option<bool>,
+    message: String,
+}
+
+/// Result of a Redis set operation.
+enum SetOperationResult {
+    AddedToSet,
+    IsMember,
+}
+
+#[derive(strum_macros::Display)]
+enum SummaryMessage {
+    #[strum(to_string = "Added to allowlist")]
+    AddedToAllowlist,
+    #[strum(to_string = "Already allowed")]
+    AlreadyAllowed,
+    #[strum(to_string = "Found in allowlist")]
+    FoundInAllowlist,
+    #[strum(to_string = "Not found in allowlist")]
+    NotFoundInAllowlist,
 }
 
 #[tokio::main]
@@ -106,12 +107,7 @@ async fn is_allowed(
         .sismember::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
         .map_err(|error| {
-            CodedSummary::from(CodedRequestSummary::InternalError {
-                request_summary: RequestSummary {
-                    message: RequestError::IsMemberLookup(error).to_string(),
-                    ..request_summary.clone()
-                },
-            })
+            map_internal_error(request_summary.clone(), RequestError::IsMemberLookup(error))
         })?
         != i32::from(SetOperationResult::IsMember)
     {
@@ -128,12 +124,7 @@ async fn add_to_allowlist(
         .sadd::<&str, &str, i32>(SET_NAME, &parsed_address)
         .await
         .map_err(|error| {
-            CodedSummary::from(CodedRequestSummary::InternalError {
-                request_summary: RequestSummary {
-                    message: RequestError::AddMember(error).to_string(),
-                    ..request_summary.clone()
-                },
-            })
+            map_internal_error(request_summary.clone(), RequestError::AddMember(error))
         })?
         == i32::from(SetOperationResult::AddedToSet)
     {
@@ -142,6 +133,15 @@ async fn add_to_allowlist(
         request_summary.message = SummaryMessage::AlreadyAllowed.to_string();
     };
     CodedRequestSummary::SuccessfulRequest { request_summary }.into()
+}
+
+fn map_internal_error(request_summary: RequestSummary, error: RequestError) -> CodedSummary {
+    CodedSummary::from(CodedRequestSummary::InternalError {
+        request_summary: RequestSummary {
+            message: error.to_string(),
+            ..request_summary
+        },
+    })
 }
 
 #[async_trait]
@@ -203,12 +203,18 @@ where
     }
 }
 
-/// Integer representation of a Redis set operation result.
-impl From<SetOperationResult> for i32 {
-    fn from(result: SetOperationResult) -> Self {
+impl From<CodedRequestSummary> for CodedSummary {
+    fn from(result: CodedRequestSummary) -> Self {
         match result {
-            SetOperationResult::AddedToSet => 1,
-            SetOperationResult::IsMember => 1,
+            CodedRequestSummary::BadRequest { request_summary } => {
+                (StatusCode::BAD_REQUEST, Json(request_summary))
+            }
+            CodedRequestSummary::InternalError { request_summary } => {
+                (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
+            }
+            CodedRequestSummary::SuccessfulRequest { request_summary } => {
+                (StatusCode::OK, Json(request_summary))
+            }
         }
     }
 }
@@ -223,18 +229,12 @@ impl From<CodedRequestSummary> for RequestResult {
     }
 }
 
-impl From<CodedRequestSummary> for CodedSummary {
-    fn from(result: CodedRequestSummary) -> Self {
+/// Integer representation of a Redis set operation result.
+impl From<SetOperationResult> for i32 {
+    fn from(result: SetOperationResult) -> Self {
         match result {
-            CodedRequestSummary::BadRequest { request_summary } => {
-                (StatusCode::BAD_REQUEST, Json(request_summary))
-            }
-            CodedRequestSummary::InternalError { request_summary } => {
-                (StatusCode::INTERNAL_SERVER_ERROR, Json(request_summary))
-            }
-            CodedRequestSummary::SuccessfulRequest { request_summary } => {
-                (StatusCode::OK, Json(request_summary))
-            }
+            SetOperationResult::AddedToSet => 1,
+            SetOperationResult::IsMember => 1,
         }
     }
 }
