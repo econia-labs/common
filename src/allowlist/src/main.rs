@@ -65,9 +65,11 @@ enum PingPong {
     Pong,
 }
 
-/// Errors that can occur when initializing the Redis connection.
+/// Errors that can occur when initializing the server.
 #[derive(thiserror::Error, Debug)]
-enum RedisInitError {
+enum InitError {
+    #[error("Could not bind listener: {0}")]
+    BindListener(std::io::Error),
     #[error("Could not get a connection from the connection manager: {0}")]
     Connection(RunError<RedisError>),
     #[error("Could not start a Redis connection manager: {0}")]
@@ -78,6 +80,8 @@ enum RedisInitError {
     Pong(String),
     #[error("Redis connection init pool error: {0}")]
     Pool(RedisError),
+    #[error("Could not serve listener: {0}")]
+    ServeListener(std::io::Error),
 }
 
 /// Errors that can occur when processing a request.
@@ -148,24 +152,24 @@ async fn main() -> Result<(), String> {
 
     // Start Redis connection.
     let manager = RedisConnectionManager::new(redis_url)
-        .map_err(|error| RedisInitError::ConnectionManager(error).to_string())?;
+        .map_err(|error| InitError::ConnectionManager(error).to_string())?;
     let pool = bb8::Pool::builder()
         .build(manager)
         .await
-        .map_err(|error| RedisInitError::Pool(error).to_string())?;
+        .map_err(|error| InitError::Pool(error).to_string())?;
 
     // Verify Redis ping pong check.
     {
         let mut connection = pool
             .get()
             .await
-            .map_err(|error| RedisInitError::Connection(error).to_string())?;
+            .map_err(|error| InitError::Connection(error).to_string())?;
         let pong = redis::cmd(&PingPong::Ping.to_string())
             .query_async(&mut *connection)
             .await
-            .map_err(|error| RedisInitError::Ping(RunError::User(error)).to_string())?;
+            .map_err(|error| InitError::Ping(RunError::User(error)).to_string())?;
         if pong != PingPong::Pong.to_string() {
-            return Err(RedisInitError::Pong(pong).to_string());
+            return Err(InitError::Pong(pong).to_string());
         };
     }
 
@@ -173,8 +177,12 @@ async fn main() -> Result<(), String> {
     let app = Router::new()
         .route(REQUEST_PATH, get(is_allowed).post(add_to_allowlist))
         .with_state(pool);
-    let listener = tokio::net::TcpListener::bind(listener_url).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(listener_url)
+        .await
+        .map_err(|error| InitError::BindListener(error).to_string())?;
+    axum::serve(listener, app)
+        .await
+        .map_err(|error| InitError::ServeListener(error).to_string())?;
     Ok(())
 }
 
