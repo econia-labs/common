@@ -43,8 +43,8 @@ struct PreparedConnection(
 enum EnvironmentVariable {
     #[strum(to_string = "REDIS_URL")]
     RedisURL,
-    #[strum(to_string = "LISTENER_URL")]
-    ListenerURL,
+    #[strum(to_string = "SERVER_URL")]
+    ServerURL,
 }
 
 /// Errors that can occur when reading environment variables.
@@ -52,8 +52,8 @@ enum EnvironmentVariable {
 enum EnvironmentVariableError {
     #[error("Could not parse Redis URL environment variable: {0}")]
     RedisURL(VarError),
-    #[error("Could not listener URL environment variable: {0}")]
-    ListenerURL(VarError),
+    #[error("Could not server URL environment variable: {0}")]
+    ServerURL(VarError),
 }
 
 /// Literals for Redis ping pong check.
@@ -147,8 +147,8 @@ async fn main() -> Result<(), String> {
     // Get environment variables.
     let redis_url = std::env::var(EnvironmentVariable::RedisURL.to_string())
         .map_err(|error| EnvironmentVariableError::RedisURL(error).to_string())?;
-    let listener_url = std::env::var(EnvironmentVariable::ListenerURL.to_string())
-        .map_err(|error| EnvironmentVariableError::ListenerURL(error).to_string())?;
+    let listener_url = std::env::var(EnvironmentVariable::ServerURL.to_string())
+        .map_err(|error| EnvironmentVariableError::ServerURL(error).to_string())?;
 
     // Start Redis connection.
     let manager = RedisConnectionManager::new(redis_url)
