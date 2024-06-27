@@ -18,58 +18,17 @@ docker compose up --detach
 docker compose down
 ```
 
-## Interactive Redis interaction
-
-With local deployment live, start an interactive session:
-
-```sh
-redis-cli
-```
-
-Verify the connection:
-
-```sh
-ping
-```
-
-Add elements to an `allowlist` set:
-
-```sh
-SADD allowlist "0x123"
-SADD allowlist "0xface"
-```
-
-View all members:
-
-```sh
-SMEMBERS allowlist
-```
-
-Check membership:
-
-```sh
-SISMEMBER allowlist "0x123"
-```
-
-```sh
-SISMEMBER allowlist "0xbee"
-```
-
-Exit the session:
-
-```sh
-exit
-```
-
-## Server commands, local mockup
+## Check if address is allowed
 
 ```sh
 REQUESTED_ADDRESS=0x123
 curl localhost:3000/$REQUESTED_ADDRESS | jq
 ```
 
+## Add address to allowlist
+
 ```sh
-REQUESTED_ADDRESS=0x12345
+REQUESTED_ADDRESS=0x123
 curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 ```
 

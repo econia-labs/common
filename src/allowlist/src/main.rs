@@ -15,6 +15,7 @@ use bb8_redis::RedisConnectionManager;
 use move_core_types::account_address::{AccountAddress, AccountAddressParseError};
 use redis::{AsyncCommands, RedisError};
 use serde::Serialize;
+use tracing::info;
 
 /// The request path specifier for the request address.
 const REQUEST_PATH: &str = "/:request_address";
@@ -84,6 +85,22 @@ enum InitError {
     ServeListener(std::io::Error),
 }
 
+#[derive(strum_macros::Display)]
+enum InfoMessage {
+    #[strum(to_string = "Added address {0} to allowlist")]
+    AddedToAllowlist(String),
+    #[strum(to_string = "Starting Redis connection at {0}")]
+    ConnectingToRedis(String),
+    #[strum(to_string = "Redis ping pong check completed successfully")]
+    RedisPingPongCheck,
+    #[strum(to_string = "Request received for unparsed address {0}")]
+    RequestAddress(String),
+    #[strum(to_string = "Server listening on {0}")]
+    ServerListening(String),
+    #[strum(to_string = "Starting server at {0}")]
+    StartingServer(String),
+}
+
 /// Errors that can occur when processing a request.
 #[derive(thiserror::Error, Debug)]
 enum RequestError {
@@ -144,13 +161,17 @@ impl From<SetOperationResult> for i32 {
 /// Load environment variables and start the server.
 #[tokio::main]
 async fn main() -> Result<(), String> {
-    // Get environment variables.
+    // Get environment variables, initialize logging.
     let redis_url = std::env::var(EnvironmentVariable::RedisURL.to_string())
         .map_err(|error| EnvironmentVariableError::RedisURL(error).to_string())?;
     let listener_url = std::env::var(EnvironmentVariable::ServerURL.to_string())
         .map_err(|error| EnvironmentVariableError::ServerURL(error).to_string())?;
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .init();
 
     // Start Redis connection.
+    info!("{}", InfoMessage::ConnectingToRedis(redis_url.clone()));
     let manager = RedisConnectionManager::new(redis_url)
         .map_err(|error| InitError::ConnectionManager(error).to_string())?;
     let pool = bb8::Pool::builder()
@@ -172,14 +193,17 @@ async fn main() -> Result<(), String> {
             return Err(InitError::Pong(pong).to_string());
         };
     }
+    info!("{}", InfoMessage::RedisPingPongCheck);
 
     // Start the server.
+    info!("{}", InfoMessage::StartingServer(listener_url.clone()));
     let app = Router::new()
         .route(REQUEST_PATH, get(is_allowed).post(add_to_allowlist))
         .with_state(pool);
-    let listener = tokio::net::TcpListener::bind(listener_url)
+    let listener = tokio::net::TcpListener::bind(listener_url.clone())
         .await
         .map_err(|error| InitError::BindListener(error).to_string())?;
+    info!("{}", InfoMessage::ServerListening(listener_url));
     axum::serve(listener, app)
         .await
         .map_err(|error| InitError::ServeListener(error).to_string())?;
@@ -227,6 +251,7 @@ async fn add_to_allowlist(
         })?
         == i32::from(SetOperationResult::AddedToSet)
     {
+        info!("{}", InfoMessage::AddedToAllowlist(parsed_address.clone()));
         request_summary.message = SummaryMessage::AddedToAllowlist.to_string();
     } else {
         request_summary.message = SummaryMessage::AlreadyAllowed.to_string();
@@ -282,6 +307,7 @@ where
                     RequestError::CouldNotParseRequestPath(error),
                 )
             })?;
+        info!("{}", InfoMessage::RequestAddress(request_address.clone()));
         request_summary.request_address.clone_from(&request_address);
 
         // Parse account address.

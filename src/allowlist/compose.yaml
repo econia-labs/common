@@ -2,6 +2,18 @@
 services:
   redis:
     image: 'redis:7.2.5-alpine3.20'
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - 'redis'
+    environment:
+      REDIS_URL: 'redis://redis:6379'
+      SERVER_URL: '0.0.0.0:3000'
+    links:
+      - 'redis'
     ports:
-    - '6379:6379'
+      - '3000:3000'
+    restart: 'unless-stopped'
 ...
