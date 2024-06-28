@@ -280,10 +280,6 @@ fn map_error(
 }
 
 /// Custom extractor to parse an address and a get a connection to the Redis database.
-///
-/// See:
-/// - https://docs.rs/axum/0.7.5/axum/extract/index.html
-/// - https://github.com/tokio-rs/axum/blob/main/examples/tokio-redis/src/main.rs
 #[async_trait]
 impl<S> FromRequestParts<S> for PreparedConnection
 where
@@ -301,7 +297,7 @@ where
             message: "".to_string(),
         };
 
-        // Parse request address.
+        // Parse request address by accessing a nested extractor.
         let Path(request_address): Path<String> = Path::from_request_parts(parts, state)
             .await
             .map_err(|error| {

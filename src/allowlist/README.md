@@ -6,6 +6,13 @@ cspell:word smembers
 
 # Allowlist
 
+## Design
+
+`allowlist` combines a Redis in-memory database with an asynchronous REST API.
+The server, implemented in Rust, is modeled of a [basic `axum` example] and
+adapts features from an [`axum` with Redis example], in particular its
+[custom extractor], extended to [access a nested extractor].
+
 ## Start local deployment
 
 ```sh
@@ -33,11 +40,6 @@ curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 ```
 
 ## References
-
-### Axum
-
-- [Basic `axum` example]
-- [`axum` with Redis example]
 
 ### Static linking
 
@@ -73,6 +75,8 @@ curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 - [`rust-alpine-mimalloc`]
 - [`rust-static-builder`]
 
+[custom extractor]: https://github.com/tokio-rs/axum/blob/035c8a36b591bb81b8d107c701ac4b14c0230da3/examples/tokio-redis/src/main.rs#L75
+[access a nested extractor]: https://docs.rs/axum/0.7.5/axum/extract/index.html#accessing-other-extractors-in-fromrequest-or-fromrequestparts-implementations
 [`muslrust`]: https://github.com/clux/muslrust
 [basic `axum` example]: https://github.com/tokio-rs/axum/tree/main?tab=readme-ov-file#usage-example
 [building x86 rust containers from mac silicon]: https://loige.co/building_x86_rust-containers-from-mac-silicon/
