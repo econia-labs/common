@@ -68,10 +68,10 @@ curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 #### Repositories
 
 - [`alpine-mimalloc`]
-- [`rust-alpine-mimalloc`]
-- [`rust-static-builder`]
 - [`mimalloc`]
 - [`muslrust`]
+- [`rust-alpine-mimalloc`]
+- [`rust-static-builder`]
 
 [`muslrust`]: https://github.com/clux/muslrust
 [basic `axum` example]: https://github.com/tokio-rs/axum/tree/main?tab=readme-ov-file#usage-example
