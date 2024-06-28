@@ -43,5 +43,5 @@ RUN mv $(find target/*/release/$BIN_NAME) target/$BIN_NAME
 FROM chainguard/static:latest as runtime
 ARG BIN_NAME
 COPY --chown=nonroot:nonroot --from=builder \
-    /volume/target/$BIN_NAME /$BIN_NAME
-CMD /$BIN_NAME
+    /volume/target/$BIN_NAME /executable
+ENTRYPOINT ["/executable"]
