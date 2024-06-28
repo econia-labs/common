@@ -12,10 +12,14 @@ use axum::{
 };
 use bb8::{Pool, PooledConnection, RunError};
 use bb8_redis::RedisConnectionManager;
+use mimalloc::MiMalloc;
 use move_core_types::account_address::{AccountAddress, AccountAddressParseError};
 use redis::{AsyncCommands, RedisError};
 use serde::Serialize;
 use tracing::info;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 /// The request path specifier for the request address.
 const REQUEST_PATH: &str = "/:request_address";

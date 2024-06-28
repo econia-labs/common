@@ -1,11 +1,9 @@
-FROM rust:1.79-alpine3.20 as builder
-WORKDIR /allowlist
+FROM clux/muslrust:1.79.0-stable as builder
 COPY . .
-RUN apk add 'musl-dev=1.2.5-r0'
-RUN cargo build --release
+RUN cargo build --bin allowlist --release
 
-FROM alpine:3.20 as runtime
-COPY --from=builder \
-    /allowlist/target/release/allowlist \
-    /usr/local/bin/allowlist
-CMD ["allowlist"]
+FROM chainguard/static:latest as runtime
+COPY --from=builder --chown=nonroot:nonroot \
+    /volume/target/release/allowlist \
+    /app/allowlist
+CMD ["/app/allowlist"]

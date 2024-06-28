@@ -11,4 +11,4 @@ authors = ["Econia Labs <developers@econialabs.com>"]
 edition = "2021"
 homepage = "https://www.econialabs.com"
 license = "Apache-2.0"
-rust-version = "1.70"
+rust-version = "1.79.0"
