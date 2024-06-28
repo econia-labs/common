@@ -22,7 +22,3 @@ tag = "aptos-node-v1.15.2"
 edition = "2021"
 name = "allowlist"
 version = "1.0.0"
-
-[profile.release]
-codegen-units = 1
-lto = "fat"

@@ -12,3 +12,7 @@ edition = "2021"
 homepage = "https://www.econialabs.com"
 license = "Apache-2.0"
 rust-version = "1.79.0"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
