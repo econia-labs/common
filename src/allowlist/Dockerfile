@@ -54,12 +54,14 @@ RUN mv "$(find target/*/release/"$BIN_NAME")" target/"$BIN_NAME"
 # been statically linked. Negate the resulting output and pass it to an if/then
 # statement such that if there is no match for the expected message, the
 # command exits with a nonzero status code, causing the build to fail.
+# hadolint ignore=DL4006
 RUN if ! ldd target/"$BIN_NAME" 2>&1 | grep 'not a dynamic executable'; \
     then echo "failed static link check"; exit 1; fi
 
-# Copy the static binary to a minimal image.
+# Copy the static binary to a minimal image. Note Chainguard's static image
+# only has a latest tag, so the image is not pinned to a specific version
+# hadolint ignore=DL3007
 FROM chainguard/static:latest as runtime
 ARG BIN_NAME
-COPY --chown=nonroot:nonroot --from=builder \
-    /target/$BIN_NAME /executable
+COPY --chown=nonroot:nonroot --from=builder /target/$BIN_NAME /executable
 ENTRYPOINT ["/executable"]
