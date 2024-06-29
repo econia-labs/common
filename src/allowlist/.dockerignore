@@ -1,5 +1,0 @@
-# Ignore everything unless explicitly allowed.
-*
-
-!src/main.rs
-!Cargo.toml
