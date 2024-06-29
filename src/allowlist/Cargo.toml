@@ -1,4 +1,6 @@
+# cspell:word mimalloc
 # cspell:word serde
+# cspell:word thiserror
 
 [dependencies]
 axum = {version = "0.7.5", features = ["macros"]}

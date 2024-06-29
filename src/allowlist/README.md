@@ -1,4 +1,7 @@
 <!--
+cspell:word chainguard
+cspell:word mimalloc
+cspell:word muslrust
 cspell:word sadd
 cspell:word sismember
 cspell:word smembers

@@ -1,3 +1,8 @@
+# cspell:word chainguard
+# cspell:word clux
+# cspell:word muslrust
+# cspell:word nonroot
+
 # Declare minimal workspace layout relative to repository root.
 ARG CARGO_WORKSPACE_DIR=src
 ARG BIN_NAME=allowlist
@@ -9,26 +14,30 @@ RUN cargo install cargo-chef@0.1.67
 
 # Replicate minimal workspace layout.
 ARG BIN_DIR BIN_NAME CARGO_WORKSPACE_DIR
+WORKDIR /
 COPY $CARGO_WORKSPACE_DIR/Cargo.toml .
 COPY $BIN_DIR/Cargo.toml ./$BIN_NAME/
 COPY $BIN_DIR/src ./$BIN_NAME/src
 
 # Prepare build dependency recipe.
-RUN cargo chef prepare --bin $BIN_NAME
+RUN cargo chef prepare --bin "$BIN_NAME"
 
 # Compile and cache build dependencies in a separate layer.
 FROM clux/muslrust:1.79.0-stable as cacher
 RUN cargo install cargo-chef@0.1.67
-COPY --from=planner /volume/recipe.json recipe.json
+WORKDIR /
+COPY --from=planner /recipe.json recipe.json
 ARG BIN_NAME
 RUN cargo chef cook --bin $BIN_NAME --release
 
 # Start another layer to build from cached dependencies.
 FROM clux/muslrust:1.79.0-stable as builder
-COPY --from=cacher /volume/target target
+WORKDIR /
+COPY --from=cacher /target target
 COPY --from=cacher /root/.cargo /root/.cargo
 
 # Replicate minimal workspace layout.
+WORKDIR /
 ARG BIN_DIR BIN_NAME CARGO_WORKSPACE_DIR
 COPY $CARGO_WORKSPACE_DIR/Cargo.toml .
 COPY $BIN_DIR/Cargo.toml ./$BIN_NAME/
@@ -36,8 +45,8 @@ COPY $BIN_DIR/src ./$BIN_NAME/src
 
 # Build target binary, then move it to a predictable location by removing it
 # from the release directory named after the build architecture.
-RUN cargo build --bin $BIN_NAME --release
-RUN mv $(find target/*/release/$BIN_NAME) target/$BIN_NAME
+RUN cargo build --bin "$BIN_NAME" --release
+RUN mv "$(find target/*/release/"$BIN_NAME")" target/"$BIN_NAME"
 
 # When ldd is passed a path to a statically linked binary, it prints "not a
 # dynamic executable" to stderr and exits with an error. Hence redirect stderr
@@ -45,12 +54,12 @@ RUN mv $(find target/*/release/$BIN_NAME) target/$BIN_NAME
 # been statically linked. Negate the resulting output and pass it to an if/then
 # statement such that if there is no match for the expected message, the
 # command exits with a nonzero status code, causing the build to fail.
-RUN if ! ldd target/$BIN_NAME 2>&1 | grep 'not a dynamic executable'; \
+RUN if ! ldd target/"$BIN_NAME" 2>&1 | grep 'not a dynamic executable'; \
     then echo "failed static link check"; exit 1; fi
 
 # Copy the static binary to a minimal image.
 FROM chainguard/static:latest as runtime
 ARG BIN_NAME
 COPY --chown=nonroot:nonroot --from=builder \
-    /volume/target/$BIN_NAME /executable
+    /target/$BIN_NAME /executable
 ENTRYPOINT ["/executable"]
