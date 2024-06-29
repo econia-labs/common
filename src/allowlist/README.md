@@ -65,22 +65,20 @@ is only 3.1 MB.
 
 ## Running a local deployment
 
-From repository root:
-
 ```sh
-docker compose --file src/allowlist/compose.yaml up
+docker compose up
 ```
 
 Or in detached mode:
 
 ```sh
-docker compose --file src/allowlist/compose.yaml up --detach
+docker compose --detach
 ```
 
 To stop from detached mode:
 
 ```sh
-docker compose --file src/allowlist/compose.yaml down
+docker compose down
 ```
 
 ## Check if address is allowed
