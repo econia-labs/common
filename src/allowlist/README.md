@@ -17,12 +17,12 @@ database connection [custom extractor] which is extended here with a
 The `allowlist` binary leverages the [`mimalloc` crate] as a drop-in
 [global allocator] solution, which is required to prevent asynchronous
 performance regression for static (standalone) binaries compiled via `musl` (see
-[1][supercharging your rust static executables with mimalloc],
-[2][testing alternative c memory allocators pt 2: the musl mystery],
-[3][static linking for rust without glibc - scratch image]). Notably, this
+[here][supercharging your rust static executables with mimalloc],
+[here][testing alternative c memory allocators pt 2: the musl mystery], and
+[here][static linking for rust without glibc - scratch image]). Notably, this
 approach eliminates the requirement for a Docker build image with a
-manually-patched allocator (see [1][`rust-alpine-mimalloc`], [2][`mimalloc`],
-[3][`alpine-mimalloc`]).
+manually-patched allocator (see [here][`rust-alpine-mimalloc`],
+[here][`mimalloc`], and [here][`alpine-mimalloc`]).
 
 Static containerization is performed via the [`muslrust`] image due to its
 extensively useful documentation (in particular its examples and
@@ -82,14 +82,14 @@ curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 - [Looking for the perfect Dockerfile for Rust]
 - [Rust linker fails when using target-feature=+crt-static on nightly]
 
+### Repositories
+
+- [`rust-static-builder`]
+
 ### Rust docs
 
 - [Static and dynamic C runtimes]
 - [`target-feature`]
-
-### Repositories
-
-- [`rust-static-builder`]
 
 [basic `axum` example]: https://github.com/tokio-rs/axum/tree/main?tab=readme-ov-file#usage-example
 [building x86 rust containers from mac silicon]: https://loige.co/building_x86_rust-containers-from-mac-silicon/
