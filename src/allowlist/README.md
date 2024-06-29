@@ -39,16 +39,24 @@ image layer (rather than in a `scratch` layer, which is discouraged).
 For more about static compilation, see also the
 [below references](#supplemental-static-binary-references).
 
-## Start local deployment
+## Running a local deployment
+
+From repository root:
 
 ```sh
-docker compose up --detach
+docker compose --file src/allowlist/compose.yaml up
 ```
 
-## Stop local deployment
+Or in detached mode:
 
 ```sh
-docker compose down
+docker compose --file src/allowlist/compose.yaml up --detach
+```
+
+To stop from detached mode:
+
+```sh
+docker compose --file src/allowlist/compose.yaml down
 ```
 
 ## Check if address is allowed
