@@ -39,21 +39,18 @@ COPY $BIN_DIR/src ./$BIN_NAME/src
 RUN cargo build --bin $BIN_NAME --release
 RUN mv $(find target/*/release/$BIN_NAME) target/$BIN_NAME
 
-# When `ldd` is run on a statically linked binary, it exits with a nonzero
-# status code and prints "not a dynamic executable" to stderr. Hence redirect
-# stderr to stdout, then grep for the string "not a dynamic executable" to
-# check that the library has been statically linked. Negate the output of the
-# grep command, such that if there is no match for the expected message, the
-# command will exit with a nonzero status code, causing the build to fail.
-RUN if ! echo $(ldd target/allowlist 2>&1) | grep 'not a dynamic executable'; \
+# When ldd is passed a path to a statically linked binary, it prints "not a
+# dynamic executable" to stderr and exits with an error. Hence redirect stderr
+# to stdout, then grep for the expected message to check that the binary has
+# been statically linked. Negate the resulting output and pass it to an if/then
+# statement such that if there is no match for the expected message, the
+# command exits with a nonzero status code, causing the build to fail.
+RUN if ! ldd target/$BIN_NAME 2>&1 | grep 'not a dynamic executable'; \
     then echo "failed static link check"; exit 1; fi
 
-#RUN if echo $(ldd target/$BIN_NAME) | grep -q 'not a dynamic executable'; then exit 1; fi
-#RUN if echo $(ldd allowlist) | grep -q 'not a dynnamic executable'; then exit 1; fi
-
-## Copy the static binary to a minimal image.
-#FROM chainguard/static:latest as runtime
-#ARG BIN_NAME
-#COPY --chown=nonroot:nonroot --from=builder \
-#/volume/target/$BIN_NAME /executable
-#ENTRYPOINT ["/executable"]
+# Copy the static binary to a minimal image.
+FROM chainguard/static:latest as runtime
+ARG BIN_NAME
+COPY --chown=nonroot:nonroot --from=builder \
+    /volume/target/$BIN_NAME /executable
+ENTRYPOINT ["/executable"]
