@@ -45,9 +45,10 @@ COPY $BIN_DIR/Cargo.toml ./$BIN_NAME/
 COPY $BIN_DIR/src ./$BIN_NAME/src
 
 # Build target binary, then move it to a predictable location by removing it
-# from the release directory named after the build architecture.
+# from the release directory named after the build architecture. Then strip it.
 RUN cargo build --bin "$BIN_NAME" --release
 RUN mv "$(find target/*/release/"$BIN_NAME")" target/"$BIN_NAME"
+RUN strip target/"$BIN_NAME"
 
 # When ldd is passed a path to a statically linked binary, it prints a message
 # to stderr indicating that the binary is statically linked, then exits with an
@@ -59,7 +60,8 @@ RUN mv "$(find target/*/release/"$BIN_NAME")" target/"$BIN_NAME"
 # do a logical OR of the two grep commands and negate the result. Finally, use
 # the result of the negation to determine whether to exit with a nonzero status
 # code, causing the build to fail.
-RUN MSG=$(ldd target/"$BIN_NAME" 2>&1); if ! ( \
+# hadolint ignore=DL4006,SC2086
+RUN MSG="$(ldd target/"$BIN_NAME" 2>&1)"; if ! ( \
     ( echo $MSG | grep 'not a dynamic executable' ) || \
     ( echo $MSG | grep 'statically linked' ); \
     ); then echo "failed static link check"; exit 1; fi
