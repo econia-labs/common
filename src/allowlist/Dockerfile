@@ -24,10 +24,12 @@ COPY $BIN_DIR/src /$BIN_NAME/src
 # Prepare build dependency recipe.
 RUN cargo chef prepare --bin "$BIN_NAME"
 
-# Compile and cache build dependencies in a separate layer.
+# Start new layer for building binary to avoid invalidating cache when Rust
+# source code changes but planner dependencies do not.
 FROM base AS builder
 ARG BIN_DIR BIN_NAME CARGO_WORKSPACE_DIR
 
+# Copy build dependencies from planner stage, and compile them.
 COPY --from=planner /recipe.json /recipe.json
 RUN RUST_BACKTRACE=full cargo chef cook --bin "$BIN_NAME" --release
 
