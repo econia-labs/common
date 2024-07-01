@@ -4,7 +4,6 @@ jobs:
   docker:
     runs-on: 'ubuntu-latest'
     steps:
-    timeout-minutes: 360
     - uses: 'actions/checkout@v4'
     - uses: 'docker/setup-qemu-action@v3'
     - uses: 'docker/setup-buildx-action@v3'
@@ -15,6 +14,7 @@ jobs:
         cache-to: 'type=gha,mode=max'
         file: 'src/allowlist/Dockerfile'
         platforms: 'linux/amd64,linux/arm64'
+    timeout-minutes: 360
 name: 'Verify allowlist Docker image build'
 'on':
   pull_request: null
