@@ -1,5 +1,6 @@
 # cspell:word chainguard
 # cspell:word clux
+# cspell:word hadolint
 # cspell:word muslrust
 # cspell:word nonroot
 
