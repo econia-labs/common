@@ -57,7 +57,7 @@ RUN mv "$(find target/*/release/"$BIN_NAME")" target/"$BIN_NAME"
 # command exits with a nonzero status code, causing the build to fail.
 # hadolint ignore=DL4006
 RUN if ! ldd target/"$BIN_NAME" 2>&1 | grep 'not a dynamic executable'; \
-    then echo "failed static link check"; exit 1; fi
+    then echo "failed static link check"; exit 123; fi
 
 # Copy the static binary to a minimal image. Note Chainguard's static image
 # only has a latest tag, so the image is not pinned to a specific version
