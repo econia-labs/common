@@ -29,7 +29,7 @@ RUN cargo install cargo-chef@0.1.67
 WORKDIR /
 COPY --from=planner /recipe.json recipe.json
 ARG BIN_NAME
-RUN RUST_BACKTRACE=1 cargo chef cook --bin $BIN_NAME --release
+RUN RUST_BACKTRACE=full cargo chef cook --bin $BIN_NAME --release
 
 # Start another layer to build from cached dependencies.
 FROM clux/muslrust:1.79.0-stable AS builder
