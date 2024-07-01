@@ -61,7 +61,13 @@ Per [`muslrust`] best practice recommendations, [`cargo-chef`] is used for image
 layer caching, and the final executable is stored in a [`chainguard/static`]
 base image (rather than `scratch`) as additionally recommended
 [here][`kube.rs` best practices]. This approach yields a final Docker image that
-is only 3.1 MB.
+is only 2.5 MB when compiled on an `arm64` machine.
+
+### Deployment automation
+
+`allowlist` is cross-compiled into a [multi-platform image] and uses
+[layer caching on GitHub Actions]. Since [`muslrust`] only provides `arm64` and
+`amd64` base images, `allowlist` is only compiled for these two architectures.
 
 ## Running a local deployment
 
@@ -104,7 +110,9 @@ curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 [how to create small docker images for rust]: https://kerkour.com/rust-small-docker-image
 [how to generate statically linked executables?]: https://stackoverflow.com/a/31778003
 [how to package rust applications into minimal docker containers]: https://alexbrand.dev/post/how-to-package-rust-applications-into-minimal-docker-containers/
+[layer caching on github actions]: https://docs.docker.com/build/ci/github-actions/cache/#github-cache
 [looking for the perfect dockerfile for rust]: https://www.reddit.com/r/rust/comments/16bswvl/comment/jzh6enu/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+[multi-platform image]: https://docs.docker.com/build/ci/github-actions/multi-platform/
 [nested extractor]: https://docs.rs/axum/0.7.5/axum/extract/index.html#accessing-other-extractors-in-fromrequest-or-fromrequestparts-implementations
 [rust linker fails when using target-feature=+crt-static on nightly]: https://stackoverflow.com/questions/76604929
 [static and dynamic c runtimes]: https://doc.rust-lang.org/reference/linkage.html#static-and-dynamic-c-runtimes
