@@ -25,7 +25,6 @@ jobs:
         context: 'src/muslrust-chef'
         labels: '${{ steps.metadata.outputs.labels }}'
         platforms: '${{ env.MUSLRUST_PLATFORMS }}'
-        push: 'true'
         tags: '${{ steps.metadata.outputs.tags }}'
 name: 'Push muslrust-chef to Docker Hub'
 'on':
