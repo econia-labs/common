@@ -2,7 +2,7 @@
 ARG BINARY=allowlist
 
 # Declare base image and working directory.
-FROM econia-labs/muslrust-chef:1.0.0 AS base
+FROM econialabs/muslrust-chef:ECO-1882 AS base
 WORKDIR /app
 
 # Plan build dependencies in a standalone layer for caching.
