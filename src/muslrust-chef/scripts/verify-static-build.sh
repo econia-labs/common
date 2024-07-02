@@ -11,7 +11,7 @@
 # logical OR of the two grep commands and negate the result. Finally, use the
 # result of the negation to determine whether to exit with a nonzero status
 # code, causing the build to fail.
-MSG="$(ldd executable 2>&1)"
+MSG="$(ldd /executable 2>&1)"
 if ! (
 	(echo $MSG | grep 'not a dynamic executable') ||
 		(echo $MSG | grep 'statically linked')
