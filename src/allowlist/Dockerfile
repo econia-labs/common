@@ -5,7 +5,7 @@ ARG BINARY=allowlist
 FROM econia-labs/muslrust-chef:1.0.0 AS base
 WORKDIR /app
 
-# Plan build dependencies in a stanalone layer for caching.
+# Plan build dependencies in a standalone layer for caching.
 FROM base AS planner
 ARG BINARY
 COPY . .
