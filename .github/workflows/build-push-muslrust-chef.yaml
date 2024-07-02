@@ -24,7 +24,7 @@ jobs:
         cache-to: 'type=gha,mode=max'
         context: 'src/muslrust-chef'
         labels: '${{ steps.metadata.outputs.labels }}'
-        platforms: '${{ var.MUSLRUST_PLATFORMS }}'
+        platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
         push: 'true'
         tags: '${{ steps.metadata.outputs.tags }}'
 name: 'Push muslrust-chef to Docker Hub'
