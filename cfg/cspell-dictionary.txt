@@ -2,7 +2,7 @@ aptos
 chainguard
 dockerhub
 econia
-hadolint
+mimalloc
 muslrust
 nonroot
 xbtmatt

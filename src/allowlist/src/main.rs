@@ -1,4 +1,3 @@
-// cspell:word mimalloc
 // cspell:word sadd
 // cspell:word sismember
 // cspell:word thiserror

@@ -1,3 +1,4 @@
+# cspell:word hadolint
 ARG BINARY=allowlist
 
 # Declare base image and working directory.
