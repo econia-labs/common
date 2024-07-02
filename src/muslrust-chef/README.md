@@ -40,7 +40,7 @@ due to its extensive instructive documentation (in particular its examples and
 [`mimalloc` commentary]), though notably there are several other comparable
 solutions including [`rust-musl-builder`], which contains a useful index of
 associated projects. Note too that [`cargo-chef` recommends `muslrust` for
-static compilation].
+static compilation][`cargo-chef` recommends `muslrust` for static compilation].
 
 Per [`muslrust`] best practice recommendations, as reflected in the
 [`allowlist` Dockerfile] example, [`cargo-chef`] is suggested for
@@ -50,29 +50,23 @@ recommended [here][`kube.rs` best practices]. In the case of the
 [`allowlist` Dockerfile], This approach yields a final Docker image that is only
 several MB when compiled on an `arm64` machine.
 
-
-[basic `axum` example]: https://github.com/tokio-rs/axum/tree/main?tab=readme-ov-file#usage-example
-[building x86 rust containers from mac silicon]: https://loige.co/building_x86_rust-containers-from-mac-silicon/
-[cross-compiling static rust binaries in docker for raspberry pi]: https://jakewharton.com/cross-compiling-static-rust-binaries-in-docker-for-raspberry-pi/
-[custom extractor]: https://github.com/tokio-rs/axum/blob/035c8a36b591bb81b8d107c701ac4b14c0230da3/examples/tokio-redis/src/main.rs#L75
 [docker "from scratch" for rust applications]: https://www.21analytics.ch/blog/docker-from-scratch-for-rust-applications/
 [global allocator]: https://doc.rust-lang.org/std/alloc/index.html#the-global_allocator-attribute
 [how to create small docker images for rust]: https://kerkour.com/rust-small-docker-image
 [how to generate statically linked executables?]: https://stackoverflow.com/a/31778003
 [how to package rust applications into minimal docker containers]: https://alexbrand.dev/post/how-to-package-rust-applications-into-minimal-docker-containers/
-[layer caching on github actions]: https://docs.docker.com/build/ci/github-actions/cache/#github-cache
 [looking for the perfect dockerfile for rust]: https://www.reddit.com/r/rust/comments/16bswvl/comment/jzh6enu/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
-[multi-platform image]: https://docs.docker.com/build/ci/github-actions/multi-platform/
-[nested extractor]: https://docs.rs/axum/0.7.5/axum/extract/index.html#accessing-other-extractors-in-fromrequest-or-fromrequestparts-implementations
 [rust linker fails when using target-feature=+crt-static on nightly]: https://stackoverflow.com/questions/76604929
 [static and dynamic c runtimes]: https://doc.rust-lang.org/reference/linkage.html#static-and-dynamic-c-runtimes
 [static linking for rust without glibc - scratch image]: https://users.rust-lang.org/t/static-linking-for-rust-without-glibc-scratch-image/112279/5
 [supercharging your rust static executables with mimalloc]: https://www.tweag.io/blog/2023-08-10-rust-static-link-with-mimalloc/
 [testing alternative c memory allocators pt 2: the musl mystery]: https://www.linkedin.com/pulse/testing-alternative-c-memory-allocators-pt-2-musl-mystery-gomes/
 [use multi-stage docker builds for statically-linked rust binaries]: https://dev.to/deciduously/use-multi-stage-docker-builds-for-statically-linked-rust-binaries-3jgd
+[`allowlist` dockerfile]: ../allowlist/Dockerfile
+[`allowlist` source]: ../allowlist/src/main.rs
 [`alpine-mimalloc`]: https://github.com/emerzon/alpine-mimalloc
-[`axum` with redis example]: https://github.com/tokio-rs/axum/blob/main/examples/tokio-redis/src/main.rs
 [`cargo-chef`]: https://github.com/LukeMathWalker/cargo-chef
+[`cargo-chef` recommends `muslrust` for static compilation]: https://github.com/LukeMathWalker/cargo-chef?tab=readme-ov-file#running-the-binary-in-alpine
 [`chainguard/static`]: https://hub.docker.com/r/chainguard/static
 [`kube.rs` best practices]: https://kube.rs/controllers/security/#base-images
 [`mimalloc`]: https://github.com/marvin-hansen/mimalloc
@@ -81,14 +75,4 @@ several MB when compiled on an `arm64` machine.
 [`muslrust`]: https://github.com/clux/muslrust
 [`rust-alpine-mimalloc`]: https://github.com/tweag/rust-alpine-mimalloc
 [`rust-musl-builder`]: https://github.com/emk/rust-musl-builder
-[`rust-static-builder`]: https://github.com/fornwall/rust-static-builder
 [`target-feature`]: https://doc.rust-lang.org/rustc/codegen-options/index.html#target-feature
-
-
-[`allowlist` Dockerfile]: ../allowlist/Dockerfile
-[`muslrust`]: https://github.com/clux/muslrust
-[`cargo-chef`]: https://github.com/LukeMathWalker/cargo-chef
-[`allowlist` source]: ../allowlist/src/main.rs
-
-[`cargo-chef` recommends `muslrust` for
-static compilation]: https://github.com/LukeMathWalker/cargo-chef?tab=readme-ov-file#running-the-binary-in-alpine
