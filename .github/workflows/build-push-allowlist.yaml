@@ -1,4 +1,7 @@
 # cspell:word buildx
+#
+# Build and push muslrust-chef Docker image to Docker Hub whenever
+# a tag is pushed that matches the pattern allowlist-v*
 ---
 jobs:
   verify-docker-build:
@@ -13,8 +16,8 @@ jobs:
         cache-to: 'type=gha,mode=max'
         context: 'src'
         file: 'allowlist/Dockerfile'
-        platforms: 'linux/amd64,linux/arm64'
-name: 'Verify allowlist Docker image build'
+        platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
+name: 'Push allowlist to Docker Hub'
 'on':
   pull_request: null
   workflow_dispatch: null
