@@ -30,9 +30,6 @@ jobs:
 name: 'Push muslrust-chef to Docker Hub'
 'on':
   push:
-    # tags:
-    # - 'muslrust-chef-v*'
-    push:
-      branches:
-      - 'ECO-1882'
+    tags:
+    - 'muslrust-chef-v*'
 ...

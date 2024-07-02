@@ -2,6 +2,7 @@ aptos
 chainguard
 dockerhub
 econia
+econialabs
 mimalloc
 muslrust
 nonroot
