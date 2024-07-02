@@ -1,5 +1,3 @@
-# cspell:word chainguard
-# cspell:word hadolint
 # cspell:word nonroot
 
 # Declare base image, used across multiple stages.
