@@ -1,4 +1,7 @@
 # cspell:word buildx
+#
+# Build and push muslrust-chef Docker image to Docker Hub whenever
+# a tag is pushed that matches the pattern muslrust-chef-v*
 ---
 jobs:
   build-push-muslrust-chef:

@@ -5,13 +5,13 @@ ARG BINARY=allowlist
 FROM econia-labs/muslrust-chef:1.0.0 AS base
 WORKDIR /app
 
-# Plan build dependencies.
+# Plan build dependencies in a stanalone layer for caching.
 FROM base AS planner
 ARG BINARY
 COPY . .
 RUN cargo chef prepare --bin "$BINARY"
 
-# In new layer, build dependencies then copy source code and build executable.
+# In new layer: build dependencies, copy source code, then build executable.
 FROM base AS builder
 ARG BINARY
 COPY --from=planner /app/recipe.json recipe.json

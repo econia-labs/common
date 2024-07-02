@@ -4,8 +4,8 @@ services:
     image: 'redis:7.2.5-alpine3.20'
   server:
     build:
-      context: '../../'
-      dockerfile: 'src/allowlist/Dockerfile'
+      context: '../'
+      dockerfile: 'allowlist/Dockerfile'
     depends_on:
     - 'redis'
     environment:
