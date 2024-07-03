@@ -10,6 +10,9 @@ members = [
 ]
 resolver = "2"
 
+[registries.crates-io]
+protocol = "sparse"
+
 [workspace.package]
 authors = ["Econia Labs <developers@econialabs.com>"]
 edition = "2021"

@@ -15,9 +15,9 @@ RUN cargo chef prepare --bin "$BINARY"
 FROM base AS builder
 ARG BINARY
 COPY --from=planner /app/recipe.json recipe.json
-# RUN RUST_BACKTRACE=full cargo chef cook --bin "$BINARY" --release --target aarch64-unknown-linux-musl;
+RUN cargo chef cook --bin "$BINARY" --release
 COPY . .
-RUN RUST_BACKTRACE=full cargo build -Z sparse-registry --bin "$BINARY" --release --target aarch64-unknown-linux-musl;
+RUN cargo build --bin "$BINARY" --release
 
 # Move binary to /executable, strip it, and verify it is statically linked.
 RUN ./get-executable.sh "$BINARY"; strip /executable; ./verify-static-build.sh;
