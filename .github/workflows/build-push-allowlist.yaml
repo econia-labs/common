@@ -17,8 +17,7 @@ jobs:
         context: './src'
         file: 'src/allowlist/Dockerfile'
         platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
-name: 'Build and push allowlist to Dockerhub'
+name: 'Build allowlist and push to Docker Hub'
 'on':
-  pull_request: null
   workflow_dispatch: null
 ...

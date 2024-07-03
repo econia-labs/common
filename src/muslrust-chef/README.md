@@ -50,12 +50,25 @@ recommended [here][`kube.rs` best practices]. In the case of the
 [`allowlist` Dockerfile], This approach yields a final Docker image that is only
 several MB when compiled on an `arm64` machine.
 
+## Automation
+
+See [`build-push-muslrust-chef.yaml`] for an example of
+[Docker Hub with GitHub Actions] that supports cross-compilation with
+[layer caching on GitHub Actions], yielding a [multi-platform image]. Since
+[`muslrust`] only provides `linux/arm64` and `linux/amd64` base image support,
+`muslrust-chef` is only compiled for these two architectures, via the
+`MUSLRUST_PLATFORMS` [GitHub organization variable].
+
 [docker "from scratch" for rust applications]: https://www.21analytics.ch/blog/docker-from-scratch-for-rust-applications/
+[docker hub with github actions]: https://docs.docker.com/build/ci/github-actions/
+[github organization variable]: https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-an-organization
 [global allocator]: https://doc.rust-lang.org/std/alloc/index.html#the-global_allocator-attribute
 [how to create small docker images for rust]: https://kerkour.com/rust-small-docker-image
 [how to generate statically linked executables?]: https://stackoverflow.com/a/31778003
 [how to package rust applications into minimal docker containers]: https://alexbrand.dev/post/how-to-package-rust-applications-into-minimal-docker-containers/
+[layer caching on github actions]: https://docs.docker.com/build/ci/github-actions/cache/#github-cache
 [looking for the perfect dockerfile for rust]: https://www.reddit.com/r/rust/comments/16bswvl/comment/jzh6enu/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+[multi-platform image]: https://docs.docker.com/build/ci/github-actions/multi-platform/
 [rust linker fails when using target-feature=+crt-static on nightly]: https://stackoverflow.com/questions/76604929
 [static and dynamic c runtimes]: https://doc.rust-lang.org/reference/linkage.html#static-and-dynamic-c-runtimes
 [static linking for rust without glibc - scratch image]: https://users.rust-lang.org/t/static-linking-for-rust-without-glibc-scratch-image/112279/5
@@ -65,6 +78,7 @@ several MB when compiled on an `arm64` machine.
 [`allowlist` dockerfile]: ../allowlist/Dockerfile
 [`allowlist` source]: ../allowlist/src/main.rs
 [`alpine-mimalloc`]: https://github.com/emerzon/alpine-mimalloc
+[`build-push-muslrust-chef.yaml`]: ../../.github/workflows/build-push-muslrust-chef.yaml
 [`cargo-chef`]: https://github.com/LukeMathWalker/cargo-chef
 [`cargo-chef` recommends `muslrust` for static compilation]: https://github.com/LukeMathWalker/cargo-chef?tab=readme-ov-file#running-the-binary-in-alpine
 [`chainguard/static`]: https://hub.docker.com/r/chainguard/static

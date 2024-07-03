@@ -33,10 +33,6 @@ is only 2.5 MB when compiled on an `arm64` machine.
 
 ### Deployment automation
 
-`allowlist` is cross-compiled into a [multi-platform image] and uses
-[layer caching on GitHub Actions]. Since [`muslrust`] only provides `arm64` and
-`amd64` base images, `allowlist` is only compiled for these two architectures.
-
 ## Running a local deployment
 
 ```sh
@@ -73,8 +69,6 @@ curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 [building x86 rust containers from mac silicon]: https://loige.co/building_x86_rust-containers-from-mac-silicon/
 [cross-compiling static rust binaries in docker for raspberry pi]: https://jakewharton.com/cross-compiling-static-rust-binaries-in-docker-for-raspberry-pi/
 [custom extractor]: https://github.com/tokio-rs/axum/blob/035c8a36b591bb81b8d107c701ac4b14c0230da3/examples/tokio-redis/src/main.rs#L75
-[layer caching on github actions]: https://docs.docker.com/build/ci/github-actions/cache/#github-cache
-[multi-platform image]: https://docs.docker.com/build/ci/github-actions/multi-platform/
 [nested extractor]: https://docs.rs/axum/0.7.5/axum/extract/index.html#accessing-other-extractors-in-fromrequest-or-fromrequestparts-implementations
 [`axum` with redis example]: https://github.com/tokio-rs/axum/blob/main/examples/tokio-redis/src/main.rs
 [`cargo-chef`]: https://github.com/LukeMathWalker/cargo-chef
