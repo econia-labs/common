@@ -16,7 +16,7 @@ jobs:
         cache-to: 'type=gha,mode=max'
         context: './src'
         file: 'src/allowlist/Dockerfile'
-        platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
+        platforms: 'linux/arm64'
 name: 'Build allowlist and push to Docker Hub'
 'on':
   push:
