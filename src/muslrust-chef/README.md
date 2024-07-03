@@ -33,7 +33,7 @@ manually-patched allocator, as proposed [here][`rust-alpine-mimalloc`],
 [here][`mimalloc`], and [here][`alpine-mimalloc`]. For a drop-in
 [`mimalloc` crate] example, see the [`allowlist` source].
 
-## `muslrust-chef`
+## Best practices
 
 This Docker image performs static containerization via the [`muslrust`] image
 due to its extensive instructive documentation (in particular its examples and
@@ -59,6 +59,30 @@ See [`build-push-muslrust-chef.yaml`] for an example of
 `muslrust-chef` is only compiled for these two architectures, via the
 `MUSLRUST_PLATFORMS` [GitHub organization variable].
 
+`muslrust-chef` sets the [`CARGO_NET_GIT_FETCH_WITH_CLI`] environment variable
+to `true` to prevent cross-compilation memory issues (as suggested
+[here][qemu memory use]) that were originally incurred whe updating the
+`aptos-core` Rust index during build time. While investigating this fix, it was
+noted that the [`CARGO_REGISTRIES_CRATES_IO_PROTOCOL`] environment variable had
+solved similar issues for other users, even though it ended up not being
+necessary in the present implementation. For more on this topic, which may prove
+useful in potential future fixes, see
+[here][rust crates index issue],
+[here][cargo build uses too much cpu],
+[here][cargo registry cache clear suggestion],
+[here][cargo-chef sparse issue 136],
+[here][cargo-chef sparse issue 107],
+[here][cargo-chef add unstable flags],
+[here][arm64 memory build issue], and
+[here][cargo build clear cache fix].
+
+[arm64 memory build issue]: https://github.com/keenanjohnson/ros2_rust_workspace/issues/21
+[cargo build clear cache fix]: https://github.com/rust-lang/cargo/issues/5101
+[cargo build uses too much cpu]: https://github.com/rust-lang/cargo/issues/4346
+[cargo registry cache clear suggestion]: https://github.com/rust-lang/cargo/issues/7662#issuecomment-561917271
+[cargo-chef add unstable flags]: https://github.com/LukeMathWalker/cargo-chef/pull/137
+[cargo-chef sparse issue 107]: https://github.com/LukeMathWalker/cargo-chef/issues/107
+[cargo-chef sparse issue 136]: https://github.com/LukeMathWalker/cargo-chef/issues/136
 [docker "from scratch" for rust applications]: https://www.21analytics.ch/blog/docker-from-scratch-for-rust-applications/
 [docker hub with github actions]: https://docs.docker.com/build/ci/github-actions/
 [github organization variable]: https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-an-organization
@@ -69,6 +93,8 @@ See [`build-push-muslrust-chef.yaml`] for an example of
 [layer caching on github actions]: https://docs.docker.com/build/ci/github-actions/cache/#github-cache
 [looking for the perfect dockerfile for rust]: https://www.reddit.com/r/rust/comments/16bswvl/comment/jzh6enu/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
 [multi-platform image]: https://docs.docker.com/build/ci/github-actions/multi-platform/
+[qemu memory use]: https://users.rust-lang.org/t/cargo-uses-too-much-memory-being-run-in-qemu/76531/5
+[rust crates index issue]: https://github.com/rust-lang/cargo/issues/10781
 [rust linker fails when using target-feature=+crt-static on nightly]: https://stackoverflow.com/questions/76604929
 [static and dynamic c runtimes]: https://doc.rust-lang.org/reference/linkage.html#static-and-dynamic-c-runtimes
 [static linking for rust without glibc - scratch image]: https://users.rust-lang.org/t/static-linking-for-rust-without-glibc-scratch-image/112279/5
@@ -81,6 +107,8 @@ See [`build-push-muslrust-chef.yaml`] for an example of
 [`build-push-muslrust-chef.yaml`]: ../../.github/workflows/build-push-muslrust-chef.yaml
 [`cargo-chef`]: https://github.com/LukeMathWalker/cargo-chef
 [`cargo-chef` recommends `muslrust` for static compilation]: https://github.com/LukeMathWalker/cargo-chef?tab=readme-ov-file#running-the-binary-in-alpine
+[`cargo_net_git_fetch_with_cli`]: https://doc.rust-lang.org/cargo/reference/config.html#netgit-fetch-with-cli
+[`cargo_registries_crates_io_protocol`]: https://blog.rust-lang.org/inside-rust/2023/01/30/cargo-sparse-protocol.html
 [`chainguard/static`]: https://hub.docker.com/r/chainguard/static
 [`kube.rs` best practices]: https://kube.rs/controllers/security/#base-images
 [`mimalloc`]: https://github.com/marvin-hansen/mimalloc
