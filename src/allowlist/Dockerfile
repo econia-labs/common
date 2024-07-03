@@ -15,7 +15,7 @@ RUN cargo chef prepare --bin "$BINARY"
 FROM base AS builder
 ARG BINARY
 COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --bin "$BINARY" --release
+RUN RUST_BACKTRACE=full cargo chef cook --bin "$BINARY" --release
 COPY . .
 RUN cargo build --bin "$BINARY" --release
 
