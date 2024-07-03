@@ -4,7 +4,7 @@
 # a tag is pushed that matches the pattern allowlist-v*
 ---
 jobs:
-  verify-docker-build:
+  build-push-allowlist:
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'actions/checkout@v4'
@@ -14,8 +14,8 @@ jobs:
       with:
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
-        context: './src'
-        file: './allowlist/Dockerfile'
+        context: 'src'
+        file: 'allowlist/Dockerfile'
         platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
 name: 'Push allowlist to Docker Hub'
 'on':
