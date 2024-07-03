@@ -1,6 +1,3 @@
-# cspell:word codegen
-# cspell:word serde
-
 [profile.release]
 codegen-units = 1
 lto = "fat"
