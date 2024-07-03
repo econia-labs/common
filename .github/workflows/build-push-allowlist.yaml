@@ -19,5 +19,8 @@ jobs:
         platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
 name: 'Build allowlist and push to Docker Hub'
 'on':
+  push:
+    branches:
+    - 'ECO-1882'
   workflow_dispatch: null
 ...
