@@ -27,6 +27,7 @@ jobs:
         platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
         push: 'true'
         tags: '${{ steps.metadata.outputs.tags }}'
+name: 'Build and push muslrust-chef to Dockerhub'
 'on':
   push:
     tags:

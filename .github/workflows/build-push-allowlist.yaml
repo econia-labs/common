@@ -14,10 +14,10 @@ jobs:
       with:
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
-        context: 'src'
-        file: 'allowlist/Dockerfile'
+        context: './src'
+        file: 'src/allowlist/Dockerfile'
         platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
-name: 'Push allowlist to Docker Hub'
+name: 'Build and push allowlist to Dockerhub'
 'on':
   pull_request: null
   workflow_dispatch: null
