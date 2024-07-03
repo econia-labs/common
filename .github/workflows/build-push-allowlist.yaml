@@ -14,8 +14,8 @@ jobs:
       with:
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
-        context: 'src'
-        file: 'allowlist/Dockerfile'
+        context: './src'
+        file: './allowlist/Dockerfile'
         platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
 name: 'Push allowlist to Docker Hub'
 'on':
