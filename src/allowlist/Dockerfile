@@ -15,9 +15,9 @@ RUN cargo chef prepare --bin "$BINARY"
 FROM base AS builder
 ARG BINARY
 COPY --from=planner /app/recipe.json recipe.json
-# RUN cargo chef cook --bin "$BINARY" --release
+RUN CARGO_NET_GIT_FETCH_WITH_CLI=true cargo chef cook --bin "$BINARY" --release
 COPY . .
-RUN CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse CARGO_NET_GIT_FETCH_WITH_CLI=true cargo build --bin "$BINARY" --release
+RUN cargo build --bin "$BINARY" --release
 
 # Move binary to /executable, strip it, and verify it is statically linked.
 RUN ./get-executable.sh "$BINARY"; strip /executable; ./verify-static-build.sh;
