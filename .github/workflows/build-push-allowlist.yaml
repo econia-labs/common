@@ -1,6 +1,6 @@
 # cspell:word buildx
 #
-# Build and push muslrust-chef Docker image to Docker Hub whenever
+# Build and push allowlist Docker image to Docker Hub whenever
 # a tag is pushed that matches the pattern allowlist-v*
 ---
 jobs:
