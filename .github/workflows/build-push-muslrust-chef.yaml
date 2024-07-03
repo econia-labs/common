@@ -35,5 +35,5 @@ name: 'Build muslrust-chef and push to Docker Hub'
 'on':
   push:
     tags:
-    - '${{ env.TAG_PREFIX }}'
+    - '${{ env.TAG_PREFIX }}*'
 ...
