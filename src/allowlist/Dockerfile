@@ -15,7 +15,7 @@ RUN cargo chef prepare --bin "$BINARY"
 FROM base AS builder
 ARG BINARY
 COPY --from=planner /app/recipe.json recipe.json
-RUN RUST_BACKTRACE=full cargo chef cook --bin "$BINARY" --release --target aarch64-unknown-linux-musl;
+# RUN RUST_BACKTRACE=full cargo chef cook --bin "$BINARY" --release --target aarch64-unknown-linux-musl;
 COPY . .
 RUN cargo build --bin "$BINARY" --release --target aarch64-unknown-linux-musl;
 
