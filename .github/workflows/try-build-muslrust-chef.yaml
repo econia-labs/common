@@ -4,7 +4,7 @@ jobs:
   build-push-allowlist:
     runs-on: 'macos-14'
     steps:
-    run: |
+    - run: |
       brew install docker
       colima start
     - uses: 'actions/checkout@v4'
