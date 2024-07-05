@@ -6,8 +6,7 @@ jobs:
     steps:
     - run: |
         brew install --cask docker
-        brew install colima
-        colima start
+        open -a Docker
     - uses: 'actions/checkout@v4'
     - uses: 'docker/setup-buildx-action@v3'
     - uses: 'docker/build-push-action@v6'
