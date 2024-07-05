@@ -19,8 +19,8 @@ jobs:
         platforms: 'linux/arm64'
 name: 'Build allowlist and push to Docker Hub'
 'on':
-  push:
-    branches:
-    - 'ECO-1882'
+  # push:
+  #   branches:
+  #   - 'ECO-1882'
   workflow_dispatch: null
 ...

@@ -1,3 +1,4 @@
+# cspell:word aarch
 # cspell:word hadolint
 ARG BINARY=allowlist
 
