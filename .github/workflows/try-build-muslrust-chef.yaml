@@ -33,7 +33,7 @@ jobs:
     ## - name: 'Check Docker status'
     ##   run: 'ls -al /var/run/sock'
     - name: 'List running Docker containers'
-      run: 'docker ps'
+      run: 'sudo docker ps'
 # var/run/sock goes to docker.sock -> /var/root/.docker/run/docker.sock
 # Find shows binary at /Applications/Docker.app/Contents/Resources/bin/docker
 # - uses: 'actions/checkout@v4'
