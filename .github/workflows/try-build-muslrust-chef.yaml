@@ -5,13 +5,21 @@ jobs:
     runs-on: 'macos-14'
     steps:
     - run: |
+        echo "Running curl command"
         curl -O https://desktop.docker.com/mac/main/amd64/153195/Docker.dmg
+        echo "Attaching Docker.dmg file"
         sudo hdiutil attach Docker.dmg
+        echo "Trying to install and accept the license"
         sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
+        echo "Detaching Docker.dmg file"
         sudo hdiutil detach /Volumes/Docker
+        echo "Setting the attribute"
         sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
+        echo "Opening the application"
         open -a /Applications/Docker.app
+        echo "Sleeping"
         sleep 5
+        echo "Trying to run docker"
         docker ps
     # - uses: 'actions/checkout@v4'
     # - uses: 'docker/setup-buildx-action@v3'
