@@ -15,8 +15,8 @@ jobs:
         sudo open -a /Applications/Docker.app
         echo "sleeping 60"
         sleep 60
-        sudo ls -al /var/root/.docker/run
-        sudo chmod 777 /var/root/.docker/run/docker.sock
+        echo "ls -al /var/run/sock"
+        sudo ls -al /var/run/sock
         docker ps
     # var/run/sock goes to docker.sock -> /var/root/.docker/run/docker.sock
     # Find shows binary at /Applications/Docker.app/Contents/Resources/bin/docker
