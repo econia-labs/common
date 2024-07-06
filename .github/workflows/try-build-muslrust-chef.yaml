@@ -5,18 +5,14 @@ jobs:
     runs-on: 'macos-14'
     steps:
     - run: |
-        echo "users directory:"
-        ls /Users
-        echo "whoami results:"
-        whoami
         curl -O https://desktop.docker.com/mac/main/amd64/153195/Docker.dmg
         sudo hdiutil attach Docker.dmg
-        sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license --user=$(whoami)
+        sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license --user=root
         sudo hdiutil detach /Volumes/Docker
         rm Docker.dmg
         export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
         sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
-        open -a /Applications/Docker.app
+        sudo open -a /Applications/Docker.app
         sleep 60
         docker ps
     # Find shows binary at /Applications/Docker.app/Contents/Resources/bin/docker
