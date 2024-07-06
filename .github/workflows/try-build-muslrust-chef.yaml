@@ -27,7 +27,7 @@ jobs:
     - name: 'Start Docker desktop app as root'
       run: 'sudo open -a /Applications/Docker.app'
     - name: 'Sleep'
-      run: 'sleep 5'
+      run: 'sleep 60'
     - name: 'Print daemon socket link'
       run: 'readlink /var/run/docker.sock'
     ## - name: 'Check Docker status'
