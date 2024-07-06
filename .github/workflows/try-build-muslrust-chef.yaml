@@ -5,22 +5,21 @@ jobs:
     runs-on: 'macos-14'
     steps:
     - run: |
-        echo "Running curl command"
+        echo "users directory:"
+        ls /Users
+        echo "whoami results:"
+        whoami
         curl -O https://desktop.docker.com/mac/main/amd64/153195/Docker.dmg
-        echo "Attaching Docker.dmg file"
         sudo hdiutil attach Docker.dmg
-        echo "Trying to install and accept the license"
-        sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
-        echo "Detaching Docker.dmg file"
+        sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license --user=$(whoami)
         sudo hdiutil detach /Volumes/Docker
-        echo "Removing quarantine attribute"
-        sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
-        echo "Opening Docker desktop"
-        sudo open -a /Applications/Docker.app
-        sleep 5
-        echo "Add docker binary to path"
+        rm Docker.dmg
         export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+        sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
+        open -a /Applications/Docker.app
+        sleep 60
         docker ps
+    # Find shows binary at /Applications/Docker.app/Contents/Resources/bin/docker
     # - uses: 'actions/checkout@v4'
     # - uses: 'docker/setup-buildx-action@v3'
     # - uses: 'docker/build-push-action@v6'
