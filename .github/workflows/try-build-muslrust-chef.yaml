@@ -18,12 +18,8 @@ jobs:
         echo "Opening Docker desktop"
         open -a /Applications/Docker.app
         sleep 5
-        echo "usr/local/bin directory contents"
-        ls -al /usr/local/bin
-        echo "HOME/local/bin directory contents"
-        ls -al $HOME/.docker/bin
-        echo "Trying to run docker"
-        docker ps
+        echo "Trying to find docker executable"
+        sudo find / -name docker
     # - uses: 'actions/checkout@v4'
     # - uses: 'docker/setup-buildx-action@v3'
     # - uses: 'docker/build-push-action@v6'
