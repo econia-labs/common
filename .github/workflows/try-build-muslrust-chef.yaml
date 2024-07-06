@@ -5,7 +5,7 @@ jobs:
     runs-on: 'macos-14'
     steps:
     - run: |
-        sudo brew install --cask docker
+        brew install --cask docker
         sudo open /Applications/Docker.app
         sleep 30
         docker ps
