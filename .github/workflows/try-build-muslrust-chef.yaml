@@ -5,9 +5,12 @@ jobs:
     runs-on: 'macos-14'
     steps:
     - run: |
-        brew install --cask --no-quarantine docker
-        sudo /Applications/Docker.app/Contents/MacOS/install --accept-license
-        open -a "/Applications/Docker.app/Contents/MacOS/Docker Desktop.app"
+        curl -O https://desktop.docker.com/mac/main/amd64/153195/Docker.dmg
+        sudo hdiutil attach Docker.dmg
+        sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
+        sudo hdiutil detach /Volumes/Docker
+        sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
+        open -a /Applications/Docker.app
         sleep 5
         docker ps
     # - uses: 'actions/checkout@v4'
