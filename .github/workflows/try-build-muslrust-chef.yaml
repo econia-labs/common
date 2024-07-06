@@ -7,7 +7,6 @@ jobs:
     - run: |
         brew install --cask docker
         sudo /Applications/Docker.app/Contents/MacOS/install --accept-license
-        sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
         open -a /Applications/Docker.app
         sleep 5
         docker ps
