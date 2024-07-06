@@ -13,7 +13,7 @@ jobs:
         export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
         sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
         sudo open -a /Applications/Docker.app
-        sleep 60
+        sleep 5
         docker ps
     # Find shows binary at /Applications/Docker.app/Contents/Resources/bin/docker
     # - uses: 'actions/checkout@v4'
