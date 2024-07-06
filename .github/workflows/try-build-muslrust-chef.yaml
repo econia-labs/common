@@ -6,6 +6,7 @@ jobs:
     steps:
     - run: |
         brew install --cask docker
+        brew install netstat
         echo "checking output of netstat before docker running"
         netstat -tuln | grep docker
         open /Applications/Docker.app
