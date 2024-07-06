@@ -5,9 +5,9 @@ jobs:
     runs-on: 'macos-14'
     steps:
     - run: |
-        brew install --cask docker
+        brew install --cask --no-quarantine docker
         sudo /Applications/Docker.app/Contents/MacOS/install --accept-license
-        open -a /Applications/Docker.app
+        open -a Docker
         sleep 5
         docker ps
     # - uses: 'actions/checkout@v4'
