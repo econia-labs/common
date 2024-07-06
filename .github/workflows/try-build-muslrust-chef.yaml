@@ -14,7 +14,7 @@ jobs:
         sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
         sudo open -a /Applications/Docker.app
         sleep 5
-        sudo ls -al /var/root/.docker/run/docker.sock
+        sudo ls -al /var/root/.docker/run
         docker ps
     # sudo chmod 777 /var/root/.docker/run/docker.sock
     # var/run/sock goes to docker.sock -> /var/root/.docker/run/docker.sock
