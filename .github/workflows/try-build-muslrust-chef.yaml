@@ -1,4 +1,6 @@
 # cspell:word buildx
+# cspell:word readlink
+# cspell:word xattr
 ---
 jobs:
   build-push-allowlist:
@@ -31,7 +33,8 @@ jobs:
     - name: 'Print daemon socket link'
       run: 'readlink /var/run/docker.sock'
     - name: 'Print diagnostics'
-      run: 'sudo /Applications/Docker.app/Contents/MacOS/com.docker.diagnose gather'
+      run: |
+        sudo /Applications/Docker.app/Contents/MacOS/com.docker.diagnose gather
     ## - name: 'Check Docker status'
     ##   run: 'ls -al /var/run/sock'
     - name: 'List running Docker containers'
