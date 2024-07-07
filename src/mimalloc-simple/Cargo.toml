@@ -1,0 +1,9 @@
+# cspell:word mimalloc
+[dependencies]
+mimalloc = {version = "0.1.43", features = ["secure"]}
+tokio = {version = "1.38.0", features = ["rt-multi-thread"]}
+
+[package]
+edition = "2021"
+name = "mimalloc-simple"
+version = "1.0.0"

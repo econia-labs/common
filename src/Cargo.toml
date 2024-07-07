@@ -6,7 +6,8 @@ lto = "fat"
 
 [workspace]
 members = [
-  "allowlist"
+  "allowlist",
+  "mimalloc-simple"
 ]
 resolver = "2"
 

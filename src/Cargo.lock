@@ -603,6 +603,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "mimalloc-simple"
+version = "1.0.0"
+dependencies = [
+ "mimalloc",
+ "tokio",
+]
+
+[[package]]
 name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
