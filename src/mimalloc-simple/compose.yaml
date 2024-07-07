@@ -3,7 +3,7 @@ services:
   printer:
     build:
       args:
-      - member: 'mimalloc-simple'
-      context: '../muslrust-chef'
-      dockerfile: 'member-template.Dockerfile'
+        member: 'mimalloc-simple'
+      context: '../'
+      dockerfile: 'muslrust-chef/member-template.Dockerfile'
 ...
