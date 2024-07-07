@@ -1,4 +1,5 @@
 use mimalloc::MiMalloc;
+use tokio;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
