@@ -22,9 +22,8 @@ RUN cargo build --bin "$MEMBER" --release
 # Move binary to /executable, strip it, and verify it is statically linked.
 RUN ./get-executable.sh "$MEMBER"; strip /executable; ./verify-static-build.sh;
 
-# Copy static binary to minimal image. Note Chainguard's static image
-# only has a latest tag, so the image is not pinned to a specific version
-# hadolint ignore=DL3007
-FROM chainguard/static:latest AS runtime
+# Copy static binary to minimal image.
+ARG TAG=sha256-67ed8ca8d99e12e8778c038cf88ef7c27d44f08247d317c7135a66ca9d8a7652
+FROM chainguard/static:${TAG}
 COPY --chown=nonroot:nonroot --from=builder /executable /executable
 ENTRYPOINT ["/executable"]
