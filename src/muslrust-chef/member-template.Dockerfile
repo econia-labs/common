@@ -17,7 +17,7 @@ RUN \
     RUST_BACKTRACE=full \
     cargo chef cook --bin "$MEMBER" --release
 COPY . .
-RUN cargo build --bin "$MEMBER" --release
+RUN cargo build --bin "$MEMBER" --package "$MEMBER" --release
 
 # Move binary to /executable, strip it, and verify it is statically linked.
 RUN ./get-executable.sh "$MEMBER"; strip /executable; ./verify-static-build.sh;
