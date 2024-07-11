@@ -18,9 +18,9 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN \
     CARGO_PROFILE_RELEASE_BUILD_OVERRIDE_DEBUG=true \
     RUST_BACKTRACE=full \
-    cargo chef cook --bin "$MEMBER" --release
+    cargo chef cook --bin "$MEMBER" --release --target aarch64-unknown-linux-musl
 COPY . .
-RUN cargo build --bin "$MEMBER" --release
+RUN cargo build --bin "$MEMBER" --release --target aarch64-unknown-linux-musl
 
 # Move binary to /executable, strip it, and verify it is statically linked.
 RUN ./get-executable.sh "$MEMBER"; strip /executable; ./verify-static-build.sh;
