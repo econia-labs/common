@@ -9,8 +9,7 @@ jobs:
     - name: 'Try cross-compiling'
       uses: 'docker/build-push-action@v6'
       with:
-        build-args:
-          MEMBER: 'mimalloc-simple'
+        build-args: 'MEMBER=mimalloc-simple'
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: './src'
