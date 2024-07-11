@@ -7,7 +7,7 @@ lto = "fat"
 [workspace]
 members = [
   "allowlist",
-  "mimalloc-simple"
+  "rust-builder/examples/static"
 ]
 resolver = "2"
 
