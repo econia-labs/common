@@ -13,7 +13,7 @@ jobs:
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: './src'
-        file: 'src/allowlist/member-template.Dockerfile'
+        file: 'src/muslrust-chef/member-template.Dockerfile'
         platforms: 'linux/arm64'
 name: 'Try building simple mimalloc image'
 'on':
