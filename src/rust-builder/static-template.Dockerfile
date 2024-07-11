@@ -11,13 +11,16 @@ ARG MEMBER
 COPY . .
 RUN cargo chef prepare --bin "$MEMBER"
 
-# In new layer: build dependencies, copy source code, then build executable.
+# In new layer: build dependencies, copy source code, compile executable, then
+# prepare it for the next layer.
 FROM base AS builder
 ARG MEMBER
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --bin "$MEMBER" --release
 COPY . .
 RUN cargo build --bin "$MEMBER" --release
+
+# RUN ./prepare-executable "$MEMBER" dynamic
 
 # Move binary to /executable, strip it, and verify it is statically linked.
 RUN ./get-executable.sh "$MEMBER"; strip /executable; ./verify-static-build.sh;
