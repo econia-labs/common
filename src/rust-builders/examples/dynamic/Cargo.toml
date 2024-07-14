@@ -1,0 +1,8 @@
+[[bin]]
+name = "hello-world-dynamic"
+path = "hello-world-dynamic.rs"
+
+[package]
+edition = "2021"
+name = "hello-world-dynamic"
+version = "1.0.0"

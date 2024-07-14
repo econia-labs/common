@@ -2,5 +2,6 @@
 *
 
 # Allow only necessary files.
+!**Cargo.lock
 !**Cargo.toml
 !**.rs
