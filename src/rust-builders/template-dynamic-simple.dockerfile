@@ -15,7 +15,7 @@ RUN find -type f \! \
     -delete && find . -type d -empty -delete
 
 # Index depenencies.
-FROM base as indexer
+FROM base AS indexer
 COPY --from=planner /app .
 RUN cargo update --dry-run
 

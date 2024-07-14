@@ -615,7 +615,7 @@ dependencies = [
 [[package]]
 name = "move-core-types"
 version = "0.0.4"
-source = "git+https://github.com/aptos-labs/aptos-core?tag=aptos-node-v1.15.2#e3e18275f750aa6983ef6c4b392dab878cb4f735"
+source = "git+https://github.com/aptos-labs/aptos-core.git?tag=aptos-node-v1.15.2#e3e18275f750aa6983ef6c4b392dab878cb4f735"
 dependencies = [
  "anyhow",
  "bcs",
