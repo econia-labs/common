@@ -14,7 +14,7 @@ RUN find -type f \! \
     \( -name 'Cargo.toml' -o -name 'Cargo.lock' -o -name 'recipe.json' \) \
     -delete && find . -type d -empty -delete
 
-# Index dependencies.
+# Trigger dependency indexing via dry run update.
 FROM base AS indexer
 COPY --from=planner /app .
 RUN cargo update --dry-run
@@ -25,7 +25,8 @@ COPY --from=planner /app/recipe.json recipe.json
 COPY --from=indexer $CARGO_HOME $CARGO_HOME
 RUN cargo chef cook --bin "$BIN" --package "$PACKAGE" --release
 COPY . .
-RUN cargo build --bin "$BIN" --package "$PACKAGE" --release --offline
+# Build in frozen mode, which relies on lockfile and is completely offline.
+RUN cargo build --bin "$BIN" --package "$PACKAGE" --release --frozen
 RUN mv "$(find /app/target/release/$BIN)" /executable; strip /executable;
 
 FROM chainguard/glibc-dynamic:$TAG
