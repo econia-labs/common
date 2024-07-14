@@ -20,7 +20,7 @@ tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
 
 [dependencies.move-core-types]
-git = "https://github.com/aptos-labs/aptos-core.git"
+git = "https://github.com/aptos-labs/aptos-core"
 tag = "aptos-node-v1.15.2"
 
 [package]
