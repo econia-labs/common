@@ -23,7 +23,7 @@ FROM base AS builder
 ARG BIN PACKAGE
 COPY --from=planner /app/recipe.json recipe.json
 COPY --from=indexer $CARGO_HOME $CARGO_HOME
-# Bulid in locked mode, which relies on lockfile and only downloads required
+# Build in locked mode, which relies on lockfile and only downloads required
 # dependencies.
 RUN cargo chef cook --bin "$BIN" --package "$PACKAGE" --release --locked
 COPY . .
