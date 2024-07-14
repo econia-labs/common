@@ -88,7 +88,7 @@ repos:
   hooks:
   -
     args:
-    - '-all'
+    - '--all'
     - '--manifest-path'
     - 'src/Cargo.toml'
     - '--'
