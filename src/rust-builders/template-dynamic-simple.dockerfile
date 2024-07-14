@@ -14,7 +14,7 @@ RUN find -type f \! \
     \( -name 'Cargo.toml' -o -name 'Cargo.lock' -o -name 'recipe.json' \) \
     -delete && find . -type d -empty -delete
 
-# Index depenencies.
+# Index dependencies.
 FROM base AS indexer
 COPY --from=planner /app .
 RUN cargo update --dry-run
