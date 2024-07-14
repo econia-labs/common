@@ -8,9 +8,9 @@ jobs:
     - uses: 'docker/setup-buildx-action@v3'
     - uses: 'docker/build-push-action@v6'
       with:
-        build-args:
-          BIN: 'allowlist'
-          PACKAGE: 'allowlist'
+        build-args: |
+          BIN=allowlist
+          PACKAGE=allowlist
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: 'src'
