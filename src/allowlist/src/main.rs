@@ -70,7 +70,7 @@ enum PingPong {
 /// Errors that can occur when initializing the server.
 #[derive(thiserror::Error, Debug)]
 enum InitError {
-    #[error("Could not bind listener: {0}")]
+    #[error("Could not bind listener foo: {0}")]
     BindListener(std::io::Error),
     #[error("Could not get a connection from the connection manager: {0}")]
     Connection(RunError<RedisError>),
