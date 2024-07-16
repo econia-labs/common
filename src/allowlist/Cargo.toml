@@ -4,7 +4,7 @@
 
 [[bin]]
 name = "allowlist"
-path = "src/main.rs"
+path = "allowlist.rs"
 
 [dependencies]
 axum = {version = "0.7.5", features = ["macros"]}
