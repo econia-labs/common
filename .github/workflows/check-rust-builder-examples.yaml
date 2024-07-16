@@ -1,0 +1,23 @@
+---
+jobs:
+  dynamic:
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'actions/checkout@v4'
+    - uses: 'docker/setup-buildx-action@v3'
+    - uses: 'docker/build-push-action@v6'
+      with:
+        build-args: |
+          BIN=hello-world-dynamic
+          PACKAGE=rust_builders
+        cache-from: 'type=gha'
+        cache-to: 'type=gha,mode=max'
+        context: 'src'
+        file: 'src/rust-builders/template-dynamic-simple.dockerfile'
+name: 'Check rust-builder examples'
+'on':
+  push:
+    branches:
+    - 'ECO-1882'
+  workflow_dispatch: null
+...
