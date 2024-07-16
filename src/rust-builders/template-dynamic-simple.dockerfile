@@ -31,7 +31,7 @@ RUN cargo chef cook --bin "$BIN" --locked --package "$PACKAGE" --release
 COPY . .
 # Build offline solely from cached crate index and downloaded dependencies.
 RUN cargo build --bin "$BIN" --frozen --package "$PACKAGE" --release
-RUN mv "$(find /app/target/release/$BIN)" /executable;
+RUN mv "/app/target/release/$BIN" /executable;
 
 FROM chainguard/glibc-dynamic:$TAG
 COPY --chown=nonroot:nonroot --from=builder /executable /executable
