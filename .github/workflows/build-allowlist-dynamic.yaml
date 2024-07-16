@@ -1,4 +1,3 @@
-# cspell:word buildx
 ---
 jobs:
   build-push-allowlist:

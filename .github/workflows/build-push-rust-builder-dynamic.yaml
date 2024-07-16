@@ -1,5 +1,3 @@
-# cspell:word buildx
-#
 # Build and push rust-builder-dynamic Docker image to Docker Hub whenever a tag
 # of the pattern rust-builder-dynamic-v* is pushed.
 ---

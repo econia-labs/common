@@ -1,4 +1,5 @@
 aptos
+buildx
 chainguard
 dockerhub
 econia
