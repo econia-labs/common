@@ -7,29 +7,31 @@ WORKDIR /app
 FROM base AS planner
 ARG BIN
 COPY . .
-RUN cargo chef prepare --bin "$BIN"
-# Delete all but minimum files required to build local crate index, to avoid
-# invalidating cache of local crate index when code changes.
-RUN find -type f \! \
-    \( -name 'Cargo.toml' -o -name 'Cargo.lock' -o -name 'recipe.json' \) \
-    -delete && find . -type d -empty -delete
+# Prepare recipe one directory up to simplify local crate index cache process.
+RUN cargo chef prepare --bin "$BIN" --recipe-path ../recipe.json
+# Delete everything not required to build local crate index, to avoid
+# invalidating local crate index cache on code changes or recipe updates.
+RUN find -type f \! \( -name 'Cargo.toml' -o -name 'Cargo.lock' \) -delete && \
+    find -type d -empty -delete
 
-# Trigger a dry run update to the lockfile to build a cached local crate index.
+# Invoke a dry run lockfile update against the manifest skeleton, thereby
+# caching a local crate index.
 FROM base AS indexer
 COPY --from=planner /app .
 RUN cargo update --dry-run
 
 FROM base AS builder
 ARG BIN PACKAGE
-COPY --from=planner /app/recipe.json recipe.json
+COPY --from=planner /recipe.json recipe.json
+# Copy cached crate index.
 COPY --from=indexer $CARGO_HOME $CARGO_HOME
-# Build in locked mode, which relies on lockfile and only downloads required
-# dependencies.
-RUN cargo chef cook --bin "$BIN" --package "$PACKAGE" --release --locked
+# Build in locked mode to prevent local crate index cache invalidation, thereby
+# downloading only the necessary dependencies.
+RUN cargo chef cook --bin "$BIN" --locked --package "$PACKAGE" --release
 COPY . .
-# Build in frozen mode, which relies on lockfile and is completely offline.
-RUN cargo build --bin "$BIN" --package "$PACKAGE" --release --frozen
-RUN mv "$(find /app/target/release/$BIN)" /executable; strip /executable;
+# Build offline solely from cached crate index and downloaded dependencies.
+RUN cargo build --bin "$BIN" --frozen --package "$PACKAGE" --release
+RUN mv "$(find /app/target/release/$BIN)" /executable;
 
 FROM chainguard/glibc-dynamic:$TAG
 COPY --chown=nonroot:nonroot --from=builder /executable /executable
