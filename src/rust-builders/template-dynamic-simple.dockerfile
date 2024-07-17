@@ -5,31 +5,15 @@ FROM econialabs/rust-builder-dynamic:0.1.0 AS base
 WORKDIR /app
 
 FROM base AS planner
-ARG BIN
 COPY . .
-# Prepare recipe one directory up to simplify local crate index cache process.
-RUN cargo chef prepare --bin "$BIN" --recipe-path ../recipe.json
-# Delete everything not required to build local crate index, to avoid
-# invalidating local crate index cache on code changes or recipe updates.
-RUN find -type f \! \( -name 'Cargo.toml' -o -name 'Cargo.lock' \) -delete && \
-    find -type d -empty -delete
+RUN cargo chef prepare
 
-# Invoke a dry run lockfile update against the manifest skeleton, thereby
-# caching a local crate index.
-FROM base AS indexer
-COPY --from=planner /app .
-RUN cargo update --dry-run
-
+# Cache dependencies and local crate index, build offline solely from cache.
 FROM base AS builder
 ARG BIN PACKAGE
-COPY --from=planner /recipe.json recipe.json
-# Copy cached crate index.
-COPY --from=indexer $CARGO_HOME $CARGO_HOME
-# Build in locked mode to prevent local crate index cache invalidation, thereby
-# downloading only the necessary dependencies.
+COPY --from=planner app/recipe.json recipe.json
 RUN cargo chef cook --bin "$BIN" --locked --package "$PACKAGE" --release
 COPY . .
-# Build offline solely from cached crate index and downloaded dependencies.
 RUN cargo build --bin "$BIN" --frozen --package "$PACKAGE" --release
 RUN mv "/app/target/release/$BIN" /executable;
 
