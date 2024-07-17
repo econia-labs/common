@@ -4,6 +4,7 @@ chainguard
 dockerhub
 econia
 econialabs
+hadolint
 mimalloc
 muslrust
 nonroot

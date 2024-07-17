@@ -15,6 +15,7 @@ COPY --from=planner app/recipe.json recipe.json
 RUN cargo chef cook --bin "$BIN" --locked --package "$PACKAGE" --release
 COPY . .
 RUN cargo build --bin "$BIN" --frozen --package "$PACKAGE" --release
+# hadolint ignore=DL3059
 RUN mv "/app/target/release/$BIN" /executable;
 
 FROM chainguard/glibc-dynamic:$TAG
