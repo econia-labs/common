@@ -3,9 +3,7 @@ services:
   redis:
     image: 'redis:7.2.5-alpine3.20'
   server:
-    build:
-      context: '../'
-      dockerfile: 'allowlist/Dockerfile'
+    image: 'econialabs/allowlist:0.1.0'
     depends_on:
     - 'redis'
     environment:
