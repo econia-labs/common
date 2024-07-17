@@ -42,7 +42,7 @@ docker compose up
 Or in detached mode:
 
 ```sh
-docker compose --detach
+docker compose up --detach
 ```
 
 To stop from detached mode:
