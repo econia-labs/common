@@ -9,11 +9,12 @@ jobs:
       with:
         build-args: |
           BIN=hello-world-dynamic
+          BUILDER_VERSION=0.1.0
           PACKAGE=rust_builders
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: 'src'
-        file: 'src/rust-builders/template-dynamic-simple.dockerfile'
+        file: 'src/rust-builders/template-dynamic.Dockerfile'
 name: 'Check rust-builder examples'
 'on':
   push:
