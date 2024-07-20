@@ -5,7 +5,11 @@ dockerhub
 econia
 econialabs
 hadolint
+jemalloc
+jemallocator
 mimalloc
+msvc
 muslrust
 nonroot
+tikv
 xbtmatt

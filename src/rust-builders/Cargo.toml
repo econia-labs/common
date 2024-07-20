@@ -2,7 +2,14 @@
 name = "hello-world-dynamic"
 path = "src/hello_world_dynamic.rs"
 
+[[bin]]
+name = "hello-world-jemalloc"
+path = "src/hello_world_jemalloc.rs"
+
 [package]
 edition = "2021"
 name = "rust_builders"
 version = "1.0.0"
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = "0.6"
