@@ -23,7 +23,7 @@ jobs:
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: 'src/rust-builders'
-        file: 'src/rust-builders/builder-dynamic.dockerfile'
+        file: 'src/rust-builders/builder-dynamic.Dockerfile'
         labels: '${{ steps.metadata.outputs.labels }}'
         platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
         push: 'true'
