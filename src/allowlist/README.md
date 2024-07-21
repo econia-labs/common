@@ -18,47 +18,41 @@ via a [nested extractor].
 
 ### Containerization
 
-Cross-compilation to the `x86_64-unknown-linux-musl` target architecture is
-*not* performed in the `allowlist` Dockerfile, so as to enable local builds with
-the Docker compose environment. For more on cross-compilation, see
-[here][building x86 rust containers from mac silicon],
-[here][cross-compiling static rust binaries in docker for raspberry pi], and
-[here][`rust-static-builder`].
-
-Per [`muslrust`] best practice recommendations, [`cargo-chef`] is used for image
-layer caching, and the final executable is stored in a [`chainguard/static`]
-base image (rather than `scratch`) as additionally recommended
-[here][`kube.rs` best practices]. This approach yields a final Docker image that
-is only 2.5 MB when compiled on an `arm64` machine.
-
-### Deployment automation
+`allowlist` is containerized via the [template Dockerfile] for [`rust-builder`]
+and published to the [`allowlist` Docker Hub image] via [`push-allowlist.yaml`].
 
 ## Running a local deployment
 
+From repository root:
+
 ```sh
-docker compose up
+docker compose --file src/allowlist/compose.yaml up
 ```
 
 Or in detached mode:
 
 ```sh
-docker compose up --detach
+docker compose --file src/allowlist/compose.yaml up --detach
 ```
 
 To stop from detached mode:
 
 ```sh
-docker compose down
+docker compose --file src/allowlist/compose.yaml down
 ```
 
-## Check if address is allowed
+## Querying a local deployment
+
+To run the below commands, you'll need `curl` and `jq` on your machine.
+
+### Check if address is allowed
 
 ```sh
 REQUESTED_ADDRESS=0x123
 curl localhost:3000/$REQUESTED_ADDRESS | jq
 ```
 
-## Add address to allowlist
+### Add address to allowlist
 
 ```sh
 REQUESTED_ADDRESS=0x123
@@ -66,13 +60,10 @@ curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 ```
 
 [basic `axum` example]: https://github.com/tokio-rs/axum/tree/main?tab=readme-ov-file#usage-example
-[building x86 rust containers from mac silicon]: https://loige.co/building_x86_rust-containers-from-mac-silicon/
-[cross-compiling static rust binaries in docker for raspberry pi]: https://jakewharton.com/cross-compiling-static-rust-binaries-in-docker-for-raspberry-pi/
 [custom extractor]: https://github.com/tokio-rs/axum/blob/035c8a36b591bb81b8d107c701ac4b14c0230da3/examples/tokio-redis/src/main.rs#L75
 [nested extractor]: https://docs.rs/axum/0.7.5/axum/extract/index.html#accessing-other-extractors-in-fromrequest-or-fromrequestparts-implementations
+[template dockerfile]: ../rust-builder/template.Dockerfile
+[`allowlist` docker hub image]: https://hub.docker.com/repository/docker/econialabs/allowlist/tags
 [`axum` with redis example]: https://github.com/tokio-rs/axum/blob/main/examples/tokio-redis/src/main.rs
-[`cargo-chef`]: https://github.com/LukeMathWalker/cargo-chef
-[`chainguard/static`]: https://hub.docker.com/r/chainguard/static
-[`kube.rs` best practices]: https://kube.rs/controllers/security/#base-images
-[`muslrust`]: https://github.com/clux/muslrust
-[`rust-static-builder`]: https://github.com/fornwall/rust-static-builder
+[`push-allowlist.yaml`]: ../../.github/workflows/push-allowlist.yaml
+[`rust-builder`]: ../rust-builder/README.md
