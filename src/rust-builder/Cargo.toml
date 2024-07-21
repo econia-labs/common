@@ -1,0 +1,8 @@
+[[bin]]
+name = "hello-world"
+path = "src/hello_world.rs"
+
+[package]
+edition = "2021"
+name = "rust_builders"
+version = "1.0.0"

@@ -4,7 +4,6 @@ chainguard
 dockerhub
 econia
 econialabs
-hadolint
 jemalloc
 jemallocator
 mimalloc
