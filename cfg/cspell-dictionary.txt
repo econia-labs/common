@@ -4,11 +4,6 @@ chainguard
 dockerhub
 econia
 econialabs
-jemalloc
-jemallocator
-mimalloc
-msvc
 muslrust
 nonroot
-tikv
 xbtmatt
