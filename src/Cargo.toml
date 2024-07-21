@@ -7,7 +7,7 @@ lto = "fat"
 [workspace]
 members = [
   "allowlist",
-  "rust-builders"
+  "rust-builder"
 ]
 resolver = "2"
 
