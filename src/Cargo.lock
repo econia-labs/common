@@ -964,7 +964,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_builders"
+name = "rust_builder"
 version = "1.0.0"
 
 [[package]]

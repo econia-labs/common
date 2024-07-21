@@ -4,5 +4,5 @@ path = "src/hello_world.rs"
 
 [package]
 edition = "2021"
-name = "rust_builders"
+name = "rust_builder"
 version = "1.0.0"
