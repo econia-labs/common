@@ -1,7 +1,8 @@
 # Chainguard image tag, Rust builder version.
 ARG TAG=sha256-1e1b7e420a2eb14197aef25917a9e17401caed1806b8d18204a90d7642e1b383
+ARG BUILDER_VERSION=0.1.0
 
-FROM econialabs/rust-builder-dynamic:$BUILDER_VERSION as base
+FROM econialabs/rust-builder-dynamic:$BUILDER_VERSION AS base
 WORKDIR /app
 
 FROM base AS planner
