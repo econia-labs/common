@@ -1,6 +1,8 @@
+# Build and push allowlist Docker image to Docker Hub whenever a tag of the
+# pattern allowlist-v* is pushed.
 ---
 jobs:
-  build-push-allowlist:
+  build-push:
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'actions/checkout@v4'
@@ -25,16 +27,14 @@ jobs:
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: 'src'
-        file: 'src/rust-builders/template-dynamic.Dockerfile'
+        file: 'src/rust-builder/template.Dockerfile'
         labels: '${{ steps.metadata.outputs.labels }}'
-        platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
-        # push: 'true'
+        platforms: '${{ vars.DOCKER_IMAGE_PLATFORMS }}'
+        push: 'true'
         tags: '${{ steps.metadata.outputs.tags }}'
-name: 'Build allowlist with dynamic linking'
+name: 'Build allowlist Docker image and push to Docker Hub'
 'on':
   push:
-    branches:
-    - 'ECO-1882'
     tags:
     - 'allowlist-v*'
 ...

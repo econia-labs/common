@@ -2,10 +2,6 @@
 # cspell:word serde
 # cspell:word thiserror
 
-[[bin]]
-name = "allowlist"
-path = "allowlist.rs"
-
 [dependencies]
 axum = {version = "0.7.5", features = ["macros"]}
 bb8 = {version = "0.8.5"}
