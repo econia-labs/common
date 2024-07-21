@@ -1,9 +1,3 @@
-<!--
-cspell:word sadd
-cspell:word sismember
-cspell:word smembers
--->
-
 # Allowlist
 
 ## Design
