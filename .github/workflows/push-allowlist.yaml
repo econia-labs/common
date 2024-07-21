@@ -28,11 +28,13 @@ jobs:
         file: 'src/rust-builders/template-dynamic.Dockerfile'
         labels: '${{ steps.metadata.outputs.labels }}'
         platforms: '${{ vars.MUSLRUST_PLATFORMS }}'
-        push: 'true'
+        # push: 'true'
         tags: '${{ steps.metadata.outputs.tags }}'
 name: 'Build allowlist with dynamic linking'
 'on':
   push:
+    branches:
+    - 'ECO-1882'
     tags:
     - 'allowlist-v*'
 ...
