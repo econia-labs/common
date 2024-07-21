@@ -6,6 +6,13 @@ path = "src/hello_world_dynamic.rs"
 name = "hello-world-jemalloc"
 path = "src/hello_world_jemalloc.rs"
 
+[[bin]]
+name = "hello-world-mimalloc"
+path = "src/hello_world_mimalloc.rs"
+
+[dependencies]
+mimalloc = {version = "0.1.43", features = ["secure"]}
+
 [package]
 edition = "2021"
 name = "rust_builders"
