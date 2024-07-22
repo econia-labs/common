@@ -60,7 +60,6 @@ REQUESTED_ADDRESS=0x00000123
 curl localhost:3000/$REQUESTED_ADDRESS -X POST | jq
 ```
 
-
 [basic `axum` example]: https://github.com/tokio-rs/axum/tree/main?tab=readme-ov-file#usage-example
 [custom extractor]: https://github.com/tokio-rs/axum/blob/035c8a36b591bb81b8d107c701ac4b14c0230da3/examples/tokio-redis/src/main.rs#L75
 [nested extractor]: https://docs.rs/axum/0.7.5/axum/extract/index.html#accessing-other-extractors-in-fromrequest-or-fromrequestparts-implementations

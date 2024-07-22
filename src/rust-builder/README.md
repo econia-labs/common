@@ -76,7 +76,6 @@ performance, they do not reliably compile on standard platforms (namely, through
 binary has been linked requires a call to `lld`, which can print out different
 messages based on the platform.
 
-[`apt-get` best practices]: https://docs.docker.com/build/building/best-practices/#apt-get
 [cargo package]: https://doc.rust-lang.org/cargo/guide/project-layout.html
 [cargo workspace]: https://doc.rust-lang.org/cargo/reference/workspaces.html
 [crate index]: https://github.com/rust-lang/cargo/issues/3377
@@ -86,6 +85,7 @@ messages based on the platform.
 [multi-platform image builds]: https://docs.docker.com/build/ci/github-actions/multi-platform/
 [refreshed the local index via `cargo update --dry-run`]: https://github.com/serayuzgur/crates/issues/81#issuecomment-634037996
 [solution to `cargo build` memory issues]: https://github.com/rust-lang/cargo/issues/10781#issuecomment-1351670409
+[`apt-get` best practices]: https://docs.docker.com/build/building/best-practices/#apt-get
 [`cargo build --dependencies-only` (proposed)]: https://github.com/rust-lang/cargo/issues/2644
 [`cargo-chef`]: https://github.com/LukeMathWalker/cargo-chef
 [`cargo_net_git_fetch_with_cli`]: https://doc.rust-lang.org/cargo/reference/config.html#netgit-fetch-with-cli
