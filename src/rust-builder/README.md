@@ -27,16 +27,18 @@ docker build \
 
 Note that the first time you run this command, the `cargo chef cook` command
 will need to download the `aptos-core` git dependency in order to create a local
-crate index cache for the `cloud-infra` [Cargo workspace], but subsequent builds
-will be able to reuse the cache. To run the container:
+[crate index] cache for the `cloud-infra` [Cargo workspace], but subsequent
+builds will be able to reuse the cache. To run the container:
 
 ```sh
 docker run rust-builder/hello-world
 ```
 
 To observe the caching in action, change [`src/hello_world.rs`] to say
-`Hello, builder!` then run the above commands again, noting that a cache miss
-has only been triggered on the final `cargo build` command.
+`Hello, builder!` and save, then run the above commands again, noting that a
+cache miss has only been triggered on the final `cargo build` command, as if you
+had already [refreshed the local index via `cargo update --dry-run`] and
+compiled all dependencies via [`cargo build --dependencies-only` (proposed)].
 
 ## Platform support
 
@@ -76,11 +78,14 @@ messages based on the platform.
 
 [cargo package]: https://doc.rust-lang.org/cargo/guide/project-layout.html
 [cargo workspace]: https://doc.rust-lang.org/cargo/reference/workspaces.html
+[crate index]: https://github.com/rust-lang/cargo/issues/3377
 [drop-in allocators]: https://github.com/clux/muslrust?tab=readme-ov-file#allocator-performance
 [github action]: https://docs.docker.com/build/ci/github-actions/
 [github organization variable]: https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-an-organization
 [multi-platform image builds]: https://docs.docker.com/build/ci/github-actions/multi-platform/
+[refreshed the local index via `cargo update --dry-run`]: https://github.com/serayuzgur/crates/issues/81#issuecomment-634037996
 [solution to `cargo build` memory issues]: https://github.com/rust-lang/cargo/issues/10781#issuecomment-1351670409
+[`cargo build --dependencies-only` (proposed)]: https://github.com/rust-lang/cargo/issues/2644
 [`cargo-chef`]: https://github.com/LukeMathWalker/cargo-chef
 [`cargo_net_git_fetch_with_cli`]: https://doc.rust-lang.org/cargo/reference/config.html#netgit-fetch-with-cli
 [`glibc-dynamic`]: https://images.chainguard.dev/directory/image/glibc-dynamic/overview
