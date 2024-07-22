@@ -63,8 +63,8 @@ docker images rust-builder/hello-world
 If you want to containerize a Rust application that has additional non-Rust
 dependencies beyond `glibc`, you will probably want to use a final image like
 `debian/bookworm-slim` that has additional runtime dependencies installed via
-`apt-get`. Note that this will require a custom Dockerfile to install your
-specific runtime dependencies.
+[`apt-get` best practices]. Note that this will require a custom Dockerfile to
+install your specific runtime dependencies.
 
 While it is possible to statically link Rust executables via projects like
 [`muslrust`] for even smaller Docker builds, this approach is discouraged
@@ -76,6 +76,7 @@ performance, they do not reliably compile on standard platforms (namely, through
 binary has been linked requires a call to `lld`, which can print out different
 messages based on the platform.
 
+[`apt-get` best practices]: https://docs.docker.com/build/building/best-practices/#apt-get
 [cargo package]: https://doc.rust-lang.org/cargo/guide/project-layout.html
 [cargo workspace]: https://doc.rust-lang.org/cargo/reference/workspaces.html
 [crate index]: https://github.com/rust-lang/cargo/issues/3377
