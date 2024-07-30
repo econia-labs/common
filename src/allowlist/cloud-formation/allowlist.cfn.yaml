@@ -1,5 +1,6 @@
 ---
 Resources:
+  # Redis database cluster.
   Redis:
     DependsOn: 'RedisACL'
     Properties:
@@ -7,9 +8,14 @@ Resources:
       ClusterName: 'redis'
       NodeType: 'db.t4g.small'
     Type: 'AWS::MemoryDB::Cluster'
+  # Minimal Redis access control list, required for the Redis database cluster.
   RedisACL:
     Properties:
       ACLName: 'redis'
     Type: 'AWS::MemoryDB::ACL'
-Transform: 'AWS::LanguageExtensions'
+  # Virtual private cloud for the Redis database cluster.
+  RedisVPC:
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+    Type: 'AWS::EC2::VPC'
 ...
