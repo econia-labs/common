@@ -10,36 +10,52 @@ Mappings:
 Resources:
   Fn::ForEach::PublicSubnet:
   - 'Identifier'
-  -
-    - 'A'
+  - - 'A'
     - 'B'
   - PublicSubnet${Identifier}:
       Properties:
-        AvailabilityZone:
-          Fn::Select:
-          - !FindInMap
-            - 'PublicSubnet'
-            - Ref: 'Identifier'
-            - 'AvailabilityZone'
-          - Fn::GetAZs:
-              Ref: 'AWS::Region'
+        AvailabilityZone: !Select
+        - !FindInMap
+          - 'PublicSubnet'
+          - Ref: 'Identifier'
+          - 'AvailabilityZone'
+        - Fn::GetAZs: !Ref 'AWS::Region'
         CidrBlock: !FindInMap
         - 'PublicSubnet'
         - Ref: 'Identifier'
         - 'CidrBlock'
         MapPublicIpOnLaunch: true
-        VpcId:
-          Ref: 'VPC'
+        VpcId: !Ref 'VPC'
       Type: 'AWS::EC2::Subnet'
+  Fn::ForEach::PublicSubnetRouteTableAssociation:
+  - 'Identifier'
+  - - 'A'
+    - 'B'
+  - PublicSubnetRouteTableAssociation${Identifier}:
+      Properties:
+        RouteTableId: !Ref 'PublicRouteTable'
+        SubnetId: !Sub
+        - 'PublicSubnet${Identifier}'
+        - Ref: 'Identifier'
+      Type: 'AWS::EC2::SubnetRouteTableAssociation'
   GatewayAttachment:
     Properties:
-      InternetGatewayId:
-        Ref: 'InternetGateway'
-      VpcId:
-        Ref: 'VPC'
+      InternetGatewayId: !Ref 'InternetGateway'
+      VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::VPCGatewayAttachment'
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+  PublicRoute:
+    DependsOn: 'GatewayAttachment'
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref 'InternetGateway'
+      RouteTableId: !Ref 'PublicRouteTable'
+    Type: 'AWS::EC2::Route'
+  PublicRouteTable:
+    Properties:
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::RouteTable'
   Redis:
     DependsOn: 'RedisACL'
     Properties:
