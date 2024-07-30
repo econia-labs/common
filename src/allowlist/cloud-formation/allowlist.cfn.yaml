@@ -8,6 +8,6 @@ Resources:
     Type: 'AWS::MemoryDB::Cluster'
   RedisACL:
     Properties:
-      ACLName: 'Redis'
+      ACLName: 'redis'
     Type: 'AWS::MemoryDB::ACL'
 ...
