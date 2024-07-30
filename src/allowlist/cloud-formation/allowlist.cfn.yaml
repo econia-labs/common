@@ -73,6 +73,27 @@ Resources:
       IpProtocol: -1
       SourceSecurityGroupId: !Ref 'ECSSecurityGroup'
     Type: 'AWS::EC2::SecurityGroupIngress'
+  ECSTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - 'sts:AssumeRole'
+        - Effect: 'Allow'
+          Principal:
+            Service:
+            - 'ecs-tasks.amazonaws.com'
+      Path: '/'
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            Effect: 'Allow'
+            Resource: '*'
+        PolicyName: 'AmazonECSTaskExecutionRolePolicy'
+    Type: 'AWS::IAM::Role'
   Fn::ForEach::PublicSubnet:
   - 'Identifier'
   - - 'A'
