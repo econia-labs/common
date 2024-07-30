@@ -46,6 +46,23 @@ Resources:
     Type: 'AWS::EC2::VPCGatewayAttachment'
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+  PublicLoadBalancer:
+    Properties:
+      Scheme: 'internet-facing'
+      SecurityGroups:
+        !Ref 'PublicLoadBalancerSecurityGroup'
+      Subnets:
+      - !Ref 'PublicSubnetA'
+      - !Ref 'PublicSubnetB'
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  PublicLoadBalancerSecurityGroup:
+    Properties:
+      GroupDescription: 'Access to the public facing load balancer'
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
   PublicRoute:
     DependsOn: 'GatewayAttachment'
     Properties:
