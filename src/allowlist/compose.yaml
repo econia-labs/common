@@ -15,7 +15,7 @@ services:
     environment:
       REDIS_URL: 'redis://redis:6379'
       SERVER_URL: '0.0.0.0:3000'
-    image: 'econialabs/allowlist:0.2.0'
+    image: 'econialabs/allowlist:0.3.0'
     links:
     - 'redis'
     ports:
