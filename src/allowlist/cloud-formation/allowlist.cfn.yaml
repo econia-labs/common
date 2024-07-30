@@ -5,12 +5,13 @@ Resources:
       AvailabilityZone:
         Fn::Select:
         - 0
-        - FN::GeAZs:
+        - Fn::GetAZs:
             Ref: 'AWS::Region'
       CidrBlock: '10.0.1.0/24'
       MapPublicIpOnLaunch: true
-      VPCId: '!Ref VPC'
-    Type: 'AWS:EC2::Subnet'
+      VpcId:
+        Ref: 'VPC'
+    Type: 'AWS::EC2::Subnet'
   Redis:
     DependsOn: 'RedisACL'
     Properties:
