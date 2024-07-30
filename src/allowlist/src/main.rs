@@ -80,12 +80,12 @@ enum PingPong {
 enum InitError {
     #[error("Could not bind listener: {0}")]
     BindListener(std::io::Error),
-    #[error("Failed to install Ctrl+C handler: {0}")]
-    CtrlCHandler(std::io::Error),
     #[error("Could not get a connection from the connection manager: {0}")]
     Connection(RunError<RedisError>),
     #[error("Could not start a Redis connection manager: {0}")]
     ConnectionManager(RedisError),
+    #[error("Failed to install Ctrl+C handler: {0}")]
+    CtrlCHandler(std::io::Error),
     #[error("Redis connection init ping unsuccessful: {0}")]
     Ping(RunError<RedisError>),
     #[error("Redis connection init ping did not pong correctly: {0}")]
