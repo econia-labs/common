@@ -34,9 +34,10 @@ Resources:
   - PublicSubnetRouteTableAssociation${Identifier}:
       Properties:
         RouteTableId: !Ref 'PublicRouteTable'
-        SubnetId: !Sub
-        - 'PublicSubnet${Identifier}'
-        - Ref: 'Identifier'
+        SubnetId: !Ref
+          Fn::Sub:
+          - 'PublicSubnet${Identifier}'
+          - !Ref 'Identifier'
       Type: 'AWS::EC2::SubnetRouteTableAssociation'
   GatewayAttachment:
     Properties:
