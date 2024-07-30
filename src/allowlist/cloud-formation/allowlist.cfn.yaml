@@ -3,7 +3,7 @@ Resources:
   Redis:
     Properties:
       ACLName: 'redis'
-      ClusterName: 'Redis'
+      ClusterName: 'redis'
       NodeType: 'db.t4g.small'
     Type: 'AWS::MemoryDB::Cluster'
   RedisACL:
