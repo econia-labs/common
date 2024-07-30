@@ -68,6 +68,15 @@ Resources:
       - !Ref 'PublicSubnetA'
       - !Ref 'PublicSubnetB'
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  PublicLoadBalancerListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'DummyTargetGroupPublic'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'PublicLoadBalancer'
+      Port: 80
+      Protocol: 'HTTP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
   PublicLoadBalancerSecurityGroup:
     Properties:
       GroupDescription: 'Access to the public facing load balancer'
