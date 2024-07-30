@@ -1,5 +1,16 @@
 ---
 Resources:
+  PublicSubnetA:
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - 0
+        - FN::GeAZs:
+            Ref: 'AWS::Region'
+      CidrBlock: '10.0.1.0/24'
+      MapPublicIpOnLaunch: true
+      VPCId: !Ref 'VPC'
+    Type: 'AWS:EC2::Subnet'
   Redis:
     DependsOn: 'RedisACL'
     Properties:
@@ -12,7 +23,7 @@ Resources:
       ACLName: 'redis'
     Type: 'AWS::MemoryDB::ACL'
   VPC:
-    Type: AWS::EC2::VPC
     Properties:
       CidrBlock: '10.0.0.0/16'
+    Type: 'AWS::EC2::VPC'
 ...
