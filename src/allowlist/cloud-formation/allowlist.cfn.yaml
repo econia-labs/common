@@ -1,7 +1,6 @@
 ---
 Resources:
   PublicSubnetA:
-    DependsOn: 'VPC'
     Properties:
       AvailabilityZone:
         Fn::Select:
