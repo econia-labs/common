@@ -13,9 +13,22 @@ Resources:
     Properties:
       ACLName: 'redis'
     Type: 'AWS::MemoryDB::ACL'
+  # Ingress security group for the Redis database cluster, allowing access from
+  # any IP address inside the VPC.
+  RedisIngressSecurityGroup:
+    Properties:
+      GroupDescription: 'VPC Ingress to the Redis database cluster'
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        FromPort: 6379
+        IpProtocol: 'tcp'
+        ToPort: 6379
+      VpcId: !Ref 'RedisVPC'
+    Type: 'AWS::EC2::SecurityGroup'
   # Virtual private cloud for the Redis database cluster.
   RedisVPC:
     Properties:
       CidrBlock: '10.0.0.0/16'
     Type: 'AWS::EC2::VPC'
+Transform: 'AWS::LanguageExtensions'
 ...
