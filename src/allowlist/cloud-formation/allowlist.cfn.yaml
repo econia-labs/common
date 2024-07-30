@@ -1,5 +1,9 @@
 ---
 Resources:
-  GoodbyeBucket:
-    Type: 'AWS::S3::Bucket'
+  Database:
+    Properties:
+      ACLName: 'redis'
+      ClusterName: 'redis'
+      NodeType: 'db.t4g.small'
+    Type: 'AWS::MemoryDB::Cluster'
 ...
