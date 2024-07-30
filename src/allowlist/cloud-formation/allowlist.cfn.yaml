@@ -1,17 +1,36 @@
 ---
-Resources:
-  PublicSubnetA:
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-        - 0
-        - Fn::GetAZs:
-            Ref: 'AWS::Region'
+Mappings:
+  PublicSubnet:
+    A:
+      AvailabilityZone: 0
       CidrBlock: '10.0.1.0/24'
-      MapPublicIpOnLaunch: true
-      VpcId:
-        Ref: 'VPC'
-    Type: 'AWS::EC2::Subnet'
+    B:
+      AvailabilityZone: 1
+      CidrBlock: '10.0.2.0/24'
+Resources:
+  Fn::ForEach::PublicSubnet:
+  - 'Identifier'
+  -
+    - 'A'
+    - 'B'
+  - PublicSubnet${Identifier}:
+      Properties:
+        AvailabilityZone:
+          Fn::Select:
+          - !FindInMap
+            - 'PublicSubnet'
+            - Ref: 'Identifier'
+            - 'AvailabilityZone'
+          - Fn::GetAZs:
+              Ref: 'AWS::Region'
+        CidrBlock: !FindInMap
+        - 'PublicSubnet'
+        - Ref: 'Identifier'
+        - 'CidrBlock'
+        MapPublicIpOnLaunch: true
+        VpcId:
+          Ref: 'VPC'
+      Type: 'AWS::EC2::Subnet'
   Redis:
     DependsOn: 'RedisACL'
     Properties:
@@ -27,4 +46,5 @@ Resources:
     Properties:
       CidrBlock: '10.0.0.0/16'
     Type: 'AWS::EC2::VPC'
+Transform: 'AWS::LanguageExtensions'
 ...
