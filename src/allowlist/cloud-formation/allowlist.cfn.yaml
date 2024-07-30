@@ -50,7 +50,7 @@ Resources:
     Properties:
       Scheme: 'internet-facing'
       SecurityGroups:
-        !Ref 'PublicLoadBalancerSecurityGroup'
+      - !Ref 'PublicLoadBalancerSecurityGroup'
       Subnets:
       - !Ref 'PublicSubnetA'
       - !Ref 'PublicSubnetB'
