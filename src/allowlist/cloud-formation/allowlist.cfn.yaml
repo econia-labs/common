@@ -23,6 +23,37 @@ Resources:
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   ECSCluster:
     Type: 'AWS::ECS::Cluster'
+  ECSRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - 'sts:AssumeRole'
+        - Effect: 'Allow'
+          Principal:
+            Service:
+            - 'ecs-tasks.amazonaws.com'
+      Path: '/'
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - 'ec2:AttachNetworkInterface'
+            - 'ec2:CreateNetworkInterface'
+            - 'ec2:CreateNetworkInterfacePermission'
+            - 'ec2:DeleteNetworkInterface'
+            - 'ec2:DeleteNetworkInterfacePermission'
+            - 'ec2:Describe*'
+            - 'ec2:DetachNetworkInterface'
+            - 'elasticloadbalancing:DeregisterInstancesFromLoadBalancer'
+            - 'elasticloadbalancing:DeregisterTargets'
+            - 'elasticloadbalancing:Describe*'
+            - 'elasticloadbalancing:RegisterInstancesWithLoadBalancer'
+            - 'elasticloadbalancing:RegisterTargets'
+            Effect: 'Allow'
+            Resource: '*'
+        PolicyName: 'ecs-service'
+    Type: 'AWS::IAM::Role'
   ECSSecurityGroup:
     Properties:
       GroupDescription: 'Access to the ECS containers'
