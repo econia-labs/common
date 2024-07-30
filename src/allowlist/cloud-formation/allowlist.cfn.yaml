@@ -8,6 +8,19 @@ Mappings:
       AvailabilityZone: 1
       CidrBlock: '10.0.2.0/24'
 Resources:
+  DummyTargetGroupPublic:
+    Properties:
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: '/'
+      HealthCheckProtocol: 'HTTP'
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: 'no-op'
+      Port: 80
+      Protocol: 'HTTP'
+      UnhealthyThresholdCount: 2
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   Fn::ForEach::PublicSubnet:
   - 'Identifier'
   - - 'A'
@@ -74,13 +87,13 @@ Resources:
     Properties:
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::RouteTable'
-  Redis:
-    DependsOn: 'RedisACL'
-    Properties:
-      ACLName: 'redis'
-      ClusterName: 'redis'
-      NodeType: 'db.t4g.small'
-    Type: 'AWS::MemoryDB::Cluster'
+  # Redis:
+  #   DependsOn: 'RedisACL'
+  #   Properties:
+  #     ACLName: 'redis'
+  #     ClusterName: 'redis'
+  #     NodeType: 'db.t4g.small'
+  #   Type: 'AWS::MemoryDB::Cluster'
   RedisACL:
     Properties:
       ACLName: 'redis'
