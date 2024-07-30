@@ -31,6 +31,15 @@ Resources:
         VpcId:
           Ref: 'VPC'
       Type: 'AWS::EC2::Subnet'
+  GatewayAttachment:
+    Properties:
+      InternetGatewayId:
+        Ref: 'InternetGateway'
+      VpcId:
+        Ref: 'VPC'
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
   Redis:
     DependsOn: 'RedisACL'
     Properties:
