@@ -21,6 +21,27 @@ Resources:
       UnhealthyThresholdCount: 2
       VpcId: !Ref 'VPC'
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+  ECSCluster:
+    Type: 'AWS::ECS::Cluster'
+  ECSSecurityGroup:
+    Properties:
+      GroupDescription: 'Access to the ECS containers'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
+  ECSSecurityGroupIngressFromPublicALB:
+    Properties:
+      Description: 'Ingress from the public application load balancer'
+      GroupId: !Ref 'ECSSecurityGroup'
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref 'PublicLoadBalancerSecurityGroup'
+    Type: 'AWS::EC2::SecurityGroupIngress'
+  ECSSecurityGroupIngressFromSelf:
+    Properties:
+      Description: 'Ingress from other containers in the same security group'
+      GroupId: !Ref 'ECSSecurityGroup'
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref 'ECSSecurityGroup'
+    Type: 'AWS::EC2::SecurityGroupIngress'
   Fn::ForEach::PublicSubnet:
   - 'Identifier'
   - - 'A'
