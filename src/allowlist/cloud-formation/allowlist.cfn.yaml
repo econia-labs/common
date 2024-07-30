@@ -1,6 +1,7 @@
 ---
 Resources:
   Redis:
+    DependsOn: 'RedisACL'
     Properties:
       ACLName: 'redis'
       ClusterName: 'redis'
