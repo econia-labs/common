@@ -11,6 +11,9 @@ Mappings:
       AvailabilityZone: 2
       CidrBlock: '10.0.3.0/24'
 Resources:
+  # ECS cluster for running the allowlist server.
+  ECSCluster:
+    Type: 'AWS::ECS::Cluster'
   # A subnet for each availability zone in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
