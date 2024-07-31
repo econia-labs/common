@@ -35,15 +35,15 @@ Resources:
   Redis:
     DependsOn: 'RedisACL'
     Properties:
-      ACLName: 'redis'
-      ClusterName: 'redis'
+      ACLName: 'allowlist-redis'
+      ClusterName: 'allowlist-redis'
       NodeType: 'db.t4g.small'
       SubnetGroupName: 'allowlist-subnet-group'
     Type: 'AWS::MemoryDB::Cluster'
   # Minimal Redis access control list, required for the Redis database cluster.
   RedisACL:
     Properties:
-      ACLName: 'redis'
+      ACLName: 'allowlist-redis'
     Type: 'AWS::MemoryDB::ACL'
   # Ingress security group for the Redis database cluster, allowing access from
   # any IP address inside the VPC.
