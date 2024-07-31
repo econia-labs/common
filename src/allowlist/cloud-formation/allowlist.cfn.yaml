@@ -34,6 +34,11 @@ Resources:
         - 'CidrBlock'
         VpcId: !Ref 'VPC'
       Type: 'AWS::EC2::Subnet'
+  # Log group for ECS task logging.
+  LogGroup:
+    Properties:
+      RetentionInDays: 30
+    Type: 'AWS::Logs::LogGroup'
   # Redis database cluster.
   Redis:
     DependsOn:
