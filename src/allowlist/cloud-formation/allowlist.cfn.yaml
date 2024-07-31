@@ -14,6 +14,22 @@ Resources:
   # ECS cluster for running the allowlist server.
   ECSCluster:
     Type: 'AWS::ECS::Cluster'
+  # ECS service for running the allowlist server.
+  ECSService:
+    Properties:
+      Cluster: !Ref 'ECSCluster'
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'ENABLED'
+          SecurityGroups:
+          - !Ref 'RedisIngressSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+          - !Ref 'SubnetC'
+      TaskDefinition: !Ref 'TaskDefinition'
+    Type: 'AWS::ECS::Service'
   # A subnet for each availability zone in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
