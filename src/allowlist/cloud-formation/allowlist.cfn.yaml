@@ -33,7 +33,9 @@ Resources:
       Type: 'AWS::EC2::Subnet'
   # Redis database cluster.
   Redis:
-    DependsOn: 'RedisACL'
+    DependsOn:
+    - 'RedisACL'
+    - 'SubnetGroup'
     Properties:
       ACLName: 'allowlist-redis'
       ClusterName: 'allowlist-redis'
