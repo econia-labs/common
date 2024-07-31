@@ -76,6 +76,36 @@ Resources:
       - !Ref 'SubnetB'
       - !Ref 'SubnetC'
     Type: 'AWS::MemoryDB::SubnetGroup'
+  # ECS task definition for the allowlist server.
+  TaskDefinition:
+    Properties:
+      ContainerDefinitions:
+      - Environment:
+        - Name: 'REDIS_URL'
+          Value: !GetAtt 'Redis.ClusterEndpoint.Address'
+        - Name: 'SERVER_URL'
+          Value: '0.0.0.0:3000'
+        Essential: true
+        Image: 'econialabs/allowlist:0.4.0'
+        LogConfiguration:
+          LogDriver: 'awslogs'
+          Options:
+            awslogs-group: '/ecs/allowlist'
+            awslogs-region: !Ref 'AWS::Region'
+            awslogs-stream-prefix: 'ecs'
+        Name: 'AllowlistContainer'
+        PortMappings:
+        - ContainerPort: 3000
+          HostPort: 3000
+          Protocol: 'tcp'
+      Cpu: '256'
+      ExecutionRoleArn: !GetAtt 'TaskExecutionRole.Arn'
+      Family: 'AllowlistTask'
+      Memory: '512'
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+      - 'FARGATE'
+    Type: 'AWS::ECS::TaskDefinition'
   # ECS task execution role, required for running tasks in the ECS cluster.
   TaskExecutionRole:
     Properties:
