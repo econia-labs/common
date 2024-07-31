@@ -11,9 +11,21 @@ Mappings:
       AvailabilityZone: 2
       CidrBlock: '10.0.3.0/24'
 Resources:
+  # Gateway attachment for the VPC, allowing access to the Internet.
+  AttachGateway:
+    Properties:
+      InternetGatewayId: !Ref 'InternetGateway'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::VPCGatewayAttachment'
   # ECS cluster for running the allowlist server.
   ECSCluster:
     Type: 'AWS::ECS::Cluster'
+  # ECS security group for the allowlist server.
+  ECSSecurityGroup:
+    Properties:
+      GroupDescription: 'ECS security group'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
   # ECS service for running the allowlist server.
   ECSService:
     Properties:
@@ -23,7 +35,7 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: 'ENABLED'
           SecurityGroups:
-          - !Ref 'RedisIngressSecurityGroup'
+          - !Ref 'ECSSecurityGroup'
           Subnets:
           - !Ref 'SubnetA'
           - !Ref 'SubnetB'
@@ -48,13 +60,43 @@ Resources:
         - 'Subnets'
         - Ref: 'Identifier'
         - 'CidrBlock'
+        MapPublicIpOnLaunch: true
         VpcId: !Ref 'VPC'
       Type: 'AWS::EC2::Subnet'
+  # A route table association for each subnet in the VPC.
+  Fn::ForEach::SubnetRouteTableAssociation:
+  - 'Identifier'
+  - - 'A'
+    - 'B'
+    - 'C'
+  - SubnetRouteTableAssociation${Identifier}:
+      Properties:
+        RouteTableId: !Ref 'PublicRouteTable'
+        SubnetId: !Ref
+          Fn::Sub:
+          - 'Subnet${Identifier}'
+          - Identifier: !Ref 'Identifier'
+      Type: 'AWS::EC2::SubnetRouteTableAssociation'
+  # Internet gateway for the VPC, allowing access to the Internet.
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
   # Log group for ECS task logging.
   LogGroup:
     Properties:
       RetentionInDays: 30
     Type: 'AWS::Logs::LogGroup'
+  # Public route for the VPC, allowing access to the Internet.
+  PublicRoute:
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref 'InternetGateway'
+      RouteTableId: !Ref 'PublicRouteTable'
+    Type: 'AWS::EC2::Route'
+  # Public route table for the VPC, allowing access to the Internet.
+  PublicRouteTable:
+    Properties:
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::RouteTable'
   # Redis database cluster.
   Redis:
     DependsOn:
@@ -72,14 +114,14 @@ Resources:
       ACLName: 'allowlist-redis'
     Type: 'AWS::MemoryDB::ACL'
   # Ingress security group for the Redis database cluster, allowing access from
-  # any IP address inside the VPC.
+  # any IP address inside the ECS security group.
   RedisIngressSecurityGroup:
     Properties:
       GroupDescription: 'VPC ingress access to the Redis database cluster'
       SecurityGroupIngress:
-      - CidrIp: '0.0.0.0/0'
-        FromPort: 6379
+      - FromPort: 6379
         IpProtocol: 'tcp'
+        SourceSecurityGroupId: !Ref 'ECSSecurityGroup'
         ToPort: 6379
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
