@@ -72,9 +72,10 @@ Resources:
   - SubnetRouteTableAssociation${Identifier}:
       Properties:
         RouteTableId: !Ref 'PublicRouteTable'
-        SubnetId: !Sub
-        - 'Subnet${Identifier}'
-        - Identifier: !Ref 'Identifier'
+        SubnetId: !Ref
+          Fn::Sub:
+          - 'Subnet${Identifier}'
+          - Identifier: !Ref 'Identifier'
       Type: 'AWS::EC2::SubnetRouteTableAssociation'
   # Internet gateway for the VPC, allowing access to the Internet.
   InternetGateway:
