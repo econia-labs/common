@@ -1,5 +1,36 @@
 ---
+Mappings:
+  Subnets:
+    A:
+      AvailabilityZone: 0
+      CidrBlock: '10.0.1.0/24'
+    B:
+      AvailabilityZone: 1
+      CidrBlock: '10.0.2.0/24'
+    C:
+      AvailabilityZone: 2
+      CidrBlock: '10.0.3.0/24'
 Resources:
+  # A subnet for each availability zone in the VPC region.
+  Fn::ForEach::Subnet:
+  - 'Identifier'
+  - - 'A'
+    - 'B'
+    - 'C'
+  - Subnet${Identifier}:
+      Properties:
+        AvailabilityZone: !Select
+        - !FindInMap
+          - 'Subnets'
+          - Ref: 'Identifier'
+          - 'AvailabilityZone'
+        - Fn::GetAZs: !Ref 'AWS::Region'
+        CidrBlock: !FindInMap
+        - 'Subnet'
+        - Ref: 'Identifier'
+        - 'CidrBlock'
+        VpcId: !Ref 'VPC'
+      Type: 'AWS::EC2::Subnet'
   # Redis database cluster.
   Redis:
     DependsOn: 'RedisACL'
@@ -7,6 +38,7 @@ Resources:
       ACLName: 'redis'
       ClusterName: 'redis'
       NodeType: 'db.t4g.small'
+      SubnetGroupName: 'allowlist-subnet-group'
     Type: 'AWS::MemoryDB::Cluster'
   # Minimal Redis access control list, required for the Redis database cluster.
   RedisACL:
@@ -17,16 +49,25 @@ Resources:
   # any IP address inside the VPC.
   RedisIngressSecurityGroup:
     Properties:
-      GroupDescription: 'VPC Ingress to the Redis database cluster'
+      GroupDescription: 'VPC ingress access to the Redis database cluster'
       SecurityGroupIngress:
       - CidrIp: '0.0.0.0/0'
         FromPort: 6379
         IpProtocol: 'tcp'
         ToPort: 6379
-      VpcId: !Ref 'RedisVPC'
+      VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
-  # Virtual private cloud for the Redis database cluster.
-  RedisVPC:
+  # A subnet group containing all subnets in the VPC.
+  SubnetGroup:
+    Properties:
+      SubnetGroupName: 'allowlist-subnet-group'
+      SubnetIds:
+      - !Ref 'SubnetA'
+      - !Ref 'SubnetB'
+      - !Ref 'SubnetC'
+    Type: 'AWS::MemoryDB::SubnetGroup'
+  # Virtual private cloud for private networking access.
+  VPC:
     Properties:
       CidrBlock: '10.0.0.0/16'
     Type: 'AWS::EC2::VPC'
