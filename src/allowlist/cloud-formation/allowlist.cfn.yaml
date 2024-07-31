@@ -26,7 +26,7 @@ Resources:
           - 'AvailabilityZone'
         - Fn::GetAZs: !Ref 'AWS::Region'
         CidrBlock: !FindInMap
-        - 'Subnet'
+        - 'Subnets'
         - Ref: 'Identifier'
         - 'CidrBlock'
         VpcId: !Ref 'VPC'
