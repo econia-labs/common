@@ -20,7 +20,7 @@ Resources:
   # ECS cluster for running the allowlist server.
   ECSCluster:
     Type: 'AWS::ECS::Cluster'
-  ECS security group for the allowlist server.
+  # ECS security group for the allowlist server.
   ECSSecurityGroup:
     Properties:
       GroupDescription: 'ECS security group'
