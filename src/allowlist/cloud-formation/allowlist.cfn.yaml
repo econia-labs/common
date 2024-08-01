@@ -87,6 +87,7 @@ Resources:
   # Log group for ECS task logging.
   LogGroup:
     Properties:
+      LogGroupName: '/ecs/allowlist'
       RetentionInDays: 30
     Type: 'AWS::Logs::LogGroup'
   # Public route for the VPC, allowing access to the Internet.
