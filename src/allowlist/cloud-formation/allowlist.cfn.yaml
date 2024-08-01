@@ -24,6 +24,9 @@ Resources:
   ECSSecurityGroup:
     Properties:
       GroupDescription: 'ECS security group'
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # ECS service for running the allowlist server.
@@ -31,6 +34,7 @@ Resources:
     Properties:
       Cluster: !Ref 'ECSCluster'
       DesiredCount: 1
+      LaunchType: 'FARGATE'
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: 'DISABLED'
