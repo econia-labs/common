@@ -4,7 +4,7 @@ Mappings:
   # credentials. Note that this is not a security risk because Redis ingress
   # is restricted to the ECS security group.
   RedisCredentials:
-    Default:
+    DefaultUser:
       Password: 'allowlist'
       Username: 'allowlist'
   Subnets:
@@ -127,7 +127,7 @@ Resources:
       UserNames:
       - !FindInMap
         - 'RedisCredentials'
-        - 'Default'
+        - 'DefaultUser'
         - 'Username'
     Type: 'AWS::MemoryDB::ACL'
   # Ingress security group for the Redis database cluster, allowing access from
@@ -150,12 +150,12 @@ Resources:
         Passwords:
         - !FindInMap
           - 'RedisCredentials'
-          - 'Default'
+          - 'DefaultUser'
           - 'Password'
         Type: 'password'
       UserName: !FindInMap
       - 'RedisCredentials'
-      - 'Default'
+      - 'DefaultUser'
       - 'Username'
     Type: 'AWS::MemoryDB::User'
   # A subnet group containing all subnets in the VPC.
@@ -178,12 +178,12 @@ Resources:
           - - 'redis://'
             - !FindInMap
               - 'RedisCredentials'
-              - 'Default'
+              - 'DefaultUser'
               - 'Username'
             - ':'
             - !FindInMap
               - 'RedisCredentials'
-              - 'Default'
+              - 'DefaultUser'
               - 'Password'
             - '@'
             - !GetAtt
