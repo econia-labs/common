@@ -114,14 +114,13 @@ Resources:
   Redis:
     DependsOn:
     - 'RedisACL'
-    - 'SubnetGroup'
     Properties:
       ACLName: 'allowlist'
       ClusterName: 'allowlist'
       NodeType: 'db.t4g.small'
       SecurityGroupIds:
       - !Ref 'RedisIngressSecurityGroup'
-      SubnetGroupName: 'allowlist-subnet-group'
+      SubnetGroupName: !Ref 'SubnetGroup'
     Type: 'AWS::MemoryDB::Cluster'
   # Redis access control list for default user with full permissions.
   RedisACL:
