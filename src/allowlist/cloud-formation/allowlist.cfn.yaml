@@ -145,7 +145,7 @@ Resources:
       ContainerDefinitions:
       - Environment:
         - Name: 'REDIS_URL'
-          Value: !GetAtt 'Redis.ClusterEndpoint.Address'
+          Value: !Sub 'redis://${Redis.ClusterEndpoint.Address}:6379'
         - Name: 'SERVER_URL'
           Value: '0.0.0.0:3000'
         Essential: true
