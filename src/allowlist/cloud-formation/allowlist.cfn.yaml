@@ -11,7 +11,7 @@ Mappings:
       AvailabilityZone: 2
       CidrBlock: '10.0.3.0/24'
 Resources:
-  # Gateway attachment for the VPC, allowing access to the Internet.
+  # Gateway attachment to the VPC, allowing access to the Internet.
   AttachGateway:
     Properties:
       InternetGatewayId: !Ref 'InternetGateway'
