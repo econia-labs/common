@@ -18,9 +18,9 @@ Resources:
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::VPCGatewayAttachment'
   # ECS cluster for running the allowlist server.
-  # ECSCluster:
-  #   Type: 'AWS::ECS::Cluster'
-  # ECS security group for the allowlist server.
+  ECSCluster:
+    Type: 'AWS::ECS::Cluster'
+  ECS security group for the allowlist server.
   ECSSecurityGroup:
     Properties:
       GroupDescription: 'ECS security group'
@@ -30,22 +30,22 @@ Resources:
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # ECS service for running the allowlist server.
-  # ECSService:
-  #   Properties:
-  #     Cluster: !Ref 'ECSCluster'
-  #     DesiredCount: 1
-  #     LaunchType: 'FARGATE'
-  #     NetworkConfiguration:
-  #       AwsvpcConfiguration:
-  #         AssignPublicIp: 'DISABLED'
-  #         SecurityGroups:
-  #         - !Ref 'ECSSecurityGroup'
-  #         Subnets:
-  #         - !Ref 'SubnetA'
-  #         - !Ref 'SubnetB'
-  #         - !Ref 'SubnetC'
-  #     TaskDefinition: !Ref 'TaskDefinition'
-  #   Type: 'AWS::ECS::Service'
+  ECSService:
+    Properties:
+      Cluster: !Ref 'ECSCluster'
+      DesiredCount: 1
+      LaunchType: 'FARGATE'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'DISABLED'
+          SecurityGroups:
+          - !Ref 'ECSSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+          - !Ref 'SubnetC'
+      TaskDefinition: !Ref 'TaskDefinition'
+    Type: 'AWS::ECS::Service'
   # A subnet for each availability zone in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
