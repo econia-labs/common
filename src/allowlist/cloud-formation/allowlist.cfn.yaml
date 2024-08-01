@@ -5,7 +5,8 @@ Mappings:
   # is restricted to the ECS security group.
   RedisCredentials:
     DefaultUser:
-      Password: 'allowlist'
+      # Must be at least 16 characters.
+      Password: 'allowlistallowlist'
       Username: 'allowlist'
   Subnets:
     A:
