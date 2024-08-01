@@ -1,5 +1,12 @@
 ---
 Mappings:
+  # Redis requires an ACL for access control, so create default user with known
+  # credentials. Note that this is not a security risk because Redis ingress
+  # is restricted to the ECS security group.
+  RedisCredentials:
+    Default:
+      Password: 'allowlist'
+      Username: 'allowlist'
   Subnets:
     A:
       AvailabilityZone: 0
@@ -30,22 +37,22 @@ Resources:
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # ECS service for running the allowlist server.
-  # ECSService:
-  #   Properties:
-  #     Cluster: !Ref 'ECSCluster'
-  #     DesiredCount: 1
-  #     LaunchType: 'FARGATE'
-  #     NetworkConfiguration:
-  #       AwsvpcConfiguration:
-  #         AssignPublicIp: 'ENABLED'
-  #         SecurityGroups:
-  #         - !Ref 'ECSSecurityGroup'
-  #         Subnets:
-  #         - !Ref 'SubnetA'
-  #         - !Ref 'SubnetB'
-  #         - !Ref 'SubnetC'
-  #     TaskDefinition: !Ref 'TaskDefinition'
-  #   Type: 'AWS::ECS::Service'
+  ECSService:
+    Properties:
+      Cluster: !Ref 'ECSCluster'
+      DesiredCount: 1
+      LaunchType: 'FARGATE'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'ENABLED'
+          SecurityGroups:
+          - !Ref 'ECSSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+          - !Ref 'SubnetC'
+      TaskDefinition: !Ref 'TaskDefinition'
+    Type: 'AWS::ECS::Service'
   # A subnet for each availability zone in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
@@ -103,20 +110,25 @@ Resources:
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::RouteTable'
   # Redis database cluster.
-  # Redis:
-  #   DependsOn:
-  #   - 'RedisACL'
-  #   - 'SubnetGroup'
-  #   Properties:
-  #     ACLName: 'allowlist-redis'
-  #     ClusterName: 'allowlist-redis'
-  #     NodeType: 'db.t4g.small'
-  #     SubnetGroupName: 'allowlist-subnet-group'
-  #   Type: 'AWS::MemoryDB::Cluster'
-  # Minimal Redis access control list, required for the Redis database cluster.
+  Redis:
+    DependsOn:
+    - 'RedisACL'
+    - 'SubnetGroup'
+    Properties:
+      ACLName: 'allowlist'
+      ClusterName: 'allowlist'
+      NodeType: 'db.t4g.small'
+      SubnetGroupName: 'allowlist-subnet-group'
+    Type: 'AWS::MemoryDB::Cluster'
+  # Redis access control list for default user with full permissions.
   RedisACL:
     Properties:
-      ACLName: 'allowlist-redis'
+      ACLName: 'allowlist'
+      UserNames:
+      - !FindInMap
+        - 'RedisCredentials'
+        - 'Default'
+        - 'Username'
     Type: 'AWS::MemoryDB::ACL'
   # Ingress security group for the Redis database cluster, allowing access from
   # any IP address inside the ECS security group.
@@ -130,6 +142,22 @@ Resources:
         ToPort: 6379
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Redis user with full permissions.
+  RedisUser:
+    Properties:
+      AccessString: 'on ~* &* +@all'
+      AuthenticationMode:
+        Passwords:
+        - !FindInMap
+          - 'RedisCredentials'
+          - 'Default'
+          - 'Password'
+        Type: 'password'
+      UserName: !FindInMap
+      - 'RedisCredentials'
+      - 'Default'
+      - 'Username'
+    Type: 'AWS::MemoryDB::User'
   # A subnet group containing all subnets in the VPC.
   SubnetGroup:
     Properties:
@@ -140,35 +168,51 @@ Resources:
       - !Ref 'SubnetC'
     Type: 'AWS::MemoryDB::SubnetGroup'
   # ECS task definition for the allowlist server.
-  # TaskDefinition:
-  #   Properties:
-  #     ContainerDefinitions:
-  #     - Environment:
-  #       - Name: 'REDIS_URL'
-  #         Value: !Sub 'redis://${Redis.ClusterEndpoint.Address}:6379'
-  #       - Name: 'SERVER_URL'
-  #         Value: '0.0.0.0:3000'
-  #       Essential: true
-  #       Image: 'econialabs/allowlist:0.4.0'
-  #       LogConfiguration:
-  #         LogDriver: 'awslogs'
-  #         Options:
-  #           awslogs-group: '/ecs/allowlist'
-  #           awslogs-region: !Ref 'AWS::Region'
-  #           awslogs-stream-prefix: 'ecs'
-  #       Name: 'AllowlistContainer'
-  #       PortMappings:
-  #       - ContainerPort: 3000
-  #         HostPort: 3000
-  #         Protocol: 'tcp'
-  #     Cpu: '256'
-  #     ExecutionRoleArn: !GetAtt 'TaskExecutionRole.Arn'
-  #     Family: 'AllowlistTask'
-  #     Memory: '512'
-  #     NetworkMode: 'awsvpc'
-  #     RequiresCompatibilities:
-  #     - 'FARGATE'
-  #   Type: 'AWS::ECS::TaskDefinition'
+  TaskDefinition:
+    Properties:
+      ContainerDefinitions:
+      - Environment:
+        - Name: 'REDIS_URL'
+          Value: !Join
+          - ''
+          - - 'redis://'
+            - !FindInMap
+              - 'RedisCredentials'
+              - 'Default'
+              - 'Username'
+            - ':'
+            - !FindInMap
+              - 'RedisCredentials'
+              - 'Default'
+              - 'Password'
+            - '@'
+            - !GetAtt
+              - 'Redis'
+              - 'ClusterEndpoint.Address'
+            - ':6379'
+        - Name: 'SERVER_URL'
+          Value: '0.0.0.0:3000'
+        Essential: true
+        Image: 'econialabs/allowlist:0.4.0'
+        LogConfiguration:
+          LogDriver: 'awslogs'
+          Options:
+            awslogs-group: '/ecs/allowlist'
+            awslogs-region: !Ref 'AWS::Region'
+            awslogs-stream-prefix: 'ecs'
+        Name: 'AllowlistContainer'
+        PortMappings:
+        - ContainerPort: 3000
+          HostPort: 3000
+          Protocol: 'tcp'
+      Cpu: '256'
+      ExecutionRoleArn: !GetAtt 'TaskExecutionRole.Arn'
+      Family: 'AllowlistTask'
+      Memory: '512'
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+      - 'FARGATE'
+    Type: 'AWS::ECS::TaskDefinition'
   # ECS task execution role, required for running tasks in the ECS cluster.
   TaskExecutionRole:
     Properties:
