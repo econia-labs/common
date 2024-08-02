@@ -5,8 +5,6 @@ Parameters:
 Resources:
   NetworkingStack:
     Properties:
-      Parameters:
-        CfnRootDirURL: !Ref 'CfnRootDirURL'
       TemplateURL: !Sub '${CfnRootDirURL}/networking.cfn.yaml'
     Type: 'AWS::CloudFormation::Stack'
 ...
