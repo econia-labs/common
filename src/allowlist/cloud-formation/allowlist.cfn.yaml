@@ -242,9 +242,13 @@ Resources:
               - 'DefaultUser'
               - 'Password'
             - '@'
-            - !GetAtt 'Redis.ClusterEndpoint.Address'
-            - ':'
+            - !GetAtt
+              - 'Redis'
+              - 'ClusterEndpoint.Address'
+            - ':6379'
             - !GetAtt 'Redis.ClusterEndpoint.Port'
+        - Name: 'SERVER_URL'
+          Value: '0.0.0.0:3000'
         Essential: true
         Image: 'econialabs/allowlist:0.4.0'
         LogConfiguration:
