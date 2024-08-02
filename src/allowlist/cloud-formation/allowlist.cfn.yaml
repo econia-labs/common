@@ -32,6 +32,9 @@ Resources:
   ECSSecurityGroup:
     Properties:
       GroupDescription: 'ECS security group'
+      SecurityGroupEgress:
+      - CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
       SecurityGroupIngress:
       - CidrIp: '0.0.0.0/0'
         IpProtocol: -1
