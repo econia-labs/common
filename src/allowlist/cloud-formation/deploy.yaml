@@ -5,6 +5,5 @@ parameters:
     - ''
     - - 'https://github.com/econia-labs/cloud-infra/tree/ECO-1937'
       - '/src/allowlist/cloud-formation'
-tags: null
 template-file-path: 'src/allowlist/cloud-formation/allowlist.cfn.yaml'
 ...
