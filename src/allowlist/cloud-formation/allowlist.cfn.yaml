@@ -231,7 +231,8 @@ Resources:
         - Name: 'REDIS_URL'
           Value: !Join
           - ''
-          - - 'redis://'
+          # Need to use TLS for secure connection on AWS.
+          - - 'rediss://'
             - !FindInMap
               - 'RedisCredentials'
               - 'DefaultUser'
