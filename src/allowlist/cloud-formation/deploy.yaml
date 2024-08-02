@@ -1,9 +1,6 @@
 ---
 parameters:
-  CfnRootDirURL:
-    Fn::Join:
-    - ''
-    - - 'https://github.com/econia-labs/cloud-infra/tree/ECO-1937'
-      - '/src/allowlist/cloud-formation'
+  CfnRootDirURL: 'https://github.com/econia-labscloud-infra/tree/ECO-1937/\
+                  src/allowlist/cloud-formation'
 template-file-path: 'src/allowlist/cloud-formation/allowlist.cfn.yaml'
 ...
