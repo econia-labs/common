@@ -34,7 +34,9 @@ Resources:
       GroupDescription: 'ECS security group'
       SecurityGroupEgress:
       - CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
+        FromPort: 6379
+        IpProtocol: 'tcp'
+        ToPort: 6379
       SecurityGroupIngress:
       - CidrIp: '0.0.0.0/0'
         IpProtocol: -1
@@ -231,8 +233,7 @@ Resources:
         - Name: 'REDIS_URL'
           Value: !Join
           - ''
-          # Need to use TLS for secure connection on AWS.
-          - - 'rediss://'
+          - - 'redis://'
             - !FindInMap
               - 'RedisCredentials'
               - 'DefaultUser'
