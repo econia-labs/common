@@ -54,6 +54,30 @@ Resources:
           - !Ref 'SubnetC'
       TaskDefinition: !Ref 'TaskDefinition'
     Type: 'AWS::ECS::Service'
+  # Role to allow VPC flow logs to be delivered to CloudWatch Logs.
+  FlowLogRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: 'sts:AssumeRole'
+          Effect: 'Allow'
+          Principal:
+            Service: 'vpc-flow-logs.amazonaws.com'
+        Version: '2012-10-17'
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - 'logs:CreateLogGroup'
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            - 'logs:DescribeLogGroups'
+            - 'logs:DescribeLogStreams'
+            Effect: 'Allow'
+            Resource: '*'
+          Version: '2012-10-17'
+        PolicyName: 'flow-logs-policy'
+    Type: 'AWS::IAM::Role'
   # A subnet for each availability zone in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
@@ -89,6 +113,16 @@ Resources:
           - 'Subnet${Identifier}'
           - Identifier: !Ref 'Identifier'
       Type: 'AWS::EC2::SubnetRouteTableAssociation'
+  # Inbound network ACL rule for the VPC, allowing all traffic.
+  InboundRule:
+    Properties:
+      CidrBlock: '0.0.0.0/0'
+      Egress: false
+      NetworkAclId: !Ref 'NetworkAcl'
+      Protocol: -1
+      RuleAction: 'allow'
+      RuleNumber: 100
+    Type: 'AWS::EC2::NetworkAclEntry'
   # Internet gateway for the VPC, allowing access to the Internet.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
@@ -98,6 +132,24 @@ Resources:
       LogGroupName: '/ecs/allowlist'
       RetentionInDays: 30
     Type: 'AWS::Logs::LogGroup'
+  # Network ACL for the VPC.
+  NetworkAcl:
+    Properties:
+      Tags:
+      - Key: 'Name'
+        Value: 'MyNetworkACL'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::NetworkAcl'
+  # Outbound network ACL rule for the VPC, allowing all traffic.
+  OutboundRule:
+    Properties:
+      CidrBlock: '0.0.0.0/0'
+      Egress: true
+      NetworkAclId: !Ref 'NetworkAcl'
+      Protocol: -1
+      RuleAction: 'allow'
+      RuleNumber: 100
+    Type: 'AWS::EC2::NetworkAclEntry'
   # Public route for the VPC, allowing access to the Internet.
   PublicRoute:
     Properties:
@@ -245,5 +297,15 @@ Resources:
       EnableDnsHostnames: true
       EnableDnsSupport: true
     Type: 'AWS::EC2::VPC'
+  # Flow log for delivering VPC flow logs to CloudWatch Logs.
+  VPCFlowLog:
+    Properties:
+      DeliverLogsPermissionArn: !GetAtt 'FlowLogRole.Arn'
+      LogDestinationType: 'cloud-watch-logs'
+      LogGroupName: '/vpc/flow-logs'
+      ResourceId: !Ref 'VPC'
+      ResourceType: 'VPC'
+      TrafficType: 'ALL'
+    Type: 'AWS::EC2::FlowLog'
 Transform: 'AWS::LanguageExtensions'
 ...
