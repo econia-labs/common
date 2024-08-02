@@ -43,22 +43,22 @@ Resources:
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # ECS service for running the allowlist server.
-  ECSService:
-    Properties:
-      Cluster: !Ref 'ECSCluster'
-      DesiredCount: 1
-      LaunchType: 'FARGATE'
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: 'ENABLED'
-          SecurityGroups:
-          - !Ref 'ECSSecurityGroup'
-          Subnets:
-          - !Ref 'SubnetA'
-          - !Ref 'SubnetB'
-          - !Ref 'SubnetC'
-      TaskDefinition: !Ref 'TaskDefinition'
-    Type: 'AWS::ECS::Service'
+  # ECSService:
+  #   Properties:
+  #     Cluster: !Ref 'ECSCluster'
+  #     DesiredCount: 1
+  #     LaunchType: 'FARGATE'
+  #     NetworkConfiguration:
+  #       AwsvpcConfiguration:
+  #         AssignPublicIp: 'ENABLED'
+  #         SecurityGroups:
+  #         - !Ref 'ECSSecurityGroup'
+  #         Subnets:
+  #         - !Ref 'SubnetA'
+  #         - !Ref 'SubnetB'
+  #         - !Ref 'SubnetC'
+  #     TaskDefinition: !Ref 'TaskDefinition'
+  #   Type: 'AWS::ECS::Service'
   # Role to allow VPC flow logs to be delivered to CloudWatch Logs.
   FlowLogRole:
     Properties:
