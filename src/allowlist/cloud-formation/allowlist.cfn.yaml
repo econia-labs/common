@@ -1,5 +1,12 @@
 ---
+Parameters:
+  CfnRootDirURL:
+    Type: 'String'
 Resources:
-  DummyBucket:
-    Type: 'AWS::S3::Bucket'
+  NetworkingStack:
+    Properties:
+      Parameters:
+        CfnRootDirURL: !Ref 'CfnRootDirURL'
+      TemplateURL: !Sub '${CfnRootDirURL}/networking.cfn.yaml'
+    Type: 'AWS::CloudFormation::Stack'
 ...
