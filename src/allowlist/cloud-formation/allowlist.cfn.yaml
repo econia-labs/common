@@ -221,7 +221,7 @@ Resources:
 
   EC2Instance:
     Properties:
-      ImageId: 'ami-0cf0e376c672104d6'
+      ImageId: 'ami-0ee3e5d4a5112ce6a'
       InstanceType: 't2.micro'
       NetworkInterfaces:
       - AssociatePublicIpAddress: true
