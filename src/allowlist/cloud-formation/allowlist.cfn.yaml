@@ -182,10 +182,12 @@ Resources:
     Properties:
       GroupDescription: 'VPC ingress access to Redis cluster'
       SecurityGroupIngress:
-      - FromPort: !Ref 'RedisPort'
+      # Allow inbound TCP traffic on any port, since containers use ephemeral
+      # ports for communication.
+      - FromPort: -1
         IpProtocol: 'tcp'
         SourceSecurityGroupId: !Ref 'ContainerSecurityGroup'
-        ToPort: !Ref 'RedisPort'
+        ToPort: -1
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # Route table for the VPC.
