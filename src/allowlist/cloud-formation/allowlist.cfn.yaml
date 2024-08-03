@@ -26,11 +26,10 @@ Resources:
   ContainerSecurityGroup:
     Properties:
       GroupDescription: 'ECS container security group'
+      # Allow all outbound traffic, to Redis and to Docker Hub.
       SecurityGroupEgress:
       - CidrIp: '0.0.0.0/0'
-        FromPort: !Ref 'RedisPort'
-        IpProtocol: 'tcp'
-        ToPort: !Ref 'RedisPort'
+        IpProtocol: -1
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # A subnet for each availability zone in the VPC region.
@@ -51,8 +50,18 @@ Resources:
         - 'Subnets'
         - Ref: 'Identifier'
         - 'CidrBlock'
+        MapPublicIpOnLaunch: true
         VpcId: !Ref 'VPC'
       Type: 'AWS::EC2::Subnet'
+  # Internet gateway attachment for the VPC.
+  GatewayAttachment:
+    Properties:
+      InternetGatewayId: !Ref 'InternetGateway'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+  # Internet gateway for the VPC.
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
   # Minimal Redis ACL, required for Redis cluster.
   RedisACL:
     Properties:
@@ -97,13 +106,8 @@ Resources:
       ContainerDefinitions:
       - Environment:
         - Name: 'REDIS_URL'
-          Value: !Join
-          - ''
-          - - 'redis://'
-            - !GetAtt
-              - 'RedisCluster'
-              - 'ClusterEndpoint.Address'
-            - !Sub ':{RedisPort}'
+          Value: !Sub
+            'redis://${RedisCluster.ClusterEndpoint.Address}:${RedisPort}'
         - Name: 'SERVER_URL'
           Value: '0.0.0.0:3000'
         Image: !Sub 'econialabs/allowlist:${ImageVersion}'
@@ -144,10 +148,12 @@ Resources:
             Resource: '*'
         PolicyName: 'TaskExecutionRole'
     Type: 'AWS::IAM::Role'
-  # Virtual private cloud for isolated networking.
+  # Virtual private cloud for internal networking.
   VPC:
     Properties:
       CidrBlock: '10.0.0.0/16'
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
     Type: 'AWS::EC2::VPC'
 Transform: 'AWS::LanguageExtensions'
 ...
