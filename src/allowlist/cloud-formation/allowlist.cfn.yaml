@@ -28,8 +28,7 @@ Resources:
       ContainerDefinitions:
       - Environment:
         - Name: 'REDIS_URL'
-          # Use `rediss` for TLS connection.
-          Value: !Sub 'rediss://${RedisCluster.ClusterEndpoint.Address}'
+          Value: !Sub 'redis://${RedisCluster.ClusterEndpoint.Address}'
         - Name: 'SERVER_URL'
           Value: '0.0.0.0:3000'
         Image: !Sub 'econialabs/allowlist:${ImageVersion}'
@@ -162,20 +161,13 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
-  # Minimal Redis ACL, required for Redis cluster.
-  RedisACL:
-    Properties:
-      ACLName: !Sub '${StackName}-redis-acl'
-    Type: 'AWS::MemoryDB::ACL'
   # Redis database cluster.
   RedisCluster:
-    DependsOn:
-    - 'RedisACL'
     Properties:
-      ACLName: !Sub '${StackName}-redis-acl'
+      # Base ACL provided by AWS, granting open access to the cluster.
+      ACLName: 'open-access'
       ClusterName: !Sub '${StackName}-redis-cluster'
       NodeType: 'db.t4g.small'
-      TLSEnabled: true
       SecurityGroupIds:
       - !Ref 'RedisIngressSecurityGroup'
       SubnetGroupName: !Ref 'SubnetGroup'
