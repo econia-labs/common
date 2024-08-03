@@ -22,6 +22,59 @@ Parameters:
   StackName:
     Type: 'String'
 Resources:
+  # Cluster for running ECS containers.
+  ContainerCluster:
+    Type: 'AWS::ECS::Cluster'
+  # ECS task definition for the allowlist server.
+  ContainerDefinition:
+    Properties:
+      ContainerDefinitions:
+      - Environment:
+        - Name: 'REDIS_URL'
+          Value: !Sub
+            'redis://${RedisCluster.ClusterEndpoint.Address}:${RedisPort}'
+        - Name: 'SERVER_URL'
+          Value: '0.0.0.0:3000'
+        Image: !Sub 'econialabs/allowlist:${ImageVersion}'
+        LogConfiguration:
+          LogDriver: 'awslogs'
+          Options:
+            awslogs-group: !Sub '/ecs/${StackName}'
+            awslogs-region: !Ref 'AWS::Region'
+            awslogs-stream-prefix: 'ecs'
+        Name: 'AllowlistServer'
+      Cpu: '256'
+      ExecutionRoleArn: !GetAtt 'ContainerRole.Arn'
+      Family: 'AllowlistTask'
+      Memory: '512'
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+      - 'FARGATE'
+    Type: 'AWS::ECS::TaskDefinition'
+  # Role with assorted permissions required to run the server container.
+  ContainerRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: 'sts:AssumeRole'
+          Effect: 'Allow'
+          Principal:
+            Service: 'ecs-tasks.amazonaws.com'
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - 'ecr:GetDownloadUrlForLayer'
+            - 'ecr:BatchGetImage'
+            - 'ecr:BatchCheckLayerAvailability'
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            Effect: 'Allow'
+            Resource: '*'
+        # Roles use UpperCamelCase but stack names use kebab-case. Combine the
+        # two to create a unique role name.
+        PolicyName: !Sub '$ContainerRole-${StackName}'
+    Type: 'AWS::IAM::Role'
   # Security group for ECS containers.
   ContainerSecurityGroup:
     Properties:
@@ -127,54 +180,6 @@ Resources:
       - !Ref 'SubnetB'
       - !Ref 'SubnetC'
     Type: 'AWS::MemoryDB::SubnetGroup'
-  # ECS task definition for the allowlist server.
-  TaskDefinition:
-    Properties:
-      ContainerDefinitions:
-      - Environment:
-        - Name: 'REDIS_URL'
-          Value: !Sub
-            'redis://${RedisCluster.ClusterEndpoint.Address}:${RedisPort}'
-        - Name: 'SERVER_URL'
-          Value: '0.0.0.0:3000'
-        Image: !Sub 'econialabs/allowlist:${ImageVersion}'
-        LogConfiguration:
-          LogDriver: 'awslogs'
-          Options:
-            awslogs-group: !Sub '/ecs/${StackName}'
-            awslogs-region: !Ref 'AWS::Region'
-            awslogs-stream-prefix: 'ecs'
-        Name: 'AllowlistServer'
-      Cpu: '256'
-      ExecutionRoleArn: !GetAtt 'TaskExecutionRole.Arn'
-      Family: 'AllowlistTask'
-      Memory: '512'
-      NetworkMode: 'awsvpc'
-      RequiresCompatibilities:
-      - 'FARGATE'
-    Type: 'AWS::ECS::TaskDefinition'
-  # ECS task execution role with assorted required permissions.
-  TaskExecutionRole:
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-        - Action: 'sts:AssumeRole'
-          Effect: 'Allow'
-          Principal:
-            Service: 'ecs-tasks.amazonaws.com'
-      Policies:
-      - PolicyDocument:
-          Statement:
-          - Action:
-            - 'ecr:GetDownloadUrlForLayer'
-            - 'ecr:BatchGetImage'
-            - 'ecr:BatchCheckLayerAvailability'
-            - 'logs:CreateLogStream'
-            - 'logs:PutLogEvents'
-            Effect: 'Allow'
-            Resource: '*'
-        PolicyName: 'TaskExecutionRole'
-    Type: 'AWS::IAM::Role'
   # Virtual private cloud for internal networking.
   VPC:
     Properties:
