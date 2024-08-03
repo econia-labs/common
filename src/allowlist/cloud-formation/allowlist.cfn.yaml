@@ -14,6 +14,20 @@ Parameters:
   StackName:
     Type: 'String'
 Resources:
+  # Security group for ECS containers.
+  ContainerSecurityGroup:
+    Properties:
+      GroupDescription: 'ECS container security group'
+      SecurityGroupEgress:
+      - CidrIp: '0.0.0.0/0'
+        FromPort: 6379
+        IpProtocol: 'tcp'
+        ToPort: 6379
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
   # A subnet for each availability zone in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
@@ -34,6 +48,17 @@ Resources:
         - 'CidrBlock'
         VpcId: !Ref 'VPC'
       Type: 'AWS::EC2::Subnet'
+  # Ingress security group for Redis, allowing access from ECS tasks.
+  RedisIngressSecurityGroup:
+    Properties:
+      GroupDescription: 'VPC ingress access to Redis cluster'
+      SecurityGroupIngress:
+      - FromPort: 6379
+        IpProtocol: 'tcp'
+        SourceSecurityGroupId: !Ref 'ContainerSecurityGroup'
+        ToPort: 6379
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
   # A group containing all VPC subnets.
   SubnetGroup:
     Properties:
