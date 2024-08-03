@@ -20,30 +20,30 @@ Resources:
   ContainerCluster:
     Type: 'AWS::ECS::Cluster'
   # ECS task definition for the allowlist server.
-  # ContainerDefinition:
-  #   Properties:
-  #     ContainerDefinitions:
-  #     - Environment:
-  #       - Name: 'REDIS_URL'
-  #         Value: !Sub 'redis://${RedisCluster.ClusterEndpoint.Address}'
-  #       - Name: 'SERVER_URL'
-  #         Value: '0.0.0.0:3000'
-  #       Image: !Sub 'econialabs/allowlist:${ImageVersion}'
-  #       LogConfiguration:
-  #         LogDriver: 'awslogs'
-  #         Options:
-  #           awslogs-group: !Sub '/ecs/${StackName}'
-  #           awslogs-region: !Ref 'AWS::Region'
-  #           awslogs-stream-prefix: 'ecs'
-  #       Name: 'AllowlistServer'
-  #     Cpu: '256'
-  #     ExecutionRoleArn: !GetAtt 'ContainerRole.Arn'
-  #     Family: 'AllowlistTask'
-  #     Memory: '512'
-  #     NetworkMode: 'awsvpc'
-  #     RequiresCompatibilities:
-  #     - 'FARGATE'
-  #   Type: 'AWS::ECS::TaskDefinition'
+  ContainerDefinition:
+    Properties:
+      ContainerDefinitions:
+      - Environment:
+        - Name: 'REDIS_URL'
+          Value: !Sub 'redis://${RedisCluster.ClusterEndpoint.Address}'
+        - Name: 'SERVER_URL'
+          Value: '0.0.0.0:3000'
+        Image: !Sub 'econialabs/allowlist:${ImageVersion}'
+        LogConfiguration:
+          LogDriver: 'awslogs'
+          Options:
+            awslogs-group: !Sub '/ecs/${StackName}'
+            awslogs-region: !Ref 'AWS::Region'
+            awslogs-stream-prefix: 'ecs'
+        Name: 'AllowlistServer'
+      Cpu: '256'
+      ExecutionRoleArn: !GetAtt 'ContainerRole.Arn'
+      Family: 'AllowlistTask'
+      Memory: '512'
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+      - 'FARGATE'
+    Type: 'AWS::ECS::TaskDefinition'
   # Log group for ECS task logging.
   ContainerLogGroup:
     Properties:
@@ -73,20 +73,20 @@ Resources:
         PolicyName: !Sub 'ContainerRolePolicy-${StackName}'
     Type: 'AWS::IAM::Role'
   # ECS service for running the allowlist server container.
-  # ContainerRunner:
-  #   Properties:
-  #     Cluster: !Ref 'ContainerCluster'
-  #     LaunchType: 'FARGATE'
-  #     NetworkConfiguration:
-  #       AwsvpcConfiguration:
-  #         AssignPublicIp: 'ENABLED'
-  #         SecurityGroups:
-  #         - !Ref 'ContainerSecurityGroup'
-  #         Subnets:
-  #         - !Ref 'SubnetA'
-  #         - !Ref 'SubnetB'
-  #     TaskDefinition: !Ref 'ContainerDefinition'
-  #   Type: 'AWS::ECS::Service'
+  ContainerRunner:
+    Properties:
+      Cluster: !Ref 'ContainerCluster'
+      LaunchType: 'FARGATE'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'ENABLED'
+          SecurityGroups:
+          - !Ref 'ContainerSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+      TaskDefinition: !Ref 'ContainerDefinition'
+    Type: 'AWS::ECS::Service'
   # Security group for ECS containers.
   ContainerSecurityGroup:
     Properties:
@@ -148,20 +148,20 @@ Resources:
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
   # Redis database cluster.
-  # RedisCluster:
-  #   Properties:
-  #     # Base ACL provided by AWS granting open access to the cluster (for any
-  #     # traffic permitted by the ingress security group).
-  #     ACLName: 'open-access'
-  #     ClusterName: !Sub '${StackName}'
-  #     NodeType: 'db.t4g.small'
-  #     NumReplicasPerShard: 2
-  #     NumShards: 1
-  #     SecurityGroupIds:
-  #     - !Ref 'RedisIngressSecurityGroup'
-  #     SubnetGroupName: !Ref 'SubnetGroup'
-  #     TLSEnabled: false
-  #   Type: 'AWS::MemoryDB::Cluster'
+  RedisCluster:
+    Properties:
+      # Base ACL provided by AWS granting open access to the cluster (for any
+      # traffic permitted by the ingress security group).
+      ACLName: 'open-access'
+      ClusterName: !Sub '${StackName}'
+      NodeType: 'db.t4g.small'
+      NumReplicasPerShard: 2
+      NumShards: 1
+      SecurityGroupIds:
+      - !Ref 'RedisIngressSecurityGroup'
+      SubnetGroupName: !Ref 'SubnetGroup'
+      TLSEnabled: false
+    Type: 'AWS::MemoryDB::Cluster'
   # Ingress security group for Redis, allowing access from ECS tasks only.
   RedisIngressSecurityGroup:
     Properties:
