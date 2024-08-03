@@ -155,7 +155,7 @@ Resources:
       ACLName: 'open-access'
       ClusterName: !Sub '${StackName}'
       NodeType: 'db.t4g.small'
-      NumReplicasPerShard: 2
+      NumReplicasPerShard: 1
       NumShards: 1
       SecurityGroupIds:
       - !Ref 'RedisIngressSecurityGroup'
