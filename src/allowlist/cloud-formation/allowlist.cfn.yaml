@@ -172,7 +172,7 @@ Resources:
     - 'RedisACL'
     Properties:
       ACLName: !Sub '${StackName}-redis-acl'
-      ClusterName: !Sub '${StackName}-redis-cluster'
+      ClusterName: !Sub '${StackName}-redis'
       NodeType: 'db.t4g.small'
       SecurityGroupIds:
       - !Ref 'RedisIngressSecurityGroup'
