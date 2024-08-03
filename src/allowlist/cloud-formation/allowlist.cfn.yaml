@@ -51,6 +51,12 @@ Resources:
       RequiresCompatibilities:
       - 'FARGATE'
     Type: 'AWS::ECS::TaskDefinition'
+  # Log group for ECS task logging.
+  ContainerLogGroup:
+    Properties:
+      LogGroupName: !Sub '/ecs/${StackName}'
+      RetentionInDays: 14
+    Type: 'AWS::Logs::LogGroup'
   # Role with assorted permissions required to run the server container.
   ContainerRole:
     Properties:
