@@ -53,12 +53,34 @@ Resources:
         MapPublicIpOnLaunch: true
         VpcId: !Ref 'VPC'
       Type: 'AWS::EC2::Subnet'
+  # An outbound internet traffic route association for each subnet.
+  Fn::ForEach::SubnetOutboundGatewayRouteAssociation:
+  - 'Identifier'
+  - - 'A'
+    - 'B'
+    - 'C'
+  - SubnetOutboundGatewayRouteAssociation${Identifier}:
+      Properties:
+        RouteTableId: !Ref 'RouteTable'
+        SubnetId: !Ref
+          Fn::Sub:
+          - 'Subnet${Identifier}'
+          - Identifier: !Ref 'Identifier'
+      Type: 'AWS::EC2::SubnetRouteTableAssociation'
   # Internet gateway attachment for the VPC.
   GatewayAttachment:
     Properties:
       InternetGatewayId: !Ref 'InternetGateway'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::VPCGatewayAttachment'
+  # Route for outbound internet traffic through the internet gateway.
+  GatewayOutboundRoute:
+    DependsOn: 'GatewayAttachment'
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref 'InternetGateway'
+      RouteTableId: !Ref 'RouteTable'
+    Type: 'AWS::EC2::Route'
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
@@ -91,7 +113,12 @@ Resources:
         ToPort: !Ref 'RedisPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
-  # A group containing all VPC subnets.
+  # Route table for the VPC.
+  RouteTable:
+    Properties:
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::RouteTable'
+  # A group containing all VPC subnets to be accessible for Redis.
   SubnetGroup:
     Properties:
       SubnetGroupName: !Sub '${StackName}-subnet-group'
@@ -126,7 +153,7 @@ Resources:
       RequiresCompatibilities:
       - 'FARGATE'
     Type: 'AWS::ECS::TaskDefinition'
-  # ECS task execution role, required for running tasks in the ECS cluster.
+  # ECS task execution role with assorted required permissions.
   TaskExecutionRole:
     Properties:
       AssumeRolePolicyDocument:
