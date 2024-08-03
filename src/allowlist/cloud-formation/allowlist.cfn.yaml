@@ -184,10 +184,10 @@ Resources:
       SecurityGroupIngress:
       # Allow inbound TCP traffic on any port, since containers use ephemeral
       # ports for communication.
-      - FromPort: -1
+      - FromPort: 0
         IpProtocol: 'tcp'
         SourceSecurityGroupId: !Ref 'ContainerSecurityGroup'
-        ToPort: -1
+        ToPort: 65535
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # Route table for the VPC.
