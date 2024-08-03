@@ -170,6 +170,7 @@ Resources:
       SecurityGroupIds:
       - !Ref 'RedisIngressSecurityGroup'
       SubnetGroupName: !Ref 'SubnetGroup'
+      TLSEnabled: false
     Type: 'AWS::MemoryDB::Cluster'
   # Ingress security group for Redis, allowing access from ECS tasks only.
   RedisIngressSecurityGroup:
