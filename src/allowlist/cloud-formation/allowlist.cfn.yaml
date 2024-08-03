@@ -28,7 +28,8 @@ Resources:
       ContainerDefinitions:
       - Environment:
         - Name: 'REDIS_URL'
-          Value: !Sub 'redis://${RedisCluster.ClusterEndpoint.Address}'
+          # Use `rediss` for TLS connection.
+          Value: !Sub 'rediss://${RedisCluster.ClusterEndpoint.Address}'
         - Name: 'SERVER_URL'
           Value: '0.0.0.0:3000'
         Image: !Sub 'econialabs/allowlist:${ImageVersion}'
@@ -172,8 +173,9 @@ Resources:
     - 'RedisACL'
     Properties:
       ACLName: !Sub '${StackName}-redis-acl'
-      ClusterName: !Sub '${StackName}-redis'
+      ClusterName: !Sub '${StackName}-redis-cluster'
       NodeType: 'db.t4g.small'
+      TLSEnabled: true
       SecurityGroupIds:
       - !Ref 'RedisIngressSecurityGroup'
       SubnetGroupName: !Ref 'SubnetGroup'
