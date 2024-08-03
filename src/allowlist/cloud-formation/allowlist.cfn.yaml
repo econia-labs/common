@@ -2,6 +2,6 @@
 Resources:
   NetworkingStack:
     Properties:
-      TemplateURL: './networking.cfn.yaml'
+      TemplateURL: 'https://raw.githubusercontent.com/econia-labs/cloud-infra/ECO-1937/src/allowlist/cloud-formation/networking.cfn.yaml'
     Type: 'AWS::CloudFormation::Stack'
 ...
