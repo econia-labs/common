@@ -211,5 +211,46 @@ Resources:
       EnableDnsHostnames: true
       EnableDnsSupport: true
     Type: 'AWS::EC2::VPC'
+  EC2Instance:
+    Properties:
+      ImageId: 'ami-0cf0e376c672104d6'
+      InstanceType: 't2.micro'
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: true
+        DeviceIndex: 0
+        GroupSet:
+        - !Ref 'ContainerSecurityGroup'
+        SubnetId: !Ref 'SubnetA'
+      IamInstanceProfile: !Ref 'EC2InstanceProfile'
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y redis
+    Type: 'AWS::EC2::Instance'
+
+  EC2InstanceProfile:
+    Properties:
+      Roles:
+      - !Ref 'EC2InstanceRole'
+    Type: 'AWS::IAM::InstanceProfile'
+
+  EC2InstanceRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: 'sts:AssumeRole'
+          Effect: 'Allow'
+          Principal:
+            Service: 'ec2.amazonaws.com'
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+    Type: 'AWS::IAM::Role'
+
+Outputs:
+  EC2InstanceId:
+    Description: 'ID of the EC2 instance'
+    Value: !Ref 'EC2Instance'
 Transform: 'AWS::LanguageExtensions'
 ...
