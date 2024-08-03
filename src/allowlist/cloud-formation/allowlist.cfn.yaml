@@ -28,7 +28,8 @@ Resources:
       ContainerDefinitions:
       - Environment:
         - Name: 'REDIS_URL'
-          Value: !Sub 'redis://${RedisCluster.ClusterEndpoint.Address}'
+          # Use `rediss` for TLS since MemoryDB enables it by default.
+          Value: !Sub 'rediss://${RedisCluster.ClusterEndpoint.Address}'
         - Name: 'SERVER_URL'
           Value: '0.0.0.0:3000'
         Image: !Sub 'econialabs/allowlist:${ImageVersion}'
@@ -76,21 +77,21 @@ Resources:
         PolicyName: !Sub 'ContainerRolePolicy-${StackName}'
     Type: 'AWS::IAM::Role'
   # ECS service for running the allowlist server container.
-  # ContainerRunner:
-  #   Properties:
-  #     Cluster: !Ref 'ContainerCluster'
-  #     LaunchType: 'FARGATE'
-  #     NetworkConfiguration:
-  #       AwsvpcConfiguration:
-  #         AssignPublicIp: 'ENABLED'
-  #         SecurityGroups:
-  #         - !Ref 'ContainerSecurityGroup'
-  #         Subnets:
-  #         - !Ref 'SubnetA'
-  #         - !Ref 'SubnetB'
-  #         - !Ref 'SubnetC'
-  #     TaskDefinition: !Ref 'ContainerDefinition'
-  #   Type: 'AWS::ECS::Service'
+  ContainerRunner:
+    Properties:
+      Cluster: !Ref 'ContainerCluster'
+      LaunchType: 'FARGATE'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'ENABLED'
+          SecurityGroups:
+          - !Ref 'ContainerSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+          - !Ref 'SubnetC'
+      TaskDefinition: !Ref 'ContainerDefinition'
+    Type: 'AWS::ECS::Service'
   # Security group for ECS containers.
   ContainerSecurityGroup:
     Properties:
