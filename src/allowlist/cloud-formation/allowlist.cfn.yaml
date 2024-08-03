@@ -11,6 +11,9 @@ Mappings:
       AvailabilityZone: 2
       CidrBlock: '10.0.3.0/24'
 Parameters:
+  RedisPort:
+    Default: 6379
+    Type: 'Number'
   StackName:
     Type: 'String'
 Resources:
@@ -20,12 +23,9 @@ Resources:
       GroupDescription: 'ECS container security group'
       SecurityGroupEgress:
       - CidrIp: '0.0.0.0/0'
-        FromPort: 6379
+        FromPort: !Ref 'RedisPort'
         IpProtocol: 'tcp'
-        ToPort: 6379
-      SecurityGroupIngress:
-      - CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
+        ToPort: !Ref 'RedisPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # A subnet for each availability zone in the VPC region.
@@ -48,15 +48,33 @@ Resources:
         - 'CidrBlock'
         VpcId: !Ref 'VPC'
       Type: 'AWS::EC2::Subnet'
-  # Ingress security group for Redis, allowing access from ECS tasks.
+  # Minimal Redis ACL, required for Redis cluster.
+  RedisACL:
+    Properties:
+      ACLName: !Sub '${StackName}-redis-acl'
+    Type: 'AWS::MemoryDB::ACL'
+  # Redis database cluster.
+  RedisCluster:
+    DependsOn:
+    - 'RedisACL'
+    Properties:
+      ACLName: !Sub '${StackName}-redis-acl'
+      ClusterName: !Sub '${StackName}-redis-cluster'
+      NodeType: 'db.t4g.small'
+      Port: !Ref 'RedisPort'
+      SecurityGroupIds:
+      - !Ref 'RedisIngressSecurityGroup'
+      SubnetGroupName: !Ref 'SubnetGroup'
+    Type: 'AWS::MemoryDB::Cluster'
+  # Ingress security group for Redis, allowing access from ECS tasks only.
   RedisIngressSecurityGroup:
     Properties:
       GroupDescription: 'VPC ingress access to Redis cluster'
       SecurityGroupIngress:
-      - FromPort: 6379
+      - FromPort: !Ref 'RedisPort'
         IpProtocol: 'tcp'
         SourceSecurityGroupId: !Ref 'ContainerSecurityGroup'
-        ToPort: 6379
+        ToPort: !Ref 'RedisPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # A group containing all VPC subnets.
