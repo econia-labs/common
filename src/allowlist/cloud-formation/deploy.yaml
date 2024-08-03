@@ -1,3 +1,5 @@
 ---
+parameters:
+  StackName: 'allowlist-dev'
 template-file-path: 'src/allowlist/cloud-formation/allowlist.cfn.yaml'
 ...

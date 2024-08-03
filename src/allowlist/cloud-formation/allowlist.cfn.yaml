@@ -1,8 +1,52 @@
 ---
+Mappings:
+  Subnets:
+    A:
+      AvailabilityZone: 0
+      CidrBlock: '10.0.1.0/24'
+    B:
+      AvailabilityZone: 1
+      CidrBlock: '10.0.2.0/24'
+    C:
+      AvailabilityZone: 2
+      CidrBlock: '10.0.3.0/24'
+Parameters:
+  StackName:
+    Type: 'String'
 Resources:
+  # A subnet for each availability zone in the VPC region.
+  Fn::ForEach::Subnet:
+  - 'Identifier'
+  - - 'A'
+    - 'B'
+    - 'C'
+  - Subnet${Identifier}:
+      Properties:
+        AvailabilityZone: !Select
+        - !FindInMap
+          - 'Subnets'
+          - Ref: 'Identifier'
+          - 'AvailabilityZone'
+        - Fn::GetAZs: !Ref 'AWS::Region'
+        CidrBlock: !FindInMap
+        - 'Subnets'
+        - Ref: 'Identifier'
+        - 'CidrBlock'
+        VpcId: !Ref 'VPC'
+      Type: 'AWS::EC2::Subnet'
+  # A group containing all VPC subnets.
+  SubnetGroup:
+    Properties:
+      SubnetGroupName: !Sub '${StackName}-subnet-group'
+      SubnetIds:
+      - !Ref 'SubnetA'
+      - !Ref 'SubnetB'
+      - !Ref 'SubnetC'
+    Type: 'AWS::MemoryDB::SubnetGroup'
   # Virtual private cloud for isolated networking.
   VPC:
     Properties:
       CidrBlock: '10.0.0.0/16'
     Type: 'AWS::EC2::VPC'
+Transform: 'AWS::LanguageExtensions'
 ...
