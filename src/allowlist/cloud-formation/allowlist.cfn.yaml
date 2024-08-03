@@ -153,7 +153,7 @@ Resources:
   #     # Base ACL provided by AWS granting open access to the cluster (for any
   #     # traffic permitted by the ingress security group).
   #     ACLName: 'open-access'
-  #     ClusterName: !Sub '${StackName}-redis-cluster'
+  #     ClusterName: !Sub '${StackName}'
   #     NodeType: 'db.t4g.small'
   #     NumReplicasPerShard: 2
   #     NumShards: 1
