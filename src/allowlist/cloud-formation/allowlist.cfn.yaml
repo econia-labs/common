@@ -211,6 +211,8 @@ Resources:
       EnableDnsHostnames: true
       EnableDnsSupport: true
     Type: 'AWS::EC2::VPC'
+
+
   EC2Instance:
     Properties:
       ImageId: 'ami-0cf0e376c672104d6'
