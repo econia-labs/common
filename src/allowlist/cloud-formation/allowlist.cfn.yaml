@@ -13,9 +13,6 @@ Mappings:
 Parameters:
   ImageVersion:
     Type: 'String'
-  RedisPort:
-    Default: 6379
-    Type: 'Number'
   ServerPort:
     Default: 3000
     Type: 'Number'
@@ -31,8 +28,7 @@ Resources:
       ContainerDefinitions:
       - Environment:
         - Name: 'REDIS_URL'
-          Value: !Sub
-            'redis://${RedisCluster.ClusterEndpoint.Address}:${RedisPort}'
+          Value: !Sub 'redis://${RedisCluster.ClusterEndpoint.Address}'
         - Name: 'SERVER_URL'
           Value: '0.0.0.0:3000'
         Image: !Sub 'econialabs/allowlist:${ImageVersion}'
@@ -178,7 +174,6 @@ Resources:
       ACLName: !Sub '${StackName}-redis-acl'
       ClusterName: !Sub '${StackName}-redis-cluster'
       NodeType: 'db.t4g.small'
-      Port: !Ref 'RedisPort'
       SecurityGroupIds:
       - !Ref 'RedisIngressSecurityGroup'
       SubnetGroupName: !Ref 'SubnetGroup'
