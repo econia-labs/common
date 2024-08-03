@@ -11,8 +11,13 @@ Mappings:
       AvailabilityZone: 2
       CidrBlock: '10.0.3.0/24'
 Parameters:
+  ImageVersion:
+    Type: 'String'
   RedisPort:
     Default: 6379
+    Type: 'Number'
+  ServerPort:
+    Default: 3000
     Type: 'Number'
   StackName:
     Type: 'String'
@@ -86,6 +91,59 @@ Resources:
       - !Ref 'SubnetB'
       - !Ref 'SubnetC'
     Type: 'AWS::MemoryDB::SubnetGroup'
+  # ECS task definition for the allowlist server.
+  TaskDefinition:
+    Properties:
+      ContainerDefinitions:
+      - Environment:
+        - Name: 'REDIS_URL'
+          Value: !Join
+          - ''
+          - - 'redis://'
+            - !GetAtt
+              - 'RedisCluster'
+              - 'ClusterEndpoint.Address'
+            - !Sub ':{RedisPort}'
+        - Name: 'SERVER_URL'
+          Value: '0.0.0.0:3000'
+        Image: !Sub 'econialabs/allowlist:${ImageVersion}'
+        LogConfiguration:
+          LogDriver: 'awslogs'
+          Options:
+            awslogs-group: !Sub '/ecs/${StackName}'
+            awslogs-region: !Ref 'AWS::Region'
+            awslogs-stream-prefix: 'ecs'
+        Name: 'AllowlistServer'
+      Cpu: '256'
+      ExecutionRoleArn: !GetAtt 'TaskExecutionRole.Arn'
+      Family: 'AllowlistTask'
+      Memory: '512'
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+      - 'FARGATE'
+    Type: 'AWS::ECS::TaskDefinition'
+  # ECS task execution role, required for running tasks in the ECS cluster.
+  TaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: 'sts:AssumeRole'
+          Effect: 'Allow'
+          Principal:
+            Service: 'ecs-tasks.amazonaws.com'
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - 'ecr:GetDownloadUrlForLayer'
+            - 'ecr:BatchGetImage'
+            - 'ecr:BatchCheckLayerAvailability'
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            Effect: 'Allow'
+            Resource: '*'
+        PolicyName: 'TaskExecutionRole'
+    Type: 'AWS::IAM::Role'
   # Virtual private cloud for isolated networking.
   VPC:
     Properties:
