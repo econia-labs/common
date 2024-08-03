@@ -7,9 +7,6 @@ Mappings:
     B:
       AvailabilityZone: 1
       CidrBlock: '10.0.2.0/24'
-    C:
-      AvailabilityZone: 2
-      CidrBlock: '10.0.3.0/24'
 Parameters:
   ImageVersion:
     Type: 'String'
@@ -88,7 +85,6 @@ Resources:
           Subnets:
           - !Ref 'SubnetA'
           - !Ref 'SubnetB'
-          - !Ref 'SubnetC'
       TaskDefinition: !Ref 'ContainerDefinition'
     Type: 'AWS::ECS::Service'
   # Security group for ECS containers.
@@ -100,19 +96,12 @@ Resources:
       - CidrIp: '0.0.0.0/0'
         IpProtocol: -1
       VpcId: !Ref 'VPC'
-      # Allow inbound traffic over SSH.
-      SecurityGroupIngress:
-      - CidrIp: '0.0.0.0/0'
-        FromPort: 22
-        IpProtocol: 'tcp'
-        ToPort: 22
     Type: 'AWS::EC2::SecurityGroup'
-  # A subnet for each availability zone in the VPC region.
+  # A subnet for the first two availability zones in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
   - - 'A'
     - 'B'
-    - 'C'
   - Subnet${Identifier}:
       Properties:
         AvailabilityZone: !Select
@@ -133,7 +122,6 @@ Resources:
   - 'Identifier'
   - - 'A'
     - 'B'
-    - 'C'
   - SubnetOutboundGatewayRouteAssociation${Identifier}:
       Properties:
         RouteTableId: !Ref 'RouteTable'
@@ -165,8 +153,10 @@ Resources:
       # Base ACL provided by AWS granting open access to the cluster (for any
       # traffic permitted by the ingress security group).
       ACLName: 'open-access'
-      ClusterName: !Sub '${StackName}'
+      ClusterName: !Sub '${StackName}-redis-cluster'
       NodeType: 'db.t4g.small'
+      NumReplicasPerShard: 2
+      NumShards: 1
       SecurityGroupIds:
       - !Ref 'RedisIngressSecurityGroup'
       SubnetGroupName: !Ref 'SubnetGroup'
@@ -197,7 +187,6 @@ Resources:
       SubnetIds:
       - !Ref 'SubnetA'
       - !Ref 'SubnetB'
-      - !Ref 'SubnetC'
     Type: 'AWS::MemoryDB::SubnetGroup'
   # Virtual private cloud for internal networking.
   VPC:
@@ -206,48 +195,5 @@ Resources:
       EnableDnsHostnames: true
       EnableDnsSupport: true
     Type: 'AWS::EC2::VPC'
-
-
-  EC2Instance:
-    Properties:
-      ImageId: 'ami-0ee3e5d4a5112ce6a'
-      InstanceType: 't2.micro'
-      NetworkInterfaces:
-      - AssociatePublicIpAddress: true
-        DeviceIndex: 0
-        GroupSet:
-        - !Ref 'ContainerSecurityGroup'
-        SubnetId: !Ref 'SubnetA'
-      IamInstanceProfile: !Ref 'EC2InstanceProfile'
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          yum update -y
-          yum install -y redis
-    Type: 'AWS::EC2::Instance'
-
-  EC2InstanceProfile:
-    Properties:
-      Roles:
-      - !Ref 'EC2InstanceRole'
-    Type: 'AWS::IAM::InstanceProfile'
-
-  EC2InstanceRole:
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-        - Action: 'sts:AssumeRole'
-          Effect: 'Allow'
-          Principal:
-            Service: 'ec2.amazonaws.com'
-        Version: '2012-10-17'
-      ManagedPolicyArns:
-      - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
-    Type: 'AWS::IAM::Role'
-
-Outputs:
-  EC2InstanceId:
-    Description: 'ID of the EC2 instance'
-    Value: !Ref 'EC2Instance'
 Transform: 'AWS::LanguageExtensions'
 ...
