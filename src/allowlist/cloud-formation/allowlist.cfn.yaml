@@ -73,20 +73,20 @@ Resources:
         PolicyName: !Sub 'ContainerRolePolicy-${StackName}'
     Type: 'AWS::IAM::Role'
   # ECS service for running the allowlist server container.
-  ContainerRunner:
-    Properties:
-      Cluster: !Ref 'ContainerCluster'
-      LaunchType: 'FARGATE'
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: 'ENABLED'
-          SecurityGroups:
-          - !Ref 'ContainerSecurityGroup'
-          Subnets:
-          - !Ref 'SubnetA'
-          - !Ref 'SubnetB'
-      TaskDefinition: !Ref 'ContainerDefinition'
-    Type: 'AWS::ECS::Service'
+  # ContainerRunner:
+  #   Properties:
+  #     Cluster: !Ref 'ContainerCluster'
+  #     LaunchType: 'FARGATE'
+  #     NetworkConfiguration:
+  #       AwsvpcConfiguration:
+  #         AssignPublicIp: 'ENABLED'
+  #         SecurityGroups:
+  #         - !Ref 'ContainerSecurityGroup'
+  #         Subnets:
+  #         - !Ref 'SubnetA'
+  #         - !Ref 'SubnetB'
+  #     TaskDefinition: !Ref 'ContainerDefinition'
+  #   Type: 'AWS::ECS::Service'
   # Security group for ECS containers.
   ContainerSecurityGroup:
     Properties:
@@ -155,6 +155,8 @@ Resources:
       ACLName: 'open-access'
       ClusterName: !Sub '${StackName}'
       NodeType: 'db.t4g.small'
+      # A single shard with one replica, straddling the first two availability
+      # zones in the subnet group.
       NumReplicasPerShard: 1
       NumShards: 1
       SecurityGroupIds:
