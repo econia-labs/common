@@ -275,11 +275,22 @@ Resources:
       HttpMethod: 'GET'
       Integration:
         IntegrationHttpMethod: 'GET'
+        RequestParameters:
+          integration.request.path.proxy: 'method.request.path.proxy'
         Type: 'HTTP_PROXY'
-        Uri: !Sub 'http://${LoadBalancer.DNSName}/'
-      ResourceId: !GetAtt 'RestApi.RootResourceId'
+        Uri: !Sub 'http://${LoadBalancer.DNSName}/{proxy}'
+      RequestParameters:
+        method.request.path.proxy: true
+      ResourceId: !Ref 'RestApiProxyResource'
       RestApiId: !Ref 'RestApi'
     Type: 'AWS::ApiGateway::Method'
+  # Proxy resource to capture all paths.
+  RestApiProxyResource:
+    Properties:
+      ParentId: !GetAtt 'RestApi.RootResourceId'
+      PathPart: '{proxy+}'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Resource'
   # Route table for the VPC.
   RouteTable:
     Properties:
