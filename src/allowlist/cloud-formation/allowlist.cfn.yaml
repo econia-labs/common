@@ -262,7 +262,7 @@ Resources:
     - 'RestApiPost'
     Metadata:
       # Redeploy whenever the nonce is incremented.
-      ManualUpdateTriggerNonce: 0
+      ManualUpdateTriggerNonce: 1
     Properties:
       RestApiId: !Ref 'RestApi'
       StageName: !Sub '${StackName}'
