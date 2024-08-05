@@ -255,14 +255,17 @@ Resources:
         Version: '2012-10-17'
     Type: 'AWS::ApiGateway::RestApi'
   # Deployment for the REST API.
-  # RestApiDeployment:
-  #   DependsOn:
-  #   - 'RestApiGet'
-  #   - 'RestApiPost'
-  #   Properties:
-  #     RestApiId: !Ref 'RestApi'
-  #     StageName: !Sub '${StackName}'
-  #   Type: 'AWS::ApiGateway::Deployment'
+  RestApiDeployment:
+    DependsOn:
+    - 'RestApiGet'
+    - 'RestApiPost'
+    Metadata:
+      # Redeploy whenever the nonce is incremented.
+      ManualUpdateTriggerNonce: 0
+    Properties:
+      RestApiId: !Ref 'RestApi'
+      StageName: !Sub '${StackName}'
+    Type: 'AWS::ApiGateway::Deployment'
   # GET method for the REST API.
   RestApiGet:
     Properties:
