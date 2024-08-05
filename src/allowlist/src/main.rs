@@ -301,7 +301,7 @@ fn map_error(
     )
 }
 
-/// Custom extractor to parse an address and a get a connection to the Redis database.
+/// Custom extractor to parse an address and get a connection to the Redis database.
 #[async_trait]
 impl<S> FromRequestParts<S> for PreparedConnection
 where
