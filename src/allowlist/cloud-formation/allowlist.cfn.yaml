@@ -11,7 +11,7 @@ Outputs:
   # URL for API calls.
   ApiEndpoint:
     Description: 'API Endpoint URL'
-    Value: !GetAtt 'ApiEndpoint.Value'
+    Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${StackName}/'
 Parameters:
   ContainerPort:
     Default: 3000
@@ -21,22 +21,6 @@ Parameters:
   StackName:
     Type: 'String'
 Resources:
-  # API endpoint stored as SSM parameter. This approach enables the use of a
-  # derived constant across the template, which is not natively supported.
-  ApiEndpoint:
-    Properties:
-      Name: !Sub '/${StackName}/ApiEndpoint'
-      Type: 'String'
-      Value: !Join
-      - ''
-      - - 'https://'
-        - !Ref 'RestApi'
-        - '.execute-api.'
-        - !Ref 'AWS::Region'
-        - '.amazonaws.com/'
-        - !Ref 'StackName'
-        - '/'
-    Type: 'AWS::SSM::Parameter'
   # Cluster for running ECS containers.
   ContainerCluster:
     Type: 'AWS::ECS::Cluster'
@@ -246,13 +230,35 @@ Resources:
         ToPort: 65535
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
-  # Allowlist server REST API.
+  # API Gateway REST API.
   RestApi:
+    Type: 'AWS::ApiGateway::RestApi'
     Properties:
       EndpointConfiguration:
         Types:
         - 'EDGE'
       Name: !Sub '${StackName}'
+  # Update REST API with policy.
+  RestApiPolicyUpdate:
+    Properties:
+      Name: !Sub '${StackName}'
+      RestApiId: !Ref 'RestApi'
+      Policy:
+        Statement:
+        - Action: 'execute-api:Invoke'
+          Effect: 'Allow'
+          Principal: '*'
+          Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/${StackName}/GET/*'
+        - Action: 'execute-api:Invoke'
+          Condition:
+            ForAnyValue:StringLike:
+              'aws:PrincipalARN': 'arn:aws:iam::*:role/*'
+            StringEquals:
+              'aws:PrincipalType': 'AssumedRole'
+          Effect: 'Allow'
+          Principal: '*'
+          Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/${StackName}/POST/*'
+        Version: '2012-10-17'
     Type: 'AWS::ApiGateway::RestApi'
   # Deployment for the REST API.
   RestApiGatewayDeployment:
@@ -275,29 +281,6 @@ Resources:
       ResourceId: !GetAtt 'RestApi.RootResourceId'
       RestApiId: !Ref 'RestApi'
     Type: 'AWS::ApiGateway::Method'
-  # Resource policy for the REST API, restricting post access to assumed roles.
-  RestApiPolicy:
-    Properties:
-      Name: !Sub '${StackName}'
-      Policy:
-        Statement:
-        # Allow unauthorized GET requests.
-        - Action: 'execute-api:Invoke'
-          Effect: 'Allow'
-          Principal: '*'
-          Resource: !Sub '${ApiEndpoint.Value}GET'
-        # Allow POST requests from assumed roles.
-        - Action: 'execute-api:Invoke'
-          Condition:
-            ForAnyValue:StringLike:
-              'aws:PrincipalARN': 'arn:aws:iam::*:role/*'
-            StringEquals:
-              'aws:PrincipalType': 'AssumedRole'
-          Effect: 'Allow'
-          Principal: '*'
-          Resource: !Sub '${ApiEndpoint.Value}POST'
-        Version: '2012-10-17'
-    Type: 'AWS::ApiGateway::RestApi'
   # POST method for the REST API.
   RestApiPost:
     Properties:
