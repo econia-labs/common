@@ -11,7 +11,7 @@ Parameters:
   ImageVersion:
     Type: 'String'
   ServerPort:
-    Default: 3000
+    Default: 80
     Type: 'Number'
   StackName:
     Type: 'String'
@@ -27,7 +27,7 @@ Resources:
         - Name: 'REDIS_URL'
           Value: !Sub 'redis://${RedisCluster.ClusterEndpoint.Address}'
         - Name: 'SERVER_URL'
-          Value: '0.0.0.0:3000'
+          Value: !Sub '0.0.0.0:${ServerPort}'
         Image: !Sub 'econialabs/allowlist:${ImageVersion}'
         LogConfiguration:
           LogDriver: 'awslogs'
@@ -36,6 +36,8 @@ Resources:
             awslogs-region: !Ref 'AWS::Region'
             awslogs-stream-prefix: 'ecs'
         Name: 'AllowlistServer'
+        PortMappings:
+        - ContainerPort: !Ref 'ServerPort'
       Cpu: '256'
       ExecutionRoleArn: !GetAtt 'ContainerRole.Arn'
       Family: 'AllowlistTask'
@@ -73,20 +75,20 @@ Resources:
         PolicyName: !Sub 'ContainerRolePolicy-${StackName}'
     Type: 'AWS::IAM::Role'
   # ECS service for running the allowlist server container.
-  # ContainerRunner:
-  #   Properties:
-  #     Cluster: !Ref 'ContainerCluster'
-  #     LaunchType: 'FARGATE'
-  #     NetworkConfiguration:
-  #       AwsvpcConfiguration:
-  #         AssignPublicIp: 'ENABLED'
-  #         SecurityGroups:
-  #         - !Ref 'ContainerSecurityGroup'
-  #         Subnets:
-  #         - !Ref 'SubnetA'
-  #         - !Ref 'SubnetB'
-  #     TaskDefinition: !Ref 'ContainerDefinition'
-  #   Type: 'AWS::ECS::Service'
+  ContainerRunner:
+    Properties:
+      Cluster: !Ref 'ContainerCluster'
+      LaunchType: 'FARGATE'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'ENABLED'
+          SecurityGroups:
+          - !Ref 'ContainerSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+      TaskDefinition: !Ref 'ContainerDefinition'
+    Type: 'AWS::ECS::Service'
   # Security group for ECS containers.
   ContainerSecurityGroup:
     Properties:
@@ -95,8 +97,22 @@ Resources:
       SecurityGroupEgress:
       - CidrIp: '0.0.0.0/0'
         IpProtocol: -1
+      # Allow inbound traffic from load balancer only.
+      SecurityGroupIngress:
+      - FromPort: !Ref 'ServerPort'
+        IpProtocol: 'tcp'
+        SourceSecurityGroupId: !Ref 'LoadBalancerSecurityGroup'
+        ToPort: !Ref 'ServerPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Target group for the load balancer to route traffic to.
+  ContainerTargetGroup:
+    Properties:
+      Port: !Ref 'ServerPort'
+      Protocol: 'HTTP'
+      TargetType: 'ip'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # A subnet for the first two availability zones in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
@@ -147,6 +163,38 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+  # Application load balancer for public access.
+  LoadBalancer:
+    Properties:
+      Scheme: 'internet-facing'
+      SecurityGroups:
+      - !Ref 'LoadBalancerSecurityGroup'
+      Subnets:
+      - !Ref 'SubnetA'
+      - !Ref 'SubnetB'
+      Type: 'application'
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  # Listens to incoming load balancer traffic and forwards accordingly.
+  LoadBalancerListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'ContainerTargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'LoadBalancer'
+      Port: !Ref 'ServerPort'
+      Protocol: 'HTTP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+  # Security group for the load balancer.
+  LoadBalancerSecurityGroup:
+    Properties:
+      GroupDescription: 'Security group for the load balancer'
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        FromPort: !Sub '${ServerPort}'
+        IpProtocol: 'tcp'
+        ToPort: !Sub '${ServerPort}'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
   # Redis database cluster.
   RedisCluster:
     Properties:
