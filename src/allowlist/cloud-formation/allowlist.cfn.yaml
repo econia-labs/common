@@ -97,6 +97,12 @@ Resources:
       SecurityGroupEgress:
       - CidrIp: '0.0.0.0/0'
         IpProtocol: -1
+      # Allow all inbound traffic on the container port.
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        FromPort: !Ref 'ContainerPort'
+        IpProtocol: 'tcp'
+        ToPort: !Ref 'ContainerPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # A subnet for the first two availability zones in the VPC region.
