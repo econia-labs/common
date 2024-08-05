@@ -82,12 +82,14 @@ Resources:
     Type: 'AWS::IAM::Role'
   # ECS service for running the allowlist server container.
   ContainerRunner:
+    DependsOn:
+    - 'LoadBalancerListener'
     Properties:
       Cluster: !Ref 'ContainerCluster'
       LaunchType: 'FARGATE'
       LoadBalancers:
       - ContainerName: !Sub '${ContainerName}'
-        ContainerPort: !Ref 'ContainerPort'
+        ContainerPort: !Sub '${ContainerPort}'
         TargetGroupArn: !Ref 'ContainerTargetGroup'
       NetworkConfiguration:
         AwsvpcConfiguration:
@@ -122,6 +124,8 @@ Resources:
     Type: 'AWS::EC2::SecurityGroupIngress'
   # Target group for the load balancer, forwarding traffic to ECS containers.
   ContainerTargetGroup:
+    DependsOn:
+    - 'LoadBalancer'
     Properties:
       Port: !Ref 'ContainerPort'
       Protocol: 'HTTP'
