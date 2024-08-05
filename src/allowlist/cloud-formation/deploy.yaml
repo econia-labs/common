@@ -1,6 +1,7 @@
----
+template-file-path: src/allowlist/cloud-formation/allowlist.cfn.yaml
 parameters:
-  ImageVersion: 'latest'
-  StackName: 'allowlist-dev'
-template-file-path: 'src/allowlist/cloud-formation/allowlist.cfn.yaml'
-...
+  ImageVersion: latest
+  RestApiPort: '443'
+  ContainerPort: '3000'
+  StackName: allowlist-dev
+tags: {}
