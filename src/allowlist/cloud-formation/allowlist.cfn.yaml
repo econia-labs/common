@@ -10,7 +10,8 @@ Mappings:
 Outputs:
   # URL for API calls.
   ApiEndpoint:
-    Value: !Ref 'ApiEndpoint.Value'
+    Description: 'API Endpoint URL'
+    Value: !GetAtt 'ApiEndpoint.Value'
 Parameters:
   ContainerPort:
     Default: 3000
