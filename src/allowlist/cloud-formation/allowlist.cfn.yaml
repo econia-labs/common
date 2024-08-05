@@ -233,6 +233,7 @@ Resources:
   # API Gateway REST API, requiring IAM authorization for POST requests.
   RestApi:
     Properties:
+      ApiKeySourceType: 'AUTHORIZER'
       EndpointConfiguration:
         Types:
         - 'EDGE'
