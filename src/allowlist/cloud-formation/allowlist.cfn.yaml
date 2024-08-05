@@ -13,6 +13,9 @@ Parameters:
     Type: 'Number'
   ImageVersion:
     Type: 'String'
+  RestApiPort:
+    Default: 443
+    Type: 'Number'
   StackName:
     Type: 'String'
 Resources:
@@ -97,11 +100,11 @@ Resources:
       SecurityGroupEgress:
       - CidrIp: '0.0.0.0/0'
         IpProtocol: -1
-      # Allow all inbound traffic on the container port.
+      # Allow inbound traffic from load balancer only.
       SecurityGroupIngress:
-      - CidrIp: '0.0.0.0/0'
-        FromPort: !Ref 'ContainerPort'
+      - FromPort: !Ref 'ContainerPort'
         IpProtocol: 'tcp'
+        SourceSecurityGroupId: !Ref 'LoadBalancerSecurityGroup'
         ToPort: !Ref 'ContainerPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
@@ -155,6 +158,22 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+  # Security group for the load balancer.
+  LoadBalancerSecurityGroup:
+    Properties:
+      GroupDescription: 'Security group for the load balancer'
+      SecurityGroupEgress:
+      - DestinationSecurityGroupId: !Ref 'ContainerSecurityGroup'
+        FromPort: !Sub '${ContainerPort}'
+        IpProtocol: 'tcp'
+        ToPort: !Sub '${ContainerPort}'
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        FromPort: !Sub '${RestApiPort}'
+        IpProtocol: 'tcp'
+        ToPort: !Sub '${RestApiPort}'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
   # Redis database cluster.
   RedisCluster:
     Properties:
