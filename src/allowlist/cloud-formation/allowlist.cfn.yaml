@@ -8,11 +8,11 @@ Mappings:
       AvailabilityZone: 1
       CidrBlock: '10.0.2.0/24'
 Parameters:
+  ContainerPort:
+    Default: 3000
+    Type: 'Number'
   ImageVersion:
     Type: 'String'
-  ServerPort:
-    Default: 80
-    Type: 'Number'
   StackName:
     Type: 'String'
 Resources:
@@ -27,7 +27,7 @@ Resources:
         - Name: 'REDIS_URL'
           Value: !Sub 'redis://${RedisCluster.ClusterEndpoint.Address}'
         - Name: 'SERVER_URL'
-          Value: !Sub '0.0.0.0:${ServerPort}'
+          Value: !Sub '0.0.0.0:${ContainerPort}'
         Image: !Sub 'econialabs/allowlist:${ImageVersion}'
         LogConfiguration:
           LogDriver: 'awslogs'
@@ -37,7 +37,7 @@ Resources:
             awslogs-stream-prefix: 'ecs'
         Name: 'AllowlistServer'
         PortMappings:
-        - ContainerPort: !Ref 'ServerPort'
+        - ContainerPort: !Ref 'ContainerPort'
       Cpu: '256'
       ExecutionRoleArn: !GetAtt 'ContainerRole.Arn'
       Family: 'AllowlistTask'
@@ -99,16 +99,16 @@ Resources:
         IpProtocol: -1
       # Allow inbound traffic from load balancer only.
       SecurityGroupIngress:
-      - FromPort: !Ref 'ServerPort'
+      - FromPort: !Ref 'ContainerPort'
         IpProtocol: 'tcp'
         SourceSecurityGroupId: !Ref 'LoadBalancerSecurityGroup'
-        ToPort: !Ref 'ServerPort'
+        ToPort: !Ref 'ContainerPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # Target group for the load balancer to route traffic to.
   ContainerTargetGroup:
     Properties:
-      Port: !Ref 'ServerPort'
+      Port: !Ref 'ContainerPort'
       Protocol: 'HTTP'
       TargetType: 'ip'
       VpcId: !Ref 'VPC'
@@ -181,7 +181,7 @@ Resources:
       - TargetGroupArn: !Ref 'ContainerTargetGroup'
         Type: 'forward'
       LoadBalancerArn: !Ref 'LoadBalancer'
-      Port: !Ref 'ServerPort'
+      Port: !Ref 'ContainerPort'
       Protocol: 'HTTP'
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Security group for the load balancer.
@@ -190,9 +190,9 @@ Resources:
       GroupDescription: 'Security group for the load balancer'
       SecurityGroupIngress:
       - CidrIp: '0.0.0.0/0'
-        FromPort: !Sub '${ServerPort}'
+        FromPort: !Sub '${ContainerPort}'
         IpProtocol: 'tcp'
-        ToPort: !Sub '${ServerPort}'
+        ToPort: !Sub '${ContainerPort}'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # Redis database cluster.
@@ -225,6 +225,47 @@ Resources:
         ToPort: 65535
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Allowlist server REST API.
+  RestApi:
+    Properties:
+      EndpointConfiguration:
+        Types:
+        - 'EDGE'
+      Name: !Sub '${StackName}'
+    Type: 'AWS::ApiGateway::RestApi'
+  # Deployment for the REST API.
+  RestApiGatewayDeployment:
+    DependsOn:
+    - 'RestApiGet'
+    - 'RestApiPost'
+    Properties:
+      RestApiId: !Ref 'RestApi'
+      StageName: !Sub '${StackName}'
+    Type: 'AWS::ApiGateway::Deployment'
+  # GET method for the REST API.
+  RestApiGet:
+    Properties:
+      AuthorizationType: 'NONE'
+      HttpMethod: 'GET'
+      Integration:
+        IntegrationHttpMethod: 'GET'
+        Type: 'HTTP_PROXY'
+        Uri: !Sub 'http://${LoadBalancer.DNSName}/'
+      ResourceId: !GetAtt 'RestApi.RootResourceId'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Method'
+  # POST method for the REST API.
+  RestApiPost:
+    Properties:
+      AuthorizationType: 'AWS_IAM'
+      HttpMethod: 'POST'
+      Integration:
+        IntegrationHttpMethod: 'POST'
+        Type: 'HTTP_PROXY'
+        Uri: !Sub 'http://${LoadBalancer.DNSName}/'
+      ResourceId: !GetAtt 'RestApi.RootResourceId'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Method'
   # Route table for the VPC.
   RouteTable:
     Properties:
