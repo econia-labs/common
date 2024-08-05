@@ -254,6 +254,9 @@ Resources:
   # Public REST API gateway.
   RestApi:
     Properties:
+      EndpointConfiguration:
+        Types:
+        - 'EDGE'
       Name: !Ref 'StackName'
     Type: 'AWS::ApiGateway::RestApi'
   # Deployment of Rest API gateway.
