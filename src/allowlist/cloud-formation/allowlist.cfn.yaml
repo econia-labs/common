@@ -8,13 +8,16 @@ Mappings:
       AvailabilityZone: 1
       CidrBlock: '10.0.2.0/24'
 Parameters:
+  ContainerName:
+    Default: 'allowlist-server-container'
+    Type: 'String'
   ContainerPort:
     Default: 3000
     Type: 'Number'
   ImageVersion:
     Type: 'String'
-  RestApiPort:
-    Default: 443
+  LoadBalancerListenerPort:
+    Default: 80
     Type: 'Number'
   StackName:
     Type: 'String'
@@ -38,7 +41,7 @@ Resources:
             awslogs-group: !Sub '/ecs/${StackName}'
             awslogs-region: !Ref 'AWS::Region'
             awslogs-stream-prefix: 'ecs'
-        Name: 'AllowlistServer'
+        Name: !Sub '${ContainerName}'
         PortMappings:
         - ContainerPort: !Ref 'ContainerPort'
       Cpu: '256'
@@ -82,6 +85,10 @@ Resources:
     Properties:
       Cluster: !Ref 'ContainerCluster'
       LaunchType: 'FARGATE'
+      LoadBalancers:
+      - ContainerName: !Sub '${ContainerName}'
+        ContainerPort: !Ref 'ContainerPort'
+        TargetGroupArn: !Ref 'ContainerTargetGroup'
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: 'ENABLED'
@@ -113,6 +120,14 @@ Resources:
       SourceSecurityGroupId: !Ref 'LoadBalancerSecurityGroup'
       ToPort: !Ref 'ContainerPort'
     Type: 'AWS::EC2::SecurityGroupIngress'
+  # Target group for the load balancer, forwarding traffic to ECS containers.
+  ContainerTargetGroup:
+    Properties:
+      Port: !Ref 'ContainerPort'
+      Protocol: 'HTTP'
+      TargetType: 'ip'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # A subnet for the first two availability zones in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
@@ -163,6 +178,27 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+  # Application load balancer for public access.
+  LoadBalancer:
+    Properties:
+      Scheme: 'internet-facing'
+      SecurityGroups:
+      - !Ref 'LoadBalancerSecurityGroup'
+      Subnets:
+      - !Ref 'SubnetA'
+      - !Ref 'SubnetB'
+      Type: 'application'
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  # Listener for the load balancer, forwards traffic to container target group.
+  LoadBalancerListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'ContainerTargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'LoadBalancer'
+      Port: !Sub '${LoadBalancerListenerPort}'
+      Protocol: 'HTTP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Security group for the load balancer.
   LoadBalancerSecurityGroup:
     Properties:
@@ -174,9 +210,9 @@ Resources:
         ToPort: !Sub '${ContainerPort}'
       SecurityGroupIngress:
       - CidrIp: '0.0.0.0/0'
-        FromPort: !Sub '${RestApiPort}'
+        FromPort: !Sub '${LoadBalancerListenerPort}'
         IpProtocol: 'tcp'
-        ToPort: !Sub '${RestApiPort}'
+        ToPort: !Sub '${LoadBalancerListenerPort}'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # Redis database cluster.
