@@ -81,26 +81,26 @@ Resources:
         PolicyName: !Sub 'ContainerRolePolicy-${StackName}'
     Type: 'AWS::IAM::Role'
   # ECS service for running the allowlist server container.
-  # ContainerRunner:
-  #   DependsOn:
-  #   - 'LoadBalancerListener'
-  #   Properties:
-  #     Cluster: !Ref 'ContainerCluster'
-  #     LaunchType: 'FARGATE'
-  #     LoadBalancers:
-  #     - ContainerName: !Ref 'ContainerName'
-  #       ContainerPort: !Ref 'ContainerPort'
-  #       TargetGroupArn: !Ref 'ContainerTargetGroup'
-  #     NetworkConfiguration:
-  #       AwsvpcConfiguration:
-  #         AssignPublicIp: 'ENABLED'
-  #         SecurityGroups:
-  #         - !Ref 'ContainerSecurityGroup'
-  #         Subnets:
-  #         - !Ref 'SubnetA'
-  #         - !Ref 'SubnetB'
-  #     TaskDefinition: !Ref 'ContainerDefinition'
-  #   Type: 'AWS::ECS::Service'
+  ContainerRunner:
+    DependsOn:
+    - 'LoadBalancerListener'
+    Properties:
+      Cluster: !Ref 'ContainerCluster'
+      LaunchType: 'FARGATE'
+      LoadBalancers:
+      - ContainerName: !Ref 'ContainerName'
+        ContainerPort: !Ref 'ContainerPort'
+        TargetGroupArn: !Ref 'ContainerTargetGroup'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'ENABLED'
+          SecurityGroups:
+          - !Ref 'ContainerSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+      TaskDefinition: !Ref 'ContainerDefinition'
+    Type: 'AWS::ECS::Service'
   # Security group for ECS containers.
   ContainerSecurityGroup:
     Properties:
