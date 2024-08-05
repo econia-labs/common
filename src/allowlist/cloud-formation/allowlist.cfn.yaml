@@ -100,14 +100,19 @@ Resources:
       SecurityGroupEgress:
       - CidrIp: '0.0.0.0/0'
         IpProtocol: -1
-      # Allow inbound traffic from load balancer only.
-      SecurityGroupIngress:
-      - FromPort: !Ref 'ContainerPort'
-        IpProtocol: 'tcp'
-        SourceSecurityGroupId: !Ref 'LoadBalancerSecurityGroup'
-        ToPort: !Ref 'ContainerPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Container security group ingress rule permitting traffic from the load
+  # balancer on the container port, defined separately from security group to
+  # avoid circular dependencies with the load balancer security group.
+  ContainerSecurityGroupIngress:
+    Properties:
+      FromPort: !Ref 'ContainerPort'
+      GroupId: !Ref 'ContainerSecurityGroup'
+      IpProtocol: 'tcp'
+      SourceSecurityGroupId: !Ref 'LoadBalancerSecurityGroup'
+      ToPort: !Ref 'ContainerPort'
+    Type: 'AWS::EC2::SecurityGroupIngress'
   # A subnet for the first two availability zones in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
