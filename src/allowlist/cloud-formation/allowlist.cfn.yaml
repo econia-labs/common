@@ -24,9 +24,6 @@ Parameters:
 Resources:
   # Cluster for running ECS containers.
   ContainerCluster:
-    Metadata:
-      # Increment to manually trigger creation of ECS service as needed.
-      Nonce: 0
     Type: 'AWS::ECS::Cluster'
   # ECS task definition for the allowlist server.
   ContainerDefinition:
@@ -254,6 +251,32 @@ Resources:
         ToPort: 65535
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Public REST API gateway.
+  RestApi:
+    Properties:
+      Name: !Ref 'StackName'
+    Type: 'AWS::ApiGateway::RestApi'
+  # Deployment of Rest API gateway.
+  RestApiDeployment:
+    DependsOn:
+    - 'RestApiGet'
+    Properties:
+      RestApiId: !Ref 'RestApi'
+      StageName: !Sub '${StackName}'
+    Type: 'AWS::ApiGateway::Deployment'
+  # GET method for the REST API, forwarding requests to the load balancer.
+  RestApiGet:
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: 'NONE'
+      HttpMethod: 'GET'
+      Integration:
+        IntegrationHttpMethod: 'GET'
+        Type: 'HTTP_PROXY'
+        Uri: !Sub 'http://${LoadBalancer.DNSName}/'
+      ResourceId: !GetAtt 'RestApi.RootResourceId'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Method'
   # Route table for the VPC.
   RouteTable:
     Properties:
