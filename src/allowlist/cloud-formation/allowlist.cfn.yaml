@@ -9,9 +9,9 @@ Mappings:
       CidrBlock: '10.0.2.0/24'
 Outputs:
   # URL for API calls.
-  ApiEndpoint:
-    Description: 'API Endpoint URL'
-    Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${StackName}/'
+#  ApiEndpoint:
+#    Description: 'API Endpoint URL'
+#    Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${StackName}/'
 Parameters:
   ContainerPort:
     Default: 3000
@@ -230,63 +230,63 @@ Resources:
         ToPort: 65535
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
-  # API Gateway REST API, requiring IAM authorization for POST requests.
-  RestApi:
-    Properties:
-      EndpointConfiguration:
-        Types:
-        - 'EDGE'
-      Name: !Sub '${StackName}'
-      Policy:
-        Statement:
-        - Action: 'execute-api:Invoke'
-          Effect: 'Allow'
-          Principal: '*'
-          Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/${StackName}/GET/*'
-        - Action: 'execute-api:Invoke'
-          Condition:
-            ForAnyValue:StringLike:
-              'aws:PrincipalARN': 'arn:aws:iam::*:role/*'
-            StringEquals:
-              'aws:PrincipalType': 'AssumedRole'
-          Effect: 'Allow'
-          Principal: '*'
-          Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/${StackName}/POST/*'
-        Version: '2012-10-17'
-    Type: 'AWS::ApiGateway::RestApi'
-  # Deployment for the REST API.
-  RestApiGatewayDeployment:
-    DependsOn:
-    - 'RestApiGet'
-    - 'RestApiPost'
-    Properties:
-      RestApiId: !Ref 'RestApi'
-      StageName: !Sub '${StackName}'
-    Type: 'AWS::ApiGateway::Deployment'
-  # GET method for the REST API.
-  RestApiGet:
-    Properties:
-      AuthorizationType: 'NONE'
-      HttpMethod: 'GET'
-      Integration:
-        IntegrationHttpMethod: 'GET'
-        Type: 'HTTP_PROXY'
-        Uri: !Sub 'http://${LoadBalancer.DNSName}/'
-      ResourceId: !GetAtt 'RestApi.RootResourceId'
-      RestApiId: !Ref 'RestApi'
-    Type: 'AWS::ApiGateway::Method'
-  # POST method for the REST API.
-  RestApiPost:
-    Properties:
-      AuthorizationType: 'AWS_IAM'
-      HttpMethod: 'POST'
-      Integration:
-        IntegrationHttpMethod: 'POST'
-        Type: 'HTTP_PROXY'
-        Uri: !Sub 'http://${LoadBalancer.DNSName}/'
-      ResourceId: !GetAtt 'RestApi.RootResourceId'
-      RestApiId: !Ref 'RestApi'
-    Type: 'AWS::ApiGateway::Method'
+#  # API Gateway REST API, requiring IAM authorization for POST requests.
+#  RestApi:
+#    Properties:
+#      EndpointConfiguration:
+#        Types:
+#        - 'EDGE'
+#      Name: !Sub '${StackName}'
+#      Policy:
+#        Statement:
+#        - Action: 'execute-api:Invoke'
+#          Effect: 'Allow'
+#          Principal: '*'
+#          Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/${StackName}/GET/*'
+#        - Action: 'execute-api:Invoke'
+#          Condition:
+#            ForAnyValue:StringLike:
+#              'aws:PrincipalARN': 'arn:aws:iam::*:role/*'
+#            StringEquals:
+#              'aws:PrincipalType': 'AssumedRole'
+#          Effect: 'Allow'
+#          Principal: '*'
+#          Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/${StackName}/POST/*'
+#        Version: '2012-10-17'
+#    Type: 'AWS::ApiGateway::RestApi'
+#  # Deployment for the REST API.
+#  RestApiDeployment:
+#    DependsOn:
+#    - 'RestApiGet'
+#    - 'RestApiPost'
+#    Properties:
+#      RestApiId: !Ref 'RestApi'
+#      StageName: !Sub '${StackName}'
+#    Type: 'AWS::ApiGateway::Deployment'
+#  # GET method for the REST API.
+#  RestApiGet:
+#    Properties:
+#      AuthorizationType: 'NONE'
+#      HttpMethod: 'GET'
+#      Integration:
+#        IntegrationHttpMethod: 'GET'
+#        Type: 'HTTP_PROXY'
+#        Uri: !Sub 'http://${LoadBalancer.DNSName}/'
+#      ResourceId: !GetAtt 'RestApi.RootResourceId'
+#      RestApiId: !Ref 'RestApi'
+#    Type: 'AWS::ApiGateway::Method'
+#  # POST method for the REST API.
+#  RestApiPost:
+#    Properties:
+#      AuthorizationType: 'AWS_IAM'
+#      HttpMethod: 'POST'
+#      Integration:
+#        IntegrationHttpMethod: 'POST'
+#        Type: 'HTTP_PROXY'
+#        Uri: !Sub 'http://${LoadBalancer.DNSName}/'
+#      ResourceId: !GetAtt 'RestApi.RootResourceId'
+#      RestApiId: !Ref 'RestApi'
+#    Type: 'AWS::ApiGateway::Method'
   # Route table for the VPC.
   RouteTable:
     Properties:
