@@ -41,7 +41,7 @@ Resources:
             awslogs-group: !Sub '/ecs/${StackName}'
             awslogs-region: !Ref 'AWS::Region'
             awslogs-stream-prefix: 'ecs'
-        Name: !Sub '${ContainerName}'
+        Name: !Ref 'ContainerName'
         PortMappings:
         - ContainerPort: !Ref 'ContainerPort'
       Cpu: '256'
@@ -88,8 +88,8 @@ Resources:
       Cluster: !Ref 'ContainerCluster'
       LaunchType: 'FARGATE'
       LoadBalancers:
-      - ContainerName: !Sub '${ContainerName}'
-        ContainerPort: !Sub '${ContainerPort}'
+      - ContainerName: !Ref 'ContainerName'
+        ContainerPort: !Ref 'ContainerPort'
         TargetGroupArn: !Ref 'ContainerTargetGroup'
       NetworkConfiguration:
         AwsvpcConfiguration:
@@ -200,7 +200,7 @@ Resources:
       - TargetGroupArn: !Ref 'ContainerTargetGroup'
         Type: 'forward'
       LoadBalancerArn: !Ref 'LoadBalancer'
-      Port: !Sub '${LoadBalancerListenerPort}'
+      Port: !Ref 'LoadBalancerListenerPort'
       Protocol: 'HTTP'
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Security group for the load balancer.
@@ -209,14 +209,14 @@ Resources:
       GroupDescription: 'Security group for the load balancer'
       SecurityGroupEgress:
       - DestinationSecurityGroupId: !Ref 'ContainerSecurityGroup'
-        FromPort: !Sub '${ContainerPort}'
+        FromPort: !Ref 'ContainerPort'
         IpProtocol: 'tcp'
-        ToPort: !Sub '${ContainerPort}'
+        ToPort: !Ref 'ContainerPort'
       SecurityGroupIngress:
       - CidrIp: '0.0.0.0/0'
-        FromPort: !Sub '${LoadBalancerListenerPort}'
+        FromPort: !Ref 'LoadBalancerListenerPort'
         IpProtocol: 'tcp'
-        ToPort: !Sub '${LoadBalancerListenerPort}'
+        ToPort: !Ref 'LoadBalancerListenerPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # Redis database cluster.
@@ -225,7 +225,7 @@ Resources:
       # Base ACL provided by AWS granting open access to the cluster (for any
       # traffic permitted by the ingress security group).
       ACLName: 'open-access'
-      ClusterName: !Sub '${StackName}'
+      ClusterName: !Ref 'StackName'
       NodeType: 'db.t4g.small'
       # A single shard with one replica, straddling the first two availability
       # zones in the subnet group.
