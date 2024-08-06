@@ -34,6 +34,9 @@ Parameters:
     Type: 'Number'
   StackName:
     Type: 'String'
+  VpcCidrBlock:
+    Default: '10.0.0.0/16'
+    Type: 'String'
 Resources:
   # Cluster for running ECS containers.
   ContainerCluster:
@@ -200,13 +203,13 @@ Resources:
   # Application load balancer for public access.
   LoadBalancer:
     Properties:
-      Scheme: 'internet-facing'
+      Scheme: 'internal'
       SecurityGroups:
       - !Ref 'LoadBalancerSecurityGroup'
       Subnets:
       - !Ref 'SubnetA'
       - !Ref 'SubnetB'
-      Type: 'application'
+      Type: 'network'
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
   # Listener for the load balancer, forwards traffic to container target group.
   LoadBalancerListener:
@@ -228,7 +231,7 @@ Resources:
         IpProtocol: 'tcp'
         ToPort: !Ref 'ContainerPort'
       SecurityGroupIngress:
-      - CidrIp: '0.0.0.0/0'
+      - CidrIp: !Ref 'VpcCidrBlock'
         FromPort: !Ref 'LoadBalancerListenerPort'
         IpProtocol: 'tcp'
         ToPort: !Ref 'LoadBalancerListenerPort'
@@ -291,7 +294,8 @@ Resources:
       AuthorizationType: 'NONE'
       HttpMethod: 'GET'
       Integration:
-        IntegrationHttpMethod: 'GET'
+        ConnectionId: !Ref 'RestApiVpcLink'
+        ConnectionType: 'VPC_LINK'
         RequestParameters:
           integration.request.path.requested_address:
             'method.request.path.requested_address'
@@ -310,6 +314,8 @@ Resources:
       AuthorizationType: 'AWS_IAM'
       HttpMethod: 'POST'
       Integration:
+        ConnectionId: !Ref 'RestApiVpcLink'
+        ConnectionType: 'VPC_LINK'
         IntegrationHttpMethod: 'POST'
         RequestParameters:
           integration.request.path.requested_address:
@@ -328,6 +334,13 @@ Resources:
       PathPart: '{requested_address}'
       RestApiId: !Ref 'RestApi'
     Type: 'AWS::ApiGateway::Resource'
+  # VPC link for the REST API, connecting it to the VPC.
+  RestApiVpcLink:
+    Properties:
+      Name: !Ref 'StackName'
+      TargetArns:
+      - !Ref 'LoadBalancer'
+    Type: 'AWS::ApiGateway::VpcLink'
   # Route table for the VPC.
   RouteTable:
     Properties:
@@ -344,7 +357,7 @@ Resources:
   # Virtual private cloud for internal networking.
   VPC:
     Properties:
-      CidrBlock: '10.0.0.0/16'
+      CidrBlock: !Ref 'VpcCidrBlock'
       EnableDnsHostnames: true
       EnableDnsSupport: true
     Type: 'AWS::EC2::VPC'
