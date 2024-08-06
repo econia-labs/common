@@ -21,6 +21,17 @@ Parameters:
     Type: 'Number'
   StackName:
     Type: 'String'
+Outputs:
+  ApiEndpoint:
+    Description: 'Public API endpoint URL'
+    Value: !Join
+    - ''
+    - - 'https://'
+      - !Ref 'RestApi'
+      - '.execute-api.'
+      - !Ref 'AWS::Region'
+      - '.amazonaws.com/'
+      - !Ref 'StackName'
 Resources:
   # Cluster for running ECS containers.
   ContainerCluster:
