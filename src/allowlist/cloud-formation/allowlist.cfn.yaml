@@ -273,17 +273,17 @@ Resources:
       Name: !Ref 'StackName'
     Type: 'AWS::ApiGateway::RestApi'
   # Deployment of Rest API gateway.
-  # RestApiDeployment:
-  #   DependsOn:
-  #   - 'RestApiGet'
-  #   - 'RestApiPost'
-  #   # Use a nonce to force a new deployment when the API configuration changes.
-  #   Metadata:
-  #     Nonce: 3
-  #   Properties:
-  #     RestApiId: !Ref 'RestApi'
-  #     StageName: !Sub '${StackName}'
-  #   Type: 'AWS::ApiGateway::Deployment'
+  RestApiDeployment:
+    DependsOn:
+    - 'RestApiGet'
+    - 'RestApiPost'
+    # Use a nonce to force a new deployment when the API configuration changes.
+    Metadata:
+      Nonce: 5
+    Properties:
+      RestApiId: !Ref 'RestApi'
+      StageName: !Sub '${StackName}'
+    Type: 'AWS::ApiGateway::Deployment'
   # GET method for the REST API, forwarding requests to the load balancer.
   RestApiGet:
     Properties:
