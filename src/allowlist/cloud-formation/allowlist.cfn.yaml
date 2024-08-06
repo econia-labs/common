@@ -146,7 +146,7 @@ Resources:
       # Query address 0 as a proxy for health check.
       HealthCheckPath: '/0'
       Port: !Ref 'ContainerPort'
-      Protocol: 'HTTP'
+      Protocol: 'TCP'
       TargetType: 'ip'
       VpcId: !Ref 'VPC'
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
@@ -219,7 +219,7 @@ Resources:
         Type: 'forward'
       LoadBalancerArn: !Ref 'LoadBalancer'
       Port: !Ref 'LoadBalancerListenerPort'
-      Protocol: 'HTTP'
+      Protocol: 'TCP'
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Security group for the load balancer.
   LoadBalancerSecurityGroup:
