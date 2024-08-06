@@ -226,7 +226,7 @@ Resources:
         IpProtocol: 'tcp'
         ToPort: !Ref 'ContainerPort'
       SecurityGroupIngress:
-      - CidrIp: '0.0.0.0/0'
+      - SourceSecurityGroupId: !Ref 'RestApiSecurityGroup'
         FromPort: !Ref 'LoadBalancerListenerPort'
         IpProtocol: 'tcp'
         ToPort: !Ref 'LoadBalancerListenerPort'
@@ -303,6 +303,31 @@ Resources:
       PathPart: '{requested_address}'
       RestApiId: !Ref 'RestApi'
     Type: 'AWS::ApiGateway::Resource'
+  # Security group for the REST API gateway.
+  RestApiSecurityGroup:
+    Properties:
+      GroupDescription: 'Security group for the REST API'
+      SecurityGroupEgress:
+      - CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        IpProtocol: -1
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
+  # VPC endpoint for the REST API, providing association with a security group
+  # so that load balancer ingress can be restricted to the endpoint.
+  RestApiVpcEndpoint:
+    Properties:
+      SecurityGroupIds:
+      - !Ref 'RestApiSecurityGroup'
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.execute-api'
+      SubnetIds:
+      - !Ref 'SubnetA'
+      - !Ref 'SubnetB'
+      VpcEndpointType: 'Interface'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::VPCEndpoint'
   # Route table for the VPC.
   RouteTable:
     Properties:
