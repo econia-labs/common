@@ -260,38 +260,38 @@ Resources:
       Name: !Ref 'StackName'
     Type: 'AWS::ApiGateway::RestApi'
   # Deployment of Rest API gateway.
-#  RestApiDeployment:
-#    DependsOn:
-#    - 'RestApiGet'
-#    Properties:
-#      RestApiId: !Ref 'RestApi'
-#      StageName: !Sub '${StackName}'
-#    Type: 'AWS::ApiGateway::Deployment'
+  RestApiDeployment:
+    DependsOn:
+    - 'RestApiGet'
+    Properties:
+      RestApiId: !Ref 'RestApi'
+      StageName: !Sub '${StackName}'
+    Type: 'AWS::ApiGateway::Deployment'
   # GET method for the REST API, forwarding requests to the load balancer.
-#  RestApiGet:
-#    Properties:
-#      ApiKeyRequired: false
-#      AuthorizationType: 'NONE'
-#      HttpMethod: 'GET'
-#      Integration:
-#        IntegrationHttpMethod: 'GET'
-#        RequestParameters:
-#          integration.request.path.requested_address:
-#            'method.request.path.requested_address'
-#        Type: 'HTTP_PROXY'
-#        Uri: !Sub 'http://${LoadBalancer.DNSName}/{requested_address}'
-#      RequestParameters:
-#        method.request.path.requested_address: true
-#      ResourceId: !Ref 'RestApiRequestedAddress'
-#      RestApiId: !Ref 'RestApi'
-#    Type: 'AWS::ApiGateway::Method'
+  RestApiGet:
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: 'NONE'
+      HttpMethod: 'GET'
+      Integration:
+        IntegrationHttpMethod: 'GET'
+        RequestParameters:
+          integration.request.path.requested_address:
+            'method.request.path.requested_address'
+        Type: 'HTTP_PROXY'
+        Uri: !Sub 'http://${LoadBalancer.DNSName}/{requested_address}'
+      RequestParameters:
+        method.request.path.requested_address: true
+      ResourceId: !Ref 'RestApiRequestedAddress'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Method'
   # Path capture for the requested address in the REST API.
-#  RestApiRequestedAddress:
-#    Properties:
-#      ParentId: !GetAtt 'RestApi.RootResourceId'
-#      PathPart: '{requested_address}'
-#      RestApiId: !Ref 'RestApi'
-#    Type: 'AWS::ApiGateway::Resource'
+  RestApiRequestedAddress:
+    Properties:
+      ParentId: !GetAtt 'RestApi.RootResourceId'
+      PathPart: '{requested_address}'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Resource'
   # Route table for the VPC.
   RouteTable:
     Properties:
