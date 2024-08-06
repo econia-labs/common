@@ -22,11 +22,13 @@ Parameters:
   ContainerName:
     Default: 'allowlist-server-container'
     Type: 'String'
+  # Using a port like 80 requires heightened permissions, so use a high port.
   ContainerPort:
     Default: 3000
     Type: 'Number'
   ImageVersion:
     Type: 'String'
+  # Load balancer listener forwards requests internally over HTTP.
   LoadBalancerListenerPort:
     Default: 80
     Type: 'Number'
@@ -226,7 +228,7 @@ Resources:
         IpProtocol: 'tcp'
         ToPort: !Ref 'ContainerPort'
       SecurityGroupIngress:
-      - SourceSecurityGroupId: !Ref 'RestApiSecurityGroup'
+      - CidrIp: '0.0.0.0/0'
         FromPort: !Ref 'LoadBalancerListenerPort'
         IpProtocol: 'tcp'
         ToPort: !Ref 'LoadBalancerListenerPort'
@@ -303,31 +305,6 @@ Resources:
       PathPart: '{requested_address}'
       RestApiId: !Ref 'RestApi'
     Type: 'AWS::ApiGateway::Resource'
-  # Security group for the REST API gateway.
-  RestApiSecurityGroup:
-    Properties:
-      GroupDescription: 'Security group for the REST API'
-      SecurityGroupEgress:
-      - CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
-      SecurityGroupIngress:
-      - CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
-      VpcId: !Ref 'VPC'
-    Type: 'AWS::EC2::SecurityGroup'
-  # VPC endpoint for the REST API, providing association with a security group
-  # so that load balancer ingress can be restricted to the endpoint.
-  RestApiVpcEndpoint:
-    Properties:
-      SecurityGroupIds:
-      - !Ref 'RestApiSecurityGroup'
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.execute-api'
-      SubnetIds:
-      - !Ref 'SubnetA'
-      - !Ref 'SubnetB'
-      VpcEndpointType: 'Interface'
-      VpcId: !Ref 'VPC'
-    Type: 'AWS::EC2::VPCEndpoint'
   # Route table for the VPC.
   RouteTable:
     Properties:

@@ -97,7 +97,7 @@ echo $API_ENDPOINT
 
 ```sh
 REQUESTED_ADDRESS=0x123
-curl $API_ENDPOINT$REQUESTED_ADDRESS | jq
+curl $API_ENDPOINT/$REQUESTED_ADDRESS | jq
 ```
 
 ### Add address to allowlist
