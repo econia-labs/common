@@ -1,9 +1,5 @@
 ---
 Outputs:
-  # URL for API calls.
-  ApiEndpoint:
-    Description: 'API Endpoint URL'
-    Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${StackName}/'
 # API Gateway REST API, requiring IAM authorization for POST requests.
 RestApi:
   Properties:
@@ -25,29 +21,4 @@ RestApi:
         Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/${StackName}/POST/*'
       Version: '2012-10-17'
   Type: 'AWS::ApiGateway::RestApi'
-# Deployment for the REST API.
-RestApiDeployment:
-  DependsOn:
-  - 'RestApiGet'
-  - 'RestApiPost'
-  Metadata:
-    # Redeploy whenever the nonce is incremented.
-    ManualUpdateTriggerNonce: 1
-  Properties:
-    RestApiId: !Ref 'RestApi'
-    StageName: !Sub '${StackName}'
-  Type: 'AWS::ApiGateway::Deployment'
-# POST method for the REST API.
-RestApiPost:
-  Properties:
-    ApiKeyRequired: false
-    AuthorizationType: 'AWS_IAM'
-    HttpMethod: 'POST'
-    Integration:
-      IntegrationHttpMethod: 'POST'
-      Type: 'HTTP_PROXY'
-      Uri: !Sub 'http://${LoadBalancer.DNSName}/'
-    ResourceId: !GetAtt 'RestApi.RootResourceId'
-    RestApiId: !Ref 'RestApi'
-  Type: 'AWS::ApiGateway::Method'
 ...

@@ -298,6 +298,25 @@ Resources:
       ResourceId: !Ref 'RestApiRequestedAddress'
       RestApiId: !Ref 'RestApi'
     Type: 'AWS::ApiGateway::Method'
+  # POST method for the REST API, forwarding requests to the load balancer.
+  # Requires IAM authentication.
+  RestApiPost:
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: 'AWS_IAM'
+      HttpMethod: 'POST'
+      Integration:
+        IntegrationHttpMethod: 'POST'
+        RequestParameters:
+          integration.request.path.requested_address:
+            'method.request.path.requested_address'
+        Type: 'HTTP_PROXY'
+        Uri: !Sub 'http://${LoadBalancer.DNSName}/{requested_address}'
+      RequestParameters:
+        method.request.path.requested_address: true
+      ResourceId: !Ref 'RestApiRequestedAddress'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Method'
   # Path capture for the requested address in the REST API.
   RestApiRequestedAddress:
     Properties:
