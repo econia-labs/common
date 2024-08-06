@@ -1,5 +1,5 @@
 ---
-Outputs:
+Outputs: null
 # API Gateway REST API, requiring IAM authorization for POST requests.
 RestApi:
   Properties:
@@ -9,6 +9,7 @@ RestApi:
       - Action: 'execute-api:Invoke'
         Effect: 'Allow'
         Principal: '*'
+        # yamllint disable-line rule:line-length
         Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/${StackName}/GET/*'
       - Action: 'execute-api:Invoke'
         Condition:
@@ -18,6 +19,7 @@ RestApi:
             'aws:PrincipalType': 'AssumedRole'
         Effect: 'Allow'
         Principal: '*'
+        # yamllint disable-line rule:line-length
         Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/${StackName}/POST/*'
       Version: '2012-10-17'
   Type: 'AWS::ApiGateway::RestApi'

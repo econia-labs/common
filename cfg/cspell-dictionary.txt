@@ -1,9 +1,12 @@
 aptos
+awslogs
+awsvpc
 buildx
 chainguard
 dockerhub
 econia
 econialabs
+fargate
 muslrust
 nonroot
 xbtmatt
