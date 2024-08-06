@@ -276,6 +276,7 @@ Resources:
   RestApiDeployment:
     DependsOn:
     - 'RestApiGet'
+    - 'RestApiPost'
     Properties:
       RestApiId: !Ref 'RestApi'
       StageName: !Sub '${StackName}'
