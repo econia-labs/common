@@ -277,6 +277,9 @@ Resources:
     DependsOn:
     - 'RestApiGet'
     - 'RestApiPost'
+    # Use a nonce to force a new deployment when the API configuration changes.
+    Metadata:
+      Nonce: 3
     Properties:
       RestApiId: !Ref 'RestApi'
       StageName: !Sub '${StackName}'

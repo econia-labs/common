@@ -104,6 +104,9 @@ curl $API_ENDPOINT/$REQUESTED_ADDRESS | jq
 
 ### Add address to allowlist
 
+```sh
+```
+
 Assuming your profile is named `default`:
 
 ```sh
@@ -112,6 +115,8 @@ AWS_PROFILE=default
 
 Get profile metadata:
 
+````sh
+
 ```sh
 ACCOUNT_ID=$(aws configure get profile.$AWS_PROFILE.sso_account_id)
 REGION=$(aws configure get profile.$AWS_PROFILE.region)
@@ -119,13 +124,23 @@ ROLE_NAME=$(aws configure get profile.$AWS_PROFILE.sso_role_name)
 echo $ACCOUNT_ID
 echo $REGION
 echo $ROLE_NAME
+````
+
+Get temporary credentials:
+
+```sh
+ROLE_ARN=$(aws sts get-caller-identity --query Arn --output text)
+CREDENTIALS=$(aws sts assume-role-with-saml \
+  --role-arn $ROLE_ARN \
+  --role-session-name allowlist-session
+)
+ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.Credentials.AccessKeyId')
+SECRET_KEY=$(echo $CREDENTIALS | jq -r '.Credentials.SecretAccessKey')
+SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.Credentials.SessionToken')
+echo $ACCESS_KEY
+echo $SECRET_KEY
+echo $SESSION_TOKEN
 ```
-
-Generate credentials that you'll need to authenticate the request:
-
-To add an address to the allowlist, you need to authenticate the `POST` request
-using AWS Signature Version 4. First you'll need to generate temporary
-credentials that you can use the sign the request:
 
 [aws cloudformation]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html
 [aws container best practices]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container-considerations.html
