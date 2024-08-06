@@ -104,42 +104,38 @@ curl $API_ENDPOINT/$REQUESTED_ADDRESS | jq
 
 ### Add address to allowlist
 
-```sh
-```
-
-Assuming your profile is named `default`:
+Get the ID of the REST API:
 
 ```sh
-AWS_PROFILE=default
-```
-
-Get profile metadata:
-
-````sh
-
-```sh
-ACCOUNT_ID=$(aws configure get profile.$AWS_PROFILE.sso_account_id)
-REGION=$(aws configure get profile.$AWS_PROFILE.region)
-ROLE_NAME=$(aws configure get profile.$AWS_PROFILE.sso_role_name)
-echo $ACCOUNT_ID
-echo $REGION
-echo $ROLE_NAME
-````
-
-Get temporary credentials:
-
-```sh
-ROLE_ARN=$(aws sts get-caller-identity --query Arn --output text)
-CREDENTIALS=$(aws sts assume-role-with-saml \
-  --role-arn $ROLE_ARN \
-  --role-session-name allowlist-session
+REST_API_ID=$(aws cloudformation describe-stack-resources \
+    --output text \
+    --query "StackResources[?LogicalResourceId=='RestApi'].PhysicalResourceId" \
+    --stack-name $STACK_NAME
 )
-ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.Credentials.AccessKeyId')
-SECRET_KEY=$(echo $CREDENTIALS | jq -r '.Credentials.SecretAccessKey')
-SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.Credentials.SessionToken')
-echo $ACCESS_KEY
-echo $SECRET_KEY
-echo $SESSION_TOKEN
+echo $REST_API_ID
+```
+
+Get the resource ID of the POST method:
+
+```sh
+POST_METHOD_ID=$(aws apigateway get-resources \
+    --output text \
+    --query "items[?path=='/{requested_address}'].id" \
+    --rest-api-id $REST_API_ID
+)
+echo $POST_METHOD_ID
+```
+
+Test the POST method, authenticating via your profile:
+
+```sh
+REQUESTED_ADDRESS=0x12345
+aws apigateway test-invoke-method \
+    --rest-api-id $REST_API_ID \
+    --resource-id $POST_METHOD_ID \
+    --http-method POST \
+    --path-with-query-string /$REQUESTED_ADDRESS \
+    | jq '.body | fromjson'
 ```
 
 [aws cloudformation]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html
