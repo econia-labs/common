@@ -7,6 +7,17 @@ Mappings:
     B:
       AvailabilityZone: 1
       CidrBlock: '10.0.2.0/24'
+Outputs:
+  ApiEndpoint:
+    Description: 'Public API endpoint URL'
+    Value: !Join
+    - ''
+    - - 'https://'
+      - !Ref 'RestApi'
+      - '.execute-api.'
+      - !Ref 'AWS::Region'
+      - '.amazonaws.com/'
+      - !Ref 'StackName'
 Parameters:
   ContainerName:
     Default: 'allowlist-server-container'
@@ -21,17 +32,6 @@ Parameters:
     Type: 'Number'
   StackName:
     Type: 'String'
-Outputs:
-  ApiEndpoint:
-    Description: 'Public API endpoint URL'
-    Value: !Join
-    - ''
-    - - 'https://'
-      - !Ref 'RestApi'
-      - '.execute-api.'
-      - !Ref 'AWS::Region'
-      - '.amazonaws.com/'
-      - !Ref 'StackName'
 Resources:
   # Cluster for running ECS containers.
   ContainerCluster:
