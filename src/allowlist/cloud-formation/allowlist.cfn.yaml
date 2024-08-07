@@ -143,8 +143,6 @@ Resources:
     DependsOn:
     - 'LoadBalancer'
     Properties:
-      # Query address 0 as a proxy for health check.
-      HealthCheckPath: '/0'
       Port: !Ref 'ContainerPort'
       Protocol: 'TCP'
       TargetType: 'ip'
