@@ -23,7 +23,7 @@ jobs:
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: 'src'
-        file: 'src/rust-builder/template.Dockerfile'
+        file: 'src/diesel-runner/Dockerfile'
         labels: '${{ steps.metadata.outputs.labels }}'
         platforms: '${{ vars.DOCKER_IMAGE_PLATFORMS }}'
         push: 'true'
