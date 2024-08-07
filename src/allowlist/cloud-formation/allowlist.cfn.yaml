@@ -294,6 +294,7 @@ Resources:
       Integration:
         ConnectionId: !Ref 'RestApiVpcLink'
         ConnectionType: 'VPC_LINK'
+        IntegrationHttpMethod: 'GET'
         RequestParameters:
           integration.request.path.requested_address:
             'method.request.path.requested_address'
