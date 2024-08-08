@@ -272,5 +272,12 @@ Resources:
       EnableDnsHostnames: true
       EnableDnsSupport: true
     Type: 'AWS::EC2::VPC'
+  # Connection to network load balancer.
+  VpcLink:
+    Properties:
+      Name: !Ref 'AWS::StackName'
+      TargetArns:
+      - !Ref 'Nlb'
+    Type: AWS::ApiGateway::VpcLink
 Transform: 'AWS::LanguageExtensions'
 ...
