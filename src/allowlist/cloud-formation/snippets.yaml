@@ -11,6 +11,75 @@ Outputs:
       - '.amazonaws.com/'
       - !Ref 'AWS::StackName'
 Resources:
+  # Application load balancer, connected directly to container runner.
+  Alb:
+    Properties:
+      Scheme: 'internal'
+      SecurityGroups:
+      - !Ref 'AlbSecurityGroup'
+      Subnets:
+      - !Ref 'SubnetA'
+      - !Ref 'SubnetB'
+      Type: 'application'
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  # Application load balancer listener.
+  AlbListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'ContainerTargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'Alb'
+      Port: !Ref 'AlbListenerPort'
+      Protocol: 'HTTP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+  # Application load balancer as a target group.
+  AlbTargetGroup:
+    Properties:
+      HealthCheckPath: !Ref 'ContainerHealthCheckPath'
+      Port: !Ref 'ContainerPort'
+      Protocol: 'HTTP'
+      TargetType: 'alb'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+  # ECS service for running the allowlist server container.
+  ContainerRunner:
+    Properties:
+      Cluster: !Ref 'ContainerCluster'
+      LaunchType: 'FARGATE'
+      LoadBalancers:
+      - ContainerName: !Ref 'ContainerName'
+        ContainerPort: !Ref 'ContainerPort'
+        TargetGroupArn: !Ref 'ContainerTargetGroup'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'ENABLED'
+          SecurityGroups:
+          - !Ref 'ContainerSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+      TaskDefinition: !Ref 'ContainerDefinition'
+    Type: 'AWS::ECS::Service'
+  # Target group for the application load balancer, forwarding traffic to ECS
+  # containers.
+  ContainerTargetGroup:
+    Properties:
+      HealthCheckPath: !Ref 'ContainerHealthCheckPath'
+      Port: !Ref 'ContainerPort'
+      Protocol: 'tcp'
+      TargetType: 'ip'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+  # Network load balancer listener.
+  NlbListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'AlbTargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'Nlb'
+      Port: !Ref 'AlbListenerPort'
+      Protocol: 'TCP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Public REST API gateway.
   RestApi:
     Properties:

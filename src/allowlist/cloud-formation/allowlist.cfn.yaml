@@ -8,7 +8,6 @@ Mappings:
       AvailabilityZone: 1
       CidrBlock: '10.0.2.0/24'
 Parameters:
-  # Application load balancer listener receives requests over HTTP.
   AlbListenerPort:
     Default: 80
     Type: 'Number'
@@ -29,27 +28,6 @@ Parameters:
     Default: '10.0.0.0/16'
     Type: 'String'
 Resources:
-  # Application load balancer, connected directly to container runner.
-  Alb:
-    Properties:
-      Scheme: 'internal'
-      SecurityGroups:
-      - !Ref 'AlbSecurityGroup'
-      Subnets:
-      - !Ref 'SubnetA'
-      - !Ref 'SubnetB'
-      Type: 'application'
-    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
-  # Application load balancer listener.
-  AlbListener:
-    Properties:
-      DefaultActions:
-      - TargetGroupArn: !Ref 'ContainerTargetGroup'
-        Type: 'forward'
-      LoadBalancerArn: !Ref 'Alb'
-      Port: !Ref 'AlbListenerPort'
-      Protocol: 'HTTP'
-    Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Security group for application load balancer.
   AlbSecurityGroup:
     Properties:
@@ -67,15 +45,6 @@ Resources:
         ToPort: !Ref 'AlbListenerPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
-  # Application load balancer as a target group.
-  AlbTargetGroup:
-    Properties:
-      HealthCheckPath: !Ref 'ContainerHealthCheckPath'
-      Port: !Ref 'ContainerPort'
-      Protocol: 'HTTP'
-      TargetType: 'alb'
-      VpcId: !Ref 'VPC'
-    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # Cluster for running ECS containers.
   ContainerCluster:
     Type: 'AWS::ECS::Cluster'
@@ -134,25 +103,6 @@ Resources:
             Resource: '*'
         PolicyName: !Sub 'ContainerRolePolicy-${AWS::StackName}'
     Type: 'AWS::IAM::Role'
-  # ECS service for running the allowlist server container.
-  ContainerRunner:
-    Properties:
-      Cluster: !Ref 'ContainerCluster'
-      LaunchType: 'FARGATE'
-      LoadBalancers:
-      - ContainerName: !Ref 'ContainerName'
-        ContainerPort: !Ref 'ContainerPort'
-        TargetGroupArn: !Ref 'ContainerTargetGroup'
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: 'ENABLED'
-          SecurityGroups:
-          - !Ref 'ContainerSecurityGroup'
-          Subnets:
-          - !Ref 'SubnetA'
-          - !Ref 'SubnetB'
-      TaskDefinition: !Ref 'ContainerDefinition'
-    Type: 'AWS::ECS::Service'
   # Security group for ECS containers.
   ContainerSecurityGroup:
     Properties:
@@ -174,16 +124,6 @@ Resources:
       SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
       ToPort: !Ref 'ContainerPort'
     Type: 'AWS::EC2::SecurityGroupIngress'
-  # Target group for the application load balancer, forwarding traffic to ECS
-  # containers.
-  ContainerTargetGroup:
-    Properties:
-      HealthCheckPath: !Ref 'ContainerHealthCheckPath'
-      Port: !Ref 'ContainerPort'
-      Protocol: 'HTTP'
-      TargetType: 'ip'
-      VpcId: !Ref 'VPC'
-    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # A subnet for the first two availability zones in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
