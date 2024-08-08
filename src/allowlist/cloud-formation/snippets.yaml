@@ -22,6 +22,16 @@ Resources:
       - !Ref 'SubnetB'
       Type: 'application'
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  # Application load balancer listener.
+  AlbListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'ContainerTargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'Alb'
+      Port: !Ref 'AlbListenerPort'
+      Protocol: 'HTTP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Application load balancer as a target group.
   AlbTargetGroup:
     Properties:
