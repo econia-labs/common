@@ -155,6 +155,17 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+  # Network load balancer, connected directly to container runner.
+  Nlb:
+    Properties:
+      Scheme: 'internal'
+      SecurityGroups:
+      - !Ref 'NlbSecurityGroup'
+      Subnets:
+      - !Ref 'SubnetA'
+      - !Ref 'SubnetB'
+      Type: 'network'
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
   # Security group for network load balancer.
   NlbSecurityGroup:
     Properties:
