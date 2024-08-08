@@ -287,7 +287,7 @@ Resources:
       Nonce: 5
     Properties:
       RestApiId: !Ref 'RestApi'
-      StageName: !Sub '${StackName}'
+      StageName: !Ref 'StackName'
     Type: 'AWS::ApiGateway::Deployment'
   # GET method for the REST API, forwarding requests to the load balancer.
   RestApiGet:
@@ -352,7 +352,7 @@ Resources:
   # A group containing all VPC subnets to be accessible for Redis.
   SubnetGroup:
     Properties:
-      SubnetGroupName: !Sub '${StackName}-subnet-group'
+      SubnetGroupName: !Ref 'StackName'
       SubnetIds:
       - !Ref 'SubnetA'
       - !Ref 'SubnetB'

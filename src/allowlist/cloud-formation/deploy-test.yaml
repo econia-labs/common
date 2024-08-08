@@ -1,0 +1,6 @@
+---
+parameters:
+  ImageVersion: 'latest'
+  StackName: 'allowlist-test'
+template-file-path: 'src/allowlist/cloud-formation/allowlist.cfn.yaml'
+...
