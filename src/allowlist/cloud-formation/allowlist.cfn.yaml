@@ -12,6 +12,10 @@ Parameters:
   AlbListenerPort:
     Default: 80
     Type: 'Number'
+  # Query address 0x0 as a proxy for a health check.
+  ContainerHealthCheckPath:
+    Default: '/0'
+    Type: 'String'
   ContainerName:
     Default: 'allowlist-server-container'
     Type: 'String'
@@ -63,6 +67,17 @@ Resources:
         ToPort: !Ref 'AlbListenerPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Application load balancer as a target group.
+  AlbTargetGroup:
+    DependsOn:
+    - 'Alb'
+    Properties:
+      HealthCheckPath: !Ref 'ContainerHealthCheckPath'
+      Port: !Ref 'ContainerPort'
+      Protocol: 'HTTP'
+      TargetType: 'alb'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # Cluster for running ECS containers.
   ContainerCluster:
     Type: 'AWS::ECS::Cluster'
@@ -169,8 +184,7 @@ Resources:
     DependsOn:
     - 'Alb'
     Properties:
-      # Query address 0 as a proxy for health check.
-      HealthCheckPath: '/0'
+      HealthCheckPath: !Ref 'ContainerHealthCheckPath'
       Port: !Ref 'ContainerPort'
       Protocol: 'HTTP'
       TargetType: 'ip'
