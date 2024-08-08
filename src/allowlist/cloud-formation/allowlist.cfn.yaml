@@ -96,14 +96,13 @@ Resources:
         IpProtocol: -1
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
-  # Target group for the application load balancer, forwarding traffic to ECS
-  # containers.
+  # Target group from network load balancer to ECS containers.
   ContainerTargetGroup:
     Properties:
       HealthCheckPath: !Ref 'ContainerHealthCheckPath'
+      HealthCheckProtocol: 'HTTP'
       Port: !Ref 'ContainerPort'
-      Protocol: 'HTTP'
-      TargetType: 'ip'
+      Protocol: 'TCP'
       VpcId: !Ref 'VPC'
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # A subnet for the first two availability zones in the VPC region.
