@@ -291,6 +291,8 @@ Resources:
     Type: 'AWS::ApiGateway::Deployment'
   # GET method for the REST API, forwarding requests to the load balancer.
   RestApiGet:
+    DependsOn:
+    - 'LoadBalancerListener'
     Properties:
       ApiKeyRequired: false
       AuthorizationType: 'NONE'
@@ -312,6 +314,8 @@ Resources:
   # POST method for the REST API, forwarding requests to the load balancer.
   # Requires IAM authentication.
   RestApiPost:
+    DependsOn:
+    - 'LoadBalancerListener'
     Properties:
       ApiKeyRequired: false
       AuthorizationType: 'AWS_IAM'
@@ -339,6 +343,8 @@ Resources:
     Type: 'AWS::ApiGateway::Resource'
   # VPC link for the REST API, connecting it to the VPC.
   RestApiVpcLink:
+    DependsOn:
+    - 'LoadBalancerListener'
     Properties:
       Name: !Ref 'StackName'
       TargetArns:
