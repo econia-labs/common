@@ -28,7 +28,7 @@ Parameters:
     Type: 'Number'
   ImageVersion:
     Type: 'String'
-  # Load balancer listener receives requests internally over HTTP.
+  # Load balancer listener receives requests over HTTP.
   LoadBalancerListenerPort:
     Default: 80
     Type: 'Number'
@@ -201,7 +201,7 @@ Resources:
   # Load balancer, connecting API gateway to ECS containers.
   LoadBalancer:
     Properties:
-      Scheme: 'internal'
+      Scheme: 'internet-facing'
       SecurityGroups:
       - !Ref 'LoadBalancerSecurityGroup'
       Subnets:
@@ -228,8 +228,7 @@ Resources:
         FromPort: !Ref 'ContainerPort'
         IpProtocol: 'tcp'
         ToPort: !Ref 'ContainerPort'
-      # Allow all inbound traffic, since the load balancer is internal and is
-      # only contacted by the API gateway over VPC link.
+      # Allow all inbound traffic on load balancer listener port.
       SecurityGroupIngress:
       - CidrIp: '0.0.0.0/0'
         FromPort: !Ref 'LoadBalancerListenerPort'
@@ -296,8 +295,6 @@ Resources:
       AuthorizationType: 'NONE'
       HttpMethod: 'GET'
       Integration:
-        ConnectionId: !Ref 'RestApiVpcLink'
-        ConnectionType: 'VPC_LINK'
         IntegrationHttpMethod: 'GET'
         RequestParameters:
           integration.request.path.requested_address:
@@ -319,8 +316,6 @@ Resources:
       AuthorizationType: 'AWS_IAM'
       HttpMethod: 'POST'
       Integration:
-        ConnectionId: !Ref 'RestApiVpcLink'
-        ConnectionType: 'VPC_LINK'
         IntegrationHttpMethod: 'POST'
         RequestParameters:
           integration.request.path.requested_address:
@@ -339,15 +334,6 @@ Resources:
       PathPart: '{requested_address}'
       RestApiId: !Ref 'RestApi'
     Type: 'AWS::ApiGateway::Resource'
-  # VPC link for the REST API, connecting it to the VPC.
-  RestApiVpcLink:
-    DependsOn:
-    - 'LoadBalancerListener'
-    Properties:
-      Name: !Ref 'AWS::StackName'
-      TargetArns:
-      - !Ref 'LoadBalancer'
-    Type: 'AWS::ApiGateway::VpcLink'
   # Route table for the VPC.
   RouteTable:
     Properties:
