@@ -198,7 +198,7 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
-  # Private network load balancer.
+  # Load balancer, connecting API gateway to ECS containers.
   LoadBalancer:
     Properties:
       Scheme: 'internal'
@@ -207,7 +207,7 @@ Resources:
       Subnets:
       - !Ref 'SubnetA'
       - !Ref 'SubnetB'
-      Type: 'network'
+      Type: 'application'
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
   # Listener for the load balancer, forwards traffic to container target group.
   LoadBalancerListener:
