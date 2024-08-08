@@ -112,6 +112,7 @@ Resources:
       HealthCheckProtocol: 'HTTP'
       Port: !Ref 'ContainerPort'
       Protocol: 'TCP'
+      TargetType: 'ip'
       VpcId: !Ref 'VPC'
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # A subnet for the first two availability zones in the VPC region.
