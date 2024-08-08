@@ -40,25 +40,6 @@ Resources:
           - !Ref 'SubnetB'
       TaskDefinition: !Ref 'ContainerDefinition'
     Type: 'AWS::ECS::Service'
-  # Separated from container security group to eliminate cyclical dependencies.
-  ContainerSecurityGroupIngress:
-    Properties:
-      FromPort: !Ref 'ContainerPort'
-      GroupId: !Ref 'ContainerSecurityGroup'
-      IpProtocol: 'tcp'
-      SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
-      ToPort: !Ref 'ContainerPort'
-    Type: 'AWS::EC2::SecurityGroupIngress'
-  # Network load balancer listener.
-  NlbListener:
-    Properties:
-      DefaultActions:
-      - TargetGroupArn: !Ref 'AlbTargetGroup'
-        Type: 'forward'
-      LoadBalancerArn: !Ref 'Nlb'
-      Port: !Ref 'AlbListenerPort'
-      Protocol: 'TCP'
-    Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Public REST API gateway.
   RestApi:
     Properties:

@@ -175,6 +175,16 @@ Resources:
       - !Ref 'SubnetB'
       Type: 'network'
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  # Network load balancer listener.
+  NlbListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'ContainerTargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'Nlb'
+      Port: !Ref 'NlbListenerPort'
+      Protocol: 'TCP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Security group for network load balancer.
   NlbSecurityGroup:
     Properties:
