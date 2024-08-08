@@ -260,6 +260,26 @@ Resources:
         - 'EDGE'
       Name: !Ref 'AWS::StackName'
     Type: 'AWS::ApiGateway::RestApi'
+  # GET method for the REST API.
+  RestApiGet:
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: 'NONE'
+      HttpMethod: 'GET'
+      Integration:
+        ConnectionId: !Ref 'VpcLink'
+        ConnectionType: 'VPC_LINK'
+        IntegrationHttpMethod: 'GET'
+        RequestParameters:
+          integration.request.path.requested_address:
+            'method.request.path.requested_address'
+        Type: 'HTTP_PROXY'
+        Uri: !Sub 'http://${Nlb.DNSName}/{requested_address}'
+      RequestParameters:
+        method.request.path.requested_address: true
+      ResourceId: !Ref 'RestApiRequestedAddress'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Method'
   # Path capture for the requested address in the REST API.
   RestApiRequestedAddress:
     Properties:
