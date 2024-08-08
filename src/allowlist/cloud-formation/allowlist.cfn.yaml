@@ -30,27 +30,27 @@ Parameters:
     Type: 'String'
 Resources:
   # Application load balancer, connected directly to container runner.
-#  Alb:
-#    Properties:
-#      Scheme: 'internal'
-#      SecurityGroups:
-#      - !Ref 'AlbSecurityGroup'
-#      Subnets:
-#      - !Ref 'SubnetA'
-#      - !Ref 'SubnetB'
-#      Type: 'application'
-#    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  Alb:
+    Properties:
+      Scheme: 'internal'
+      SecurityGroups:
+      - !Ref 'AlbSecurityGroup'
+      Subnets:
+      - !Ref 'SubnetA'
+      - !Ref 'SubnetB'
+      Type: 'application'
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
   # Application load balancer listener.
-#  AlbListener:
-#    Properties:
-#      DefaultActions:
-#      - TargetGroupArn: !Ref 'ContainerTargetGroup'
-#        Type: 'forward'
-#      LoadBalancerArn: !Ref 'Alb'
-#      Port: !Ref 'AlbListenerPort'
-#      Protocol: 'HTTP'
-#    Type: 'AWS::ElasticLoadBalancingV2::Listener'
-#  # Security group for application load balancer.
+  AlbListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'ContainerTargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'Alb'
+      Port: !Ref 'AlbListenerPort'
+      Protocol: 'HTTP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+  # Security group for application load balancer.
   AlbSecurityGroup:
     Properties:
       GroupDescription: 'Security group for ALB'
@@ -135,24 +135,24 @@ Resources:
         PolicyName: !Sub 'ContainerRolePolicy-${AWS::StackName}'
     Type: 'AWS::IAM::Role'
   # ECS service for running the allowlist server container.
-#  ContainerRunner:
-#    Properties:
-#      Cluster: !Ref 'ContainerCluster'
-#      LaunchType: 'FARGATE'
-#      LoadBalancers:
-#      - ContainerName: !Ref 'ContainerName'
-#        ContainerPort: !Ref 'ContainerPort'
-#        TargetGroupArn: !Ref 'ContainerTargetGroup'
-#      NetworkConfiguration:
-#        AwsvpcConfiguration:
-#          AssignPublicIp: 'ENABLED'
-#          SecurityGroups:
-#          - !Ref 'ContainerSecurityGroup'
-#          Subnets:
-#          - !Ref 'SubnetA'
-#          - !Ref 'SubnetB'
-#      TaskDefinition: !Ref 'ContainerDefinition'
-#    Type: 'AWS::ECS::Service'
+  ContainerRunner:
+    Properties:
+      Cluster: !Ref 'ContainerCluster'
+      LaunchType: 'FARGATE'
+      LoadBalancers:
+      - ContainerName: !Ref 'ContainerName'
+        ContainerPort: !Ref 'ContainerPort'
+        TargetGroupArn: !Ref 'ContainerTargetGroup'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'ENABLED'
+          SecurityGroups:
+          - !Ref 'ContainerSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+      TaskDefinition: !Ref 'ContainerDefinition'
+    Type: 'AWS::ECS::Service'
   # Security group for ECS containers.
   ContainerSecurityGroup:
     Properties:
