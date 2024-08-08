@@ -28,6 +28,16 @@ Parameters:
     Default: '10.0.0.0/16'
     Type: 'String'
 Resources:
+  # Application load balancer listener.
+  AlbListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'ContainerTargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'Alb'
+      Port: !Ref 'AlbListenerPort'
+      Protocol: 'HTTP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Security group for application load balancer.
   AlbSecurityGroup:
     Properties:
@@ -113,9 +123,10 @@ Resources:
         IpProtocol: -1
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
-  # Container security group ingress rule permitting traffic from the load
-  # balancer on the container port, defined separately from security group to
-  # avoid circular dependencies with the load balancer security group.
+  # Container security group ingress rule permitting traffic from the
+  # application load balancer on the container port, defined separately from
+  # security group to avoid circular dependencies with the application load
+  # balancer security group.
   ContainerSecurityGroupIngress:
     Properties:
       FromPort: !Ref 'ContainerPort'
