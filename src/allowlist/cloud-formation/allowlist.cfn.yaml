@@ -200,7 +200,7 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
-  # Private network load balancer.
+  # Private application load balancer.
   LoadBalancer:
     Properties:
       Scheme: 'internal'
@@ -209,7 +209,7 @@ Resources:
       Subnets:
       - !Ref 'SubnetA'
       - !Ref 'SubnetB'
-      Type: 'network'
+      Type: 'application'
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
   # Listener for the load balancer, forwards traffic to container target group.
   LoadBalancerListener:
@@ -219,8 +219,7 @@ Resources:
         Type: 'forward'
       LoadBalancerArn: !Ref 'LoadBalancer'
       Port: !Ref 'LoadBalancerListenerPort'
-      # Required for network load balancer.
-      Protocol: 'TCP'
+      Protocol: 'HTTP'
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Security group for the load balancer.
   LoadBalancerSecurityGroup:
@@ -231,10 +230,13 @@ Resources:
         FromPort: !Ref 'ContainerPort'
         IpProtocol: 'tcp'
         ToPort: !Ref 'ContainerPort'
-      # Allow all inbound traffic, since the load balancer is internal.
+      # Allow all inbound traffic, since the load balancer is internal and is
+      # only contacted by the API gateway over VPC link.
       SecurityGroupIngress:
       - CidrIp: '0.0.0.0/0'
-        IpProtocol: -1
+        FromPort: !Ref 'LoadBalancerListenerPort'
+        IpProtocol: 'tcp'
+        ToPort: !Ref 'LoadBalancerListenerPort'
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
   # Redis database cluster.
