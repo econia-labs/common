@@ -21,15 +21,6 @@ Resources:
       Port: !Ref 'AlbListenerPort'
       Protocol: 'HTTP'
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
-  # Application load balancer as a target group.
-  AlbTargetGroup:
-    Properties:
-      HealthCheckPath: !Ref 'ContainerHealthCheckPath'
-      Port: !Ref 'ContainerPort'
-      Protocol: 'HTTP'
-      TargetType: 'alb'
-      VpcId: !Ref 'VPC'
-    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # ECS service for running the allowlist server container.
   ContainerRunner:
     Properties:

@@ -96,6 +96,15 @@ Resources:
         IpProtocol: -1
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Separated from container security group to eliminate cyclical dependencies.
+  ContainerSecurityGroupIngress:
+    Properties:
+      FromPort: !Ref 'ContainerPort'
+      GroupId: !Ref 'ContainerSecurityGroup'
+      IpProtocol: 'tcp'
+      SourceSecurityGroupId: !Ref 'NlbSecurityGroup'
+      ToPort: !Ref 'ContainerPort'
+    Type: 'AWS::EC2::SecurityGroupIngress'
   # Target group from network load balancer to ECS containers.
   ContainerTargetGroup:
     Properties:
