@@ -32,6 +32,23 @@ Resources:
       Port: !Ref 'AlbListenerPort'
       Protocol: 'HTTP'
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
+  # Security group for application load balancer.
+  AlbSecurityGroup:
+    Properties:
+      GroupDescription: 'Security group for ALB'
+      SecurityGroupEgress:
+      - DestinationSecurityGroupId: !Ref 'ContainerSecurityGroup'
+        FromPort: !Ref 'ContainerPort'
+        IpProtocol: 'tcp'
+        ToPort: !Ref 'ContainerPort'
+      # Allow all inbound traffic on load balancer listener port.
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        FromPort: !Ref 'AlbListenerPort'
+        IpProtocol: 'tcp'
+        ToPort: !Ref 'AlbListenerPort'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
   # Application load balancer as a target group.
   AlbTargetGroup:
     Properties:
@@ -60,6 +77,15 @@ Resources:
           - !Ref 'SubnetB'
       TaskDefinition: !Ref 'ContainerDefinition'
     Type: 'AWS::ECS::Service'
+  # Separated from container security group to eliminate cyclical dependencies.
+  ContainerSecurityGroupIngress:
+    Properties:
+      FromPort: !Ref 'ContainerPort'
+      GroupId: !Ref 'ContainerSecurityGroup'
+      IpProtocol: 'tcp'
+      SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
+      ToPort: !Ref 'ContainerPort'
+    Type: 'AWS::EC2::SecurityGroupIngress'
   # Network load balancer listener.
   NlbListener:
     Properties:
