@@ -252,6 +252,21 @@ Resources:
         ToPort: 65535
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Public REST API.
+  RestApi:
+    Properties:
+      EndpointConfiguration:
+        Types:
+        - 'EDGE'
+      Name: !Ref 'AWS::StackName'
+    Type: 'AWS::ApiGateway::RestApi'
+  # Path capture for the requested address in the REST API.
+  RestApiRequestedAddress:
+    Properties:
+      ParentId: !GetAtt 'RestApi.RootResourceId'
+      PathPart: '{requested_address}'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Resource'
   # Route table for the VPC.
   RouteTable:
     Properties:
