@@ -28,14 +28,11 @@ Parameters:
     Type: 'Number'
   ImageVersion:
     Type: 'String'
-  # Load balancer listener forwards requests internally over HTTP.
+  # Load balancer listener receives requests internally over HTTP.
   LoadBalancerListenerPort:
     Default: 80
     Type: 'Number'
   StackName:
-    Type: 'String'
-  VpcCidrBlock:
-    Default: '10.0.0.0/16'
     Type: 'String'
 Resources:
   # Cluster for running ECS containers.
@@ -143,8 +140,10 @@ Resources:
     DependsOn:
     - 'LoadBalancer'
     Properties:
+      # Query address 0 as a proxy for health check.
+      HealthCheckPath: '/0'
       Port: !Ref 'ContainerPort'
-      Protocol: 'TCP'
+      Protocol: 'HTTP'
       TargetType: 'ip'
       VpcId: !Ref 'VPC'
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
@@ -198,7 +197,7 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
-  # Application load balancer for public access.
+  # Internal application load balancer.
   LoadBalancer:
     Properties:
       Scheme: 'internal'
@@ -207,7 +206,7 @@ Resources:
       Subnets:
       - !Ref 'SubnetA'
       - !Ref 'SubnetB'
-      Type: 'network'
+      Type: 'application'
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
   # Listener for the load balancer, forwards traffic to container target group.
   LoadBalancerListener:
@@ -217,7 +216,7 @@ Resources:
         Type: 'forward'
       LoadBalancerArn: !Ref 'LoadBalancer'
       Port: !Ref 'LoadBalancerListenerPort'
-      Protocol: 'TCP'
+      Protocol: 'HTTP'
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # Security group for the load balancer.
   LoadBalancerSecurityGroup:
@@ -229,7 +228,7 @@ Resources:
         IpProtocol: 'tcp'
         ToPort: !Ref 'ContainerPort'
       SecurityGroupIngress:
-      - CidrIp: !Ref 'VpcCidrBlock'
+      - CidrIp: '0.0.0.0/0'
         FromPort: !Ref 'LoadBalancerListenerPort'
         IpProtocol: 'tcp'
         ToPort: !Ref 'LoadBalancerListenerPort'
@@ -292,8 +291,6 @@ Resources:
       AuthorizationType: 'NONE'
       HttpMethod: 'GET'
       Integration:
-        ConnectionId: !Ref 'RestApiVpcLink'
-        ConnectionType: 'VPC_LINK'
         IntegrationHttpMethod: 'GET'
         RequestParameters:
           integration.request.path.requested_address:
@@ -313,8 +310,6 @@ Resources:
       AuthorizationType: 'AWS_IAM'
       HttpMethod: 'POST'
       Integration:
-        ConnectionId: !Ref 'RestApiVpcLink'
-        ConnectionType: 'VPC_LINK'
         IntegrationHttpMethod: 'POST'
         RequestParameters:
           integration.request.path.requested_address:
@@ -333,13 +328,6 @@ Resources:
       PathPart: '{requested_address}'
       RestApiId: !Ref 'RestApi'
     Type: 'AWS::ApiGateway::Resource'
-  # VPC link for the REST API, connecting it to the VPC.
-  RestApiVpcLink:
-    Properties:
-      Name: !Ref 'StackName'
-      TargetArns:
-      - !Ref 'LoadBalancer'
-    Type: 'AWS::ApiGateway::VpcLink'
   # Route table for the VPC.
   RouteTable:
     Properties:
@@ -356,7 +344,7 @@ Resources:
   # Virtual private cloud for internal networking.
   VPC:
     Properties:
-      CidrBlock: !Ref 'VpcCidrBlock'
+      CidrBlock: '10.0.0.0/16'
       EnableDnsHostnames: true
       EnableDnsSupport: true
     Type: 'AWS::EC2::VPC'
