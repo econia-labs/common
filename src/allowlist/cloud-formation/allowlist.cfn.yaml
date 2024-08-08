@@ -124,6 +124,16 @@ Resources:
       SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
       ToPort: !Ref 'ContainerPort'
     Type: 'AWS::EC2::SecurityGroupIngress'
+  # Target group for the application load balancer, forwarding traffic to ECS
+  # containers.
+  ContainerTargetGroup:
+    Properties:
+      HealthCheckPath: !Ref 'ContainerHealthCheckPath'
+      Port: !Ref 'ContainerPort'
+      Protocol: 'tcp'
+      TargetType: 'ip'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # A subnet for the first two availability zones in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'

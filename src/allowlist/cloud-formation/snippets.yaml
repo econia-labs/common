@@ -60,16 +60,6 @@ Resources:
           - !Ref 'SubnetB'
       TaskDefinition: !Ref 'ContainerDefinition'
     Type: 'AWS::ECS::Service'
-  # Target group for the application load balancer, forwarding traffic to ECS
-  # containers.
-  ContainerTargetGroup:
-    Properties:
-      HealthCheckPath: !Ref 'ContainerHealthCheckPath'
-      Port: !Ref 'ContainerPort'
-      Protocol: 'tcp'
-      TargetType: 'ip'
-      VpcId: !Ref 'VPC'
-    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # Network load balancer listener.
   NlbListener:
     Properties:
