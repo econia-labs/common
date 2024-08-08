@@ -78,10 +78,10 @@ This guide assumes you have used the [`aws configure sso` wizard] to set up an
 
 ### Get endpoint URL
 
-Set the stack name, for example `allowlist-dev`:
+Set the stack name, for example `allowlist-test`:
 
 ```sh
-STACK_NAME=allowlist-dev
+STACK_NAME=allowlist-test
 ```
 
 Get the endpoint URL:
