@@ -130,7 +130,7 @@ Resources:
     Properties:
       HealthCheckPath: !Ref 'ContainerHealthCheckPath'
       Port: !Ref 'ContainerPort'
-      Protocol: 'tcp'
+      Protocol: 'HTTP'
       TargetType: 'ip'
       VpcId: !Ref 'VPC'
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
