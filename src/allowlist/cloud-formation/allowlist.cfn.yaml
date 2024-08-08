@@ -17,7 +17,7 @@ Outputs:
       - '.execute-api.'
       - !Ref 'AWS::Region'
       - '.amazonaws.com/'
-      - !Ref 'StackName'
+      - !Ref 'AWS::StackName'
 Parameters:
   ContainerName:
     Default: 'allowlist-server-container'
@@ -32,8 +32,6 @@ Parameters:
   LoadBalancerListenerPort:
     Default: 80
     Type: 'Number'
-  StackName:
-    Type: 'String'
   VpcCidrBlock:
     Default: '10.0.0.0/16'
     Type: 'String'
@@ -54,7 +52,7 @@ Resources:
         LogConfiguration:
           LogDriver: 'awslogs'
           Options:
-            awslogs-group: !Sub '/ecs/${StackName}'
+            awslogs-group: !Sub '/ecs/${AWS::StackName}'
             awslogs-region: !Ref 'AWS::Region'
             awslogs-stream-prefix: 'ecs'
         Name: !Ref 'ContainerName'
@@ -71,7 +69,7 @@ Resources:
   # Log group for ECS task logging.
   ContainerLogGroup:
     Properties:
-      LogGroupName: !Sub '/ecs/${StackName}'
+      LogGroupName: !Sub '/ecs/${AWS::StackName}'
       RetentionInDays: 14
     Type: 'AWS::Logs::LogGroup'
   # Role with assorted permissions required to run the server container.
@@ -94,7 +92,7 @@ Resources:
             - 'logs:PutLogEvents'
             Effect: 'Allow'
             Resource: '*'
-        PolicyName: !Sub 'ContainerRolePolicy-${StackName}'
+        PolicyName: !Sub 'ContainerRolePolicy-${AWS::StackName}'
     Type: 'AWS::IAM::Role'
   # ECS service for running the allowlist server container.
   ContainerRunner:
@@ -245,7 +243,7 @@ Resources:
       # Base ACL provided by AWS granting open access to the cluster (for any
       # traffic permitted by the ingress security group).
       ACLName: 'open-access'
-      ClusterName: !Ref 'StackName'
+      ClusterName: !Ref 'AWS::StackName'
       NodeType: 'db.t4g.small'
       # A single shard with one replica, straddling the first two availability
       # zones in the subnet group.
@@ -275,7 +273,7 @@ Resources:
       EndpointConfiguration:
         Types:
         - 'EDGE'
-      Name: !Ref 'StackName'
+      Name: !Ref 'AWS::StackName'
     Type: 'AWS::ApiGateway::RestApi'
   # Deployment of Rest API gateway.
   RestApiDeployment:
@@ -287,7 +285,7 @@ Resources:
       Nonce: 5
     Properties:
       RestApiId: !Ref 'RestApi'
-      StageName: !Ref 'StackName'
+      StageName: !Ref 'AWS::StackName'
     Type: 'AWS::ApiGateway::Deployment'
   # GET method for the REST API, forwarding requests to the load balancer.
   RestApiGet:
@@ -346,7 +344,7 @@ Resources:
     DependsOn:
     - 'LoadBalancerListener'
     Properties:
-      Name: !Ref 'StackName'
+      Name: !Ref 'AWS::StackName'
       TargetArns:
       - !Ref 'LoadBalancer'
     Type: 'AWS::ApiGateway::VpcLink'
@@ -358,7 +356,7 @@ Resources:
   # A group containing all VPC subnets to be accessible for Redis.
   SubnetGroup:
     Properties:
-      SubnetGroupName: !Ref 'StackName'
+      SubnetGroupName: !Ref 'AWS::StackName'
       SubnetIds:
       - !Ref 'SubnetA'
       - !Ref 'SubnetB'
