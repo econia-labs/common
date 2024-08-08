@@ -11,16 +11,6 @@ Outputs:
       - '.amazonaws.com/'
       - !Ref 'AWS::StackName'
 Resources:
-  # Application load balancer listener.
-  AlbListener:
-    Properties:
-      DefaultActions:
-      - TargetGroupArn: !Ref 'ContainerTargetGroup'
-        Type: 'forward'
-      LoadBalancerArn: !Ref 'Alb'
-      Port: !Ref 'AlbListenerPort'
-      Protocol: 'HTTP'
-    Type: 'AWS::ElasticLoadBalancingV2::Listener'
   # ECS service for running the allowlist server container.
   ContainerRunner:
     Properties:
