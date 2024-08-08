@@ -8,9 +8,6 @@ Mappings:
       AvailabilityZone: 1
       CidrBlock: '10.0.2.0/24'
 Parameters:
-  AlbListenerPort:
-    Default: 80
-    Type: 'Number'
   # Query address 0x0 as a proxy for a health check.
   ContainerHealthCheckPath:
     Default: '/0'
@@ -24,6 +21,9 @@ Parameters:
     Type: 'Number'
   ImageVersion:
     Type: 'String'
+  NlbListenerPort:
+    Default: 80
+    Type: 'Number'
   VpcCidrBlock:
     Default: '10.0.0.0/16'
     Type: 'String'
@@ -155,6 +155,23 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+  # Security group for network load balancer.
+  NlbSecurityGroup:
+    Properties:
+      GroupDescription: 'Security group for NLB'
+      SecurityGroupEgress:
+      - DestinationSecurityGroupId: !Ref 'ContainerSecurityGroup'
+        FromPort: !Ref 'ContainerPort'
+        IpProtocol: 'tcp'
+        ToPort: !Ref 'ContainerPort'
+      # Allow all inbound traffic on load balancer listener port.
+      SecurityGroupIngress:
+      - CidrIp: '0.0.0.0/0'
+        FromPort: !Ref 'NlbListenerPort'
+        IpProtocol: 'tcp'
+        ToPort: !Ref 'NlbListenerPort'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
   # Redis database cluster.
   RedisCluster:
     Properties:
