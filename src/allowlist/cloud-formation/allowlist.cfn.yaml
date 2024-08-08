@@ -7,6 +7,17 @@ Mappings:
     B:
       AvailabilityZone: 1
       CidrBlock: '10.0.2.0/24'
+Outputs:
+  ApiEndpoint:
+    Description: 'Public API endpoint URL'
+    Value: !Join
+    - ''
+    - - 'https://'
+      - !Ref 'RestApi'
+      - '.execute-api.'
+      - !Ref 'AWS::Region'
+      - '.amazonaws.com/'
+      - !Ref 'StackName'
 Parameters:
   ContainerName:
     Default: 'allowlist-server-container'
@@ -27,6 +38,9 @@ Parameters:
     Default: '10.0.0.0/16'
     Type: 'String'
 Resources:
+  # Cluster for running ECS containers.
+  ContainerCluster:
+    Type: 'AWS::ECS::Cluster'
   # ECS task definition for the allowlist server.
   ContainerDefinition:
     Properties:
@@ -82,6 +96,27 @@ Resources:
             Resource: '*'
         PolicyName: !Sub 'ContainerRolePolicy-${StackName}'
     Type: 'AWS::IAM::Role'
+  # ECS service for running the allowlist server container.
+  ContainerRunner:
+    DependsOn:
+    - 'LoadBalancerListener'
+    Properties:
+      Cluster: !Ref 'ContainerCluster'
+      LaunchType: 'FARGATE'
+      LoadBalancers:
+      - ContainerName: !Ref 'ContainerName'
+        ContainerPort: !Ref 'ContainerPort'
+        TargetGroupArn: !Ref 'ContainerTargetGroup'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: 'ENABLED'
+          SecurityGroups:
+          - !Ref 'ContainerSecurityGroup'
+          Subnets:
+          - !Ref 'SubnetA'
+          - !Ref 'SubnetB'
+      TaskDefinition: !Ref 'ContainerDefinition'
+    Type: 'AWS::ECS::Service'
   # Security group for ECS containers.
   ContainerSecurityGroup:
     Properties:
@@ -92,6 +127,27 @@ Resources:
         IpProtocol: -1
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Container security group ingress rule permitting traffic from the load
+  # balancer on the container port, defined separately from security group to
+  # avoid circular dependencies with the load balancer security group.
+  ContainerSecurityGroupIngress:
+    Properties:
+      FromPort: !Ref 'ContainerPort'
+      GroupId: !Ref 'ContainerSecurityGroup'
+      IpProtocol: 'tcp'
+      SourceSecurityGroupId: !Ref 'LoadBalancerSecurityGroup'
+      ToPort: !Ref 'ContainerPort'
+    Type: 'AWS::EC2::SecurityGroupIngress'
+  # Target group for the load balancer, forwarding traffic to ECS containers.
+  ContainerTargetGroup:
+    DependsOn:
+    - 'LoadBalancer'
+    Properties:
+      Port: !Ref 'ContainerPort'
+      Protocol: 'TCP'
+      TargetType: 'ip'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
   # A subnet for the first two availability zones in the VPC region.
   Fn::ForEach::Subnet:
   - 'Identifier'
@@ -142,6 +198,43 @@ Resources:
   # Internet gateway for the VPC.
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+  # Application load balancer for public access.
+  LoadBalancer:
+    Properties:
+      Scheme: 'internal'
+      SecurityGroups:
+      - !Ref 'LoadBalancerSecurityGroup'
+      Subnets:
+      - !Ref 'SubnetA'
+      - !Ref 'SubnetB'
+      Type: 'network'
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+  # Listener for the load balancer, forwards traffic to container target group.
+  LoadBalancerListener:
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'ContainerTargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'LoadBalancer'
+      Port: !Ref 'LoadBalancerListenerPort'
+      Protocol: 'TCP'
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+  # Security group for the load balancer.
+  LoadBalancerSecurityGroup:
+    Properties:
+      GroupDescription: 'Security group for the load balancer'
+      SecurityGroupEgress:
+      - DestinationSecurityGroupId: !Ref 'ContainerSecurityGroup'
+        FromPort: !Ref 'ContainerPort'
+        IpProtocol: 'tcp'
+        ToPort: !Ref 'ContainerPort'
+      SecurityGroupIngress:
+      - CidrIp: !Ref 'VpcCidrBlock'
+        FromPort: !Ref 'LoadBalancerListenerPort'
+        IpProtocol: 'tcp'
+        ToPort: !Ref 'LoadBalancerListenerPort'
+      VpcId: !Ref 'VPC'
+    Type: 'AWS::EC2::SecurityGroup'
   # Redis database cluster.
   RedisCluster:
     Properties:
@@ -172,6 +265,81 @@ Resources:
         ToPort: 65535
       VpcId: !Ref 'VPC'
     Type: 'AWS::EC2::SecurityGroup'
+  # Public REST API gateway.
+  RestApi:
+    Properties:
+      EndpointConfiguration:
+        Types:
+        - 'EDGE'
+      Name: !Ref 'StackName'
+    Type: 'AWS::ApiGateway::RestApi'
+  # Deployment of Rest API gateway.
+  RestApiDeployment:
+    DependsOn:
+    - 'RestApiGet'
+    - 'RestApiPost'
+    # Use a nonce to force a new deployment when the API configuration changes.
+    Metadata:
+      Nonce: 5
+    Properties:
+      RestApiId: !Ref 'RestApi'
+      StageName: !Sub '${StackName}'
+    Type: 'AWS::ApiGateway::Deployment'
+  # GET method for the REST API, forwarding requests to the load balancer.
+  RestApiGet:
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: 'NONE'
+      HttpMethod: 'GET'
+      Integration:
+        ConnectionId: !Ref 'RestApiVpcLink'
+        ConnectionType: 'VPC_LINK'
+        IntegrationHttpMethod: 'GET'
+        RequestParameters:
+          integration.request.path.requested_address:
+            'method.request.path.requested_address'
+        Type: 'HTTP_PROXY'
+        Uri: !Sub 'http://${LoadBalancer.DNSName}/{requested_address}'
+      RequestParameters:
+        method.request.path.requested_address: true
+      ResourceId: !Ref 'RestApiRequestedAddress'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Method'
+  # POST method for the REST API, forwarding requests to the load balancer.
+  # Requires IAM authentication.
+  RestApiPost:
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: 'AWS_IAM'
+      HttpMethod: 'POST'
+      Integration:
+        ConnectionId: !Ref 'RestApiVpcLink'
+        ConnectionType: 'VPC_LINK'
+        IntegrationHttpMethod: 'POST'
+        RequestParameters:
+          integration.request.path.requested_address:
+            'method.request.path.requested_address'
+        Type: 'HTTP_PROXY'
+        Uri: !Sub 'http://${LoadBalancer.DNSName}/{requested_address}'
+      RequestParameters:
+        method.request.path.requested_address: true
+      ResourceId: !Ref 'RestApiRequestedAddress'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Method'
+  # Path capture for the requested address in the REST API.
+  RestApiRequestedAddress:
+    Properties:
+      ParentId: !GetAtt 'RestApi.RootResourceId'
+      PathPart: '{requested_address}'
+      RestApiId: !Ref 'RestApi'
+    Type: 'AWS::ApiGateway::Resource'
+  # VPC link for the REST API, connecting it to the VPC.
+  RestApiVpcLink:
+    Properties:
+      Name: !Ref 'StackName'
+      TargetArns:
+      - !Ref 'LoadBalancer'
+    Type: 'AWS::ApiGateway::VpcLink'
   # Route table for the VPC.
   RouteTable:
     Properties:
