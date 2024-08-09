@@ -356,6 +356,6 @@ Resources:
       Name: !Ref 'AWS::StackName'
       TargetArns:
       - !Ref 'Nlb'
-    Type: AWS::ApiGateway::VpcLink
+    Type: 'AWS::ApiGateway::VpcLink'
 Transform: 'AWS::LanguageExtensions'
 ...
