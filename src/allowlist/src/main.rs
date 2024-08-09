@@ -24,7 +24,7 @@ use tower_http::trace::TraceLayer;
 use tracing::info;
 
 /// The timeout period for pending requests.
-const PENDING_REQUEST_TIMEOUT: u64 = 10;
+const PENDING_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// The request path specifier for the request address.
 const REQUEST_PATH: &str = "/:request_address";
@@ -95,7 +95,7 @@ enum InitError {
     #[error("Could not serve listener: {0}")]
     ServeListener(std::io::Error),
     #[error("Failed to install SIGTERM handler: {0}")]
-    SIGTERMHandler(std::io::Error),
+    SigtermHandler(std::io::Error),
 }
 
 #[derive(strum_macros::Display)]
@@ -214,7 +214,7 @@ async fn main() -> Result<(), String> {
         .route(REQUEST_PATH, get(is_allowed).post(add_to_allowlist))
         .layer((
             TraceLayer::new_for_http(),
-            TimeoutLayer::new(Duration::from_secs(PENDING_REQUEST_TIMEOUT)),
+            TimeoutLayer::new(PENDING_REQUEST_TIMEOUT),
         ))
         .with_state(pool);
     let listener = tokio::net::TcpListener::bind(listener_url.clone())
@@ -362,7 +362,7 @@ async fn shutdown_signal() -> Result<(), String> {
     #[cfg(unix)]
     let terminate_signal = async {
         signal::unix::signal(signal::unix::SignalKind::terminate())
-            .map_err(|error| InitError::SIGTERMHandler(error).to_string())?
+            .map_err(|error| InitError::SigtermHandler(error).to_string())?
             .recv()
             .await;
         Ok(())
