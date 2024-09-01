@@ -19,6 +19,25 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'actions/checkout@v4'
+    - name: 'Remove unused pakages to free up runner disk space'
+      run: |
+        sudo rm -rf \
+          "$AGENT_TOOLSDIRECTORY" \
+          /opt/google/chrome \
+          /opt/microsoft/msedge \
+          /opt/microsoft/powershell \
+          /opt/pipx \
+          /usr/lib/mono \
+          /usr/local/julia* \
+          /usr/local/lib/android \
+          /usr/local/lib/node_modules \
+          /usr/local/share/chromium \
+          /usr/local/share/powershell \
+          /usr/share/dotnet \
+          /usr/share/swift
+        sudo apt clean
+        sudo apt autoremove -y
+        df -h /
     - id: 'metadata'
       uses: 'docker/metadata-action@v5'
       with:
