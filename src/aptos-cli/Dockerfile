@@ -1,4 +1,9 @@
+# Specifying package versions in `apt-get` commands can cause
+# multi-architecture builds to fail, so the hadolint rule for
+# version specification is disabled in this file.
+# hadolint global ignore=DL3008
 # cspell:word RUSTFLAGS
+# cspell:word hadolint
 # cspell:word libudev
 # cspell:word libclang
 # cspell:word libpq
