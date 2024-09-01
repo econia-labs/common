@@ -1,3 +1,6 @@
+# cspell:word TOOLSDIRECTORY
+# cspell:word autoremove
+# cspell:word pipx
 # yamllint disable rule:empty-lines rule:key-ordering
 
 ---
@@ -19,7 +22,8 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'actions/checkout@v4'
-    - name: 'Remove unused pakages to free up runner disk space'
+    - name: 'Remove unused packages to free up runner disk space'
+      # yamllint disable rule:indentation
       run: |
         sudo rm -rf \
           "$AGENT_TOOLSDIRECTORY" \
@@ -38,6 +42,7 @@ jobs:
         sudo apt clean
         sudo apt autoremove -y
         df -h /
+      # yamllint enable rule:indentation
     - id: 'metadata'
       uses: 'docker/metadata-action@v5'
       with:
