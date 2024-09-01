@@ -11,7 +11,7 @@ name: 'Build the aptos-cli Docker image and push to Docker Hub'
     inputs:
       cli_version:
         description: >-
-          Aptos CLI version to build, use the format "4.0.0"
+          Aptos CLI version to build, for example, 4.0.0
         required: true
         type: 'string'
 jobs:
