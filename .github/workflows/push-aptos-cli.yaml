@@ -22,7 +22,7 @@ jobs:
     - id: 'metadata'
       uses: 'docker/metadata-action@v5'
       with:
-        images: 'xbtmatt/aptos-cli'
+        images: 'econialabs/aptos-cli'
         tags: >
           type=match,pattern=aptos-cli-v(.*),group=1,
           enable=${{ github.event_name == 'push' }}
