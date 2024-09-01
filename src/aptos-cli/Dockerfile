@@ -24,15 +24,15 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1 \
     && apt-get update && apt-get install --no-install-recommends -y \
-        libudev-dev \
-        build-essential \
-        libclang-dev \
-        libpq-dev \
-        libssl-dev \
-        libdw-dev \
-        pkg-config \
-        lld \
-        curl \
+        libudev-dev=252* \
+        build-essential=12* \
+        libclang-dev=1:14* \
+        libpq-dev=15* \
+        libssl-dev=3* \
+        libdw-dev=0.188* \
+        pkg-config=1.8* \
+        lld=1:14* \
+        curl=7* \
     && rm -rf /var/lib/apt/lists/*
 
 # Resolve outdated lockfile from upstream tag, build the binary,
