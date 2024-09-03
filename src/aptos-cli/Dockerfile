@@ -2,12 +2,13 @@
 # multi-architecture builds to fail, so the hadolint rule for
 # version specification is disabled in this file.
 # hadolint global ignore=DL3008
-# cspell:word RUSTFLAGS
 # cspell:word hadolint
 # cspell:word libudev
 # cspell:word libclang
 # cspell:word libpq
 # cspell:word libdw
+# cspell:word localnet
+# cspell:word RUSTFLAGS
 
 ARG GIT_REPO=https://github.com/aptos-labs/aptos-core.git
 ARG CLI_VERSION
@@ -53,3 +54,12 @@ ARG CLI_BINARY
 COPY --from=aptos-cli $CLI_BINARY /usr/local/bin
 
 STOPSIGNAL SIGKILL
+
+ENTRYPOINT [ \
+    "aptos", \
+    "node", \
+    "run-localnet", \
+    "--with-indexer-api", \
+    "--bind-to", \
+    "0.0.0.0" \
+]
