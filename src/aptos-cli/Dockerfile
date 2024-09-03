@@ -55,6 +55,9 @@ COPY --from=aptos-cli $CLI_BINARY /usr/local/bin
 
 STOPSIGNAL SIGKILL
 
+# By default, run the localnet with the indexer API enabled and request to
+# bind to all interfaces. Without this flag, the node may not run correctly
+# on linux/amd64.
 ENTRYPOINT [ \
     "aptos", \
     "node", \
