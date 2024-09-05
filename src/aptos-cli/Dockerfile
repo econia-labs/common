@@ -62,7 +62,7 @@ WORKDIR /app
 ENV PATH=/usr/local/bin:$PATH
 COPY --from=aptos-cli $CLI_BINARY /usr/local/bin
 
-COPY sh/healthcheck.sh /app/sh/healthcheck.sh
+COPY src/aptos-cli/sh/healthcheck.sh sh/healthcheck.sh
 RUN chmod +x /app/sh/healthcheck.sh
 
 STOPSIGNAL SIGKILL
