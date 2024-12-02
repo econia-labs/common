@@ -69,6 +69,9 @@ permissive [policy statement]:
 },
 ```
 
+Then once the CDN is set up, if you need to add any other content to it you can
+simply enable the `s3:PutObject` [action] against the specific [resource].
+
 ## Step 1: Create an S3 bucket
 
 Use all default options, except:
@@ -136,5 +139,7 @@ It is not required to create multiple CDNs. If possible, use the one already
 created. The creation of a new CDN should only happen if certain strict
 requirements arise, like a CDN that requires authentication.
 
+[action]: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_action.html
 [policy statement]: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_statement.html
+[resource]: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html
 [`cache-control`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
