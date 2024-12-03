@@ -33,6 +33,7 @@ A bot that posts Linear task completion metrics to Slack.
 
    ```env
    SLACK_BOT_TOKEN=your-token
+   LINEAR_API_TOKEN=your-token
    ```
 
 ## Running Locally
