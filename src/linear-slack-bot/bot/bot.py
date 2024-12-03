@@ -1,9 +1,4 @@
-# cspell:word boto
-# cspell:word botocore
-# cspell:word dateutil
 # cspell:word dotenv
-# cspell:word jmespath
-# cspell:word urllib
 
 import os
 import json
@@ -13,35 +8,28 @@ from slack_sdk.errors import SlackApiError
 from dotenv import load_dotenv
 
 class SlackBot:
-
     def __init__(self):
-        self.token = self._get_token()
-        self.client = WebClient(token=self.token)
 
-    def _get_token(self):
-        """Get token from environment or AWS Secrets Manager."""
-
-        # First try local .env file.
+        # Try local .env file first.
         load_dotenv()
         token = os.getenv('SLACK_BOT_TOKEN')
-        if token:
-            print("Using token from .env file")
-            return token
 
-        # If no .env token, try AWS.
-        try:
-            secret_arn = os.getenv('SLACK_SECRET_ARN')
-            if secret_arn:
-                print("Getting token from AWS Secrets Manager")
+        # If no local token, try AWS Secrets Manager.
+        if not token:
+            try:
                 session = boto3.session.Session()
                 client = session.client('secretsmanager')
-                response = client.get_secret_value(SecretId=secret_arn)
-                secrets = json.loads(response['SecretString'])
-                return secrets['SLACK_BOT_TOKEN']
-        except Exception as e:
-            print(f"Error getting AWS secret: {e}")
+                response = client.get_secret_value(
+                    SecretId='LINEAR_SLACK_BOT_TOKEN'
+                )
+                token = json.loads(response['SecretString'])['SLACK_BOT_TOKEN']
+            except Exception as e:
+                print(f"Error getting AWS secret: {e}")
 
-        raise ValueError("No Slack token found in .env or AWS Secrets Manager")
+        if not token:
+            raise ValueError("No Slack token found in .env or AWS Secrets Manager")
+
+        self.client = WebClient(token=token)
 
     def send_message(self, channel="#bot-test", text="hello"):
         """Send a message to Slack."""

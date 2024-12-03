@@ -9,17 +9,17 @@ A bot that posts Linear task completion metrics to Slack.
 1. Create virtual environment:
 
    ```sh
-   python -m venv bot-venv
+   python -m venv linear-slack-bot-venv
    ```
 
 1. Activate virtual environment:
 
    ```sh
    # On Mac/Linux:
-   source bot-venv/bin/activate
+   source linear-slack-bot-venv/bin/activate
 
    # On Windows:
-   bot-venv\Scripts\activate
+   linear-slack-bot-venv\Scripts\activate
    ```
 
 1. Install dependencies:
