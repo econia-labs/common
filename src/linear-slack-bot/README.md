@@ -1,3 +1,5 @@
+<!-- cspell:word venv -->
+
 # Slack Linear Bot
 
 A bot that posts Linear task completion metrics to Slack.
@@ -29,7 +31,7 @@ A bot that posts Linear task completion metrics to Slack.
 1. Create `.env` file:
 
    ```env
-   SLACK_BOT_TOKEN=xoxb-your-token
+   SLACK_BOT_TOKEN=your-token
    ```
 
 ## Running Locally

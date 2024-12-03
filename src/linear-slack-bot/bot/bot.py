@@ -1,3 +1,10 @@
+# cspell:word boto
+# cspell:word botocore
+# cspell:word dateutil
+# cspell:word dotenv
+# cspell:word jmespath
+# cspell:word urllib
+
 import os
 import json
 import boto3
