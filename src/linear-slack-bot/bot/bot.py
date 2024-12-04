@@ -8,12 +8,20 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from dotenv import load_dotenv
 
+# Constants.
+SLACK_BOT_TOKEN_ENV = 'SLACK_BOT_TOKEN'
+LINEAR_API_TOKEN_ENV = 'LINEAR_API_TOKEN'
+SLACK_SECRET_ID = 'LINEAR_SLACK_BOT_TOKEN'
+LINEAR_SECRET_ID = 'LINEAR_API_TOKEN'
+LINEAR_API_ENDPOINT = 'https://api.linear.app/graphql'
+CONTENT_TYPE_JSON = 'application/json'
+
 class SlackBot:
     def __init__(self):
         # Try local .env file first.
         load_dotenv()
-        slack_token = os.getenv('SLACK_BOT_TOKEN')
-        linear_token = os.getenv('LINEAR_API_TOKEN')
+        slack_token = os.getenv(SLACK_BOT_TOKEN_ENV)
+        linear_token = os.getenv(LINEAR_API_TOKEN_ENV)
 
         # If no local tokens, try AWS Secrets Manager.
         if not slack_token or not linear_token:
@@ -24,32 +32,36 @@ class SlackBot:
                 # Get Slack token if needed
                 if not slack_token:
                     slack_response = client.get_secret_value(
-                        SecretId='LINEAR_SLACK_BOT_TOKEN'
+                        SecretId=SLACK_SECRET_ID
                     )
-                    slack_token = json.loads(slack_response['SecretString'])['SLACK_BOT_TOKEN']
+                    slack_token = json.loads(
+                        slack_response['SecretString']
+                    )[SLACK_BOT_TOKEN_ENV]
 
                 # Get Linear token if needed
                 if not linear_token:
                     linear_response = client.get_secret_value(
-                        SecretId='LINEAR_API_TOKEN'
+                        SecretId=LINEAR_SECRET_ID
                     )
-                    linear_token = json.loads(linear_response['SecretString'])['LINEAR_API_TOKEN']
+                    linear_token = json.loads(
+                        linear_response['SecretString']
+                    )[LINEAR_API_TOKEN_ENV]
 
             except Exception as e:
                 print(f"Error getting AWS secrets: {e}")
 
         if not slack_token:
-            raise ValueError("No Slack token found in .env or AWS Secrets Manager")
+            raise ValueError("No Slack token found")
 
         if not linear_token:
-            raise ValueError("No Linear API token found in .env or AWS Secrets Manager")
+            raise ValueError("No Linear API token found")
 
         self.slack_client = WebClient(token=slack_token)
         self.linear_headers = {
             "Authorization": linear_token,
-            "Content-Type": "application/json",
+            "Content-Type": CONTENT_TYPE_JSON,
         }
-        self.linear_endpoint = "https://api.linear.app/graphql"
+        self.linear_endpoint = LINEAR_API_ENDPOINT
 
     def send_message(self, channel="#bot-test", text="hello"):
         """Send a message to Slack."""
