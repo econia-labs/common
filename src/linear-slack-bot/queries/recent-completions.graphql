@@ -1,8 +1,11 @@
-query RecentlyCompletedIssues {
+query RecentCompletions {
   issues(
     filter: {
       state: {
         type: { eq: "completed" }
+      }
+      completedAt: {
+        gte: "-P1D"
       }
     }
   ) {

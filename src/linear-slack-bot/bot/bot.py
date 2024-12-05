@@ -14,6 +14,26 @@ from gql.transport.requests import RequestsHTTPTransport
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+from datetime import datetime, timezone
+from typing import Dict, List, Optional
+from dataclasses import dataclass
+import json
+from operator import itemgetter
+
+@dataclass
+class Issue:
+    title: str
+    identifier: str
+    assignee_email: str
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+
+    @property
+    def duration(self) -> float:
+        """Returns duration in days since started_at"""
+        end = self.completed_at or datetime.now(timezone.utc)
+        return (end - self.started_at).total_seconds() / 86400
+
 
 class SlackBot:
     # Constants
@@ -123,8 +143,81 @@ class SlackBot:
         self._queries.clear()
         self.load_queries()
 
+    def parse_issues(self, started_data: Dict, completed_data: Dict) -> List[Issue]:
+        issues = []
+
+        # Parse started issues
+        for node in started_data['issues']['nodes']:
+            issues.append(Issue(
+                title=node['title'],
+                identifier=node['identifier'],
+                assignee_email=node['assignee']['email'],
+                started_at=datetime.fromisoformat(node['startedAt'].replace('Z', '+00:00')),
+            ))
+
+        # Parse completed issues
+        for node in completed_data['issues']['nodes']:
+            issues.append(Issue(
+                title=node['title'],
+                identifier=node['identifier'],
+                assignee_email=node['assignee']['email'],
+                started_at=datetime.fromisoformat(node['startedAt'].replace('Z', '+00:00')),
+                completed_at=datetime.fromisoformat(node['completedAt'].replace('Z', '+00:00'))
+            ))
+
+        return issues
+
+    def format_slack_message(self, started_data: Dict, completed_data: Dict) -> str:
+        issues = self.parse_issues(started_data, completed_data)
+
+        # Group issues by assignee
+        issues_by_assignee: Dict[str, List[Issue]] = {}
+        for issue in issues:
+            if issue.assignee_email not in issues_by_assignee:
+                issues_by_assignee[issue.assignee_email] = []
+            issues_by_assignee[issue.assignee_email].append(issue)
+
+        # Format message for each assignee
+        message_parts = []
+
+        for email, assignee_issues in issues_by_assignee.items():
+            message_parts.append(f"*{email}*:")
+
+            # Completed issues first, sorted by completion date (most recent first)
+            completed = [i for i in assignee_issues if i.completed_at]
+            completed.sort(key=lambda x: x.completed_at, reverse=True)
+
+            if completed:
+                message_parts.append("*Completed Issues:*")
+                for issue in completed:
+                    days = issue.duration
+                    duration = f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
+                    message_parts.append(f"• {issue.identifier}: {issue.title} (took {duration}) :white_check_mark:")
+
+            # In-progress issues, sorted by duration (oldest first)
+            in_progress = [i for i in assignee_issues if not i.completed_at]
+            in_progress.sort(key=lambda x: x.started_at)
+
+            if in_progress:
+                message_parts.append("*In Progress Issues:*")
+                for issue in in_progress:
+                    days = issue.duration
+                    duration = f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
+                    message_parts.append(f"• {issue.identifier}: {issue.title} (open {duration})")
+
+            message_parts.append("")  # Add blank line between sections
+
+        return "\n".join(message_parts)
+
+    def send_formatted_status(self, channel: str = "#bot-test"):
+        """Send formatted status message to Slack"""
+        started_issues = self.execute_query("started-issues")
+        recent_completions = self.execute_query("recent-completions")
+
+        message = self.format_slack_message(started_issues, recent_completions)
+        return self.send_message(channel=channel, text=message)
+
 
 if __name__ == "__main__":
     bot = SlackBot()
-    print("Schema:", json.dumps(bot.execute_query("schema"), indent=2))
-    bot.send_message(text="Queries executed successfully!")
+    bot.send_formatted_status()
