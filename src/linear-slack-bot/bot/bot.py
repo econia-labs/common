@@ -1,12 +1,12 @@
 # cspell:word dotenv
-import json
-import os
 
+import os
+import json
 import boto3
 import requests
-from dotenv import load_dotenv
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+from dotenv import load_dotenv
 
 # Constants.
 SLACK_BOT_TOKEN_ENV = "SLACK_BOT_TOKEN"
@@ -15,6 +15,8 @@ SLACK_SECRET_ID = "LINEAR_SLACK_BOT_TOKEN"
 LINEAR_SECRET_ID = "LINEAR_API_TOKEN"
 LINEAR_API_ENDPOINT = "https://api.linear.app/graphql"
 CONTENT_TYPE_JSON = "application/json"
+SECRETS_MANAGER_SERVICE = "secretsmanager"
+SECRET_STRING_KEY = "SecretString"
 
 
 class SlackBot:
@@ -28,14 +30,14 @@ class SlackBot:
         if not slack_token or not linear_token:
             try:
                 session = boto3.session.Session()
-                client = session.client("secretsmanager")
+                client = session.client(SECRETS_MANAGER_SERVICE)
 
                 # Get Slack token if needed
                 if not slack_token:
                     slack_response = client.get_secret_value(
                         SecretId=SLACK_SECRET_ID
                     )
-                    slack_token = json.loads(slack_response["SecretString"])[
+                    slack_token = json.loads(slack_response[SECRET_STRING_KEY])[
                         SLACK_BOT_TOKEN_ENV
                     ]
 
@@ -44,7 +46,7 @@ class SlackBot:
                     linear_response = client.get_secret_value(
                         SecretId=LINEAR_SECRET_ID
                     )
-                    linear_token = json.loads(linear_response["SecretString"])[
+                    linear_token = json.loads(linear_response[SECRET_STRING_KEY])[
                         LINEAR_API_TOKEN_ENV
                     ]
 
