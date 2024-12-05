@@ -1,7 +1,9 @@
 # cspell:word boto
 # cspell:word botocore
+# cspell:word certifi
 # cspell:word dateutil
 # cspell:word dotenv
+# cspell:word idna
 # cspell:word jmespath
 # cspell:word urllib
 boto3==1.35.72
