@@ -208,7 +208,7 @@ class SlackBot:
         in_progress_by_user = {}
 
         # Date header.
-        header = f"{':bar_chart:' * HEADER_EMOJI_COUNT} *Linear Summary {now.strftime('%Y-%m-%d')} *{':bar_chart:' * HEADER_EMOJI_COUNT}\n"
+        header = f"{':bar_chart:' * HEADER_EMOJI_COUNT} *Linear summary {now.strftime('%Y-%m-%d')} *{':bar_chart:' * HEADER_EMOJI_COUNT}\n"
         message_parts = [header]
         message_parts.append("")
 
@@ -240,13 +240,13 @@ class SlackBot:
 
         # In-progress issues.
         if in_progress_by_user:
-            message_parts.append("*In-progress Issues:*")
+            message_parts.append("*In-progress issues:*")
             sorted_users = sorted(in_progress_by_user.items(), key=lambda x: x[1]["time"])
             prev_time = None
             for idx, (email, stats) in enumerate(sorted_users, 1):
                 medal = get_medal_for_rank(stats["time"], prev_time, idx)
                 clock_emojis = ':clock4: ' * (int(stats["time"] / 3))
-                message_parts.append(f"{medal}*{self._format_user_tag(email)}*: {stats['count']} issues ({stats['time']:.1f} days) {clock_emojis}")
+                message_parts.append(f"{medal} {self._format_user_tag(email)} : {stats['count']} issues ({stats['time']:.1f} days) {clock_emojis}")
                 prev_time = stats["time"]
         else:
             message_parts.append("*No issues in progress*\n")
@@ -272,13 +272,13 @@ class SlackBot:
         # Sort by completed count descending, then by in_progress_duration ascending
         for email, assignee_issues, _, _ in sorted(assignee_info,
             key=lambda x: (-x[2], x[3])):  # -x[2] for descending completed count, x[3] for ascending duration
-            message_parts.append(f"*{self._format_user_tag(email)}*:")
+            message_parts.append(f"{self._format_user_tag(email)}:")
 
             completed = [i for i in assignee_issues if i.completed_at]
             completed.sort(key=lambda x: x.duration)
 
             if completed:
-                message_parts.append("• *Completed Issues:*")
+                message_parts.append("• *Completed issues:*")
                 for idx, issue in enumerate(completed, 1):
                     days = issue.duration
                     duration = f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
@@ -288,7 +288,7 @@ class SlackBot:
             in_progress.sort(key=lambda x: x.duration, reverse=True)
 
             if in_progress:
-                message_parts.append("• *In-progress Issues:*")
+                message_parts.append("• *In-progress issues:*")
                 for idx, issue in enumerate(in_progress, 1):
                     days = issue.duration
                     duration = f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
