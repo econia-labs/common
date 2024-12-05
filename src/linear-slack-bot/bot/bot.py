@@ -1,9 +1,14 @@
 # cspell:word dotenv
 import json
 import os
+from dataclasses import dataclass
+from datetime import datetime
+from datetime import timezone
+from operator import itemgetter
 from pathlib import Path
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Optional
 
 import boto3
@@ -14,14 +19,9 @@ from gql.transport.requests import RequestsHTTPTransport
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
-from dataclasses import dataclass
-import json
-from operator import itemgetter
-
 HEADER_EMOJI_COUNT = 5
 SECTION_EMOJI_COUNT = 3
+
 
 @dataclass
 class Issue:
@@ -37,8 +37,11 @@ class Issue:
         end = self.completed_at or datetime.now(timezone.utc)
         return (end - self.started_at).total_seconds() / 86400
 
+
 # Helper function for determining medal based on rank with tie handling
-def get_medal_for_rank(current_value: float, previous_value: Optional[float], rank: int) -> str:
+def get_medal_for_rank(
+    current_value: float, previous_value: Optional[float], rank: int
+) -> str:
     if previous_value is not None and current_value == previous_value:
         return get_medal_for_rank(current_value, None, rank - 1)
     if rank == 1:
@@ -48,6 +51,7 @@ def get_medal_for_rank(current_value: float, previous_value: Optional[float], ra
     elif rank == 3:
         return " :third_place_medal:"
     return ""
+
 
 class SlackBot:
     # Constants
@@ -182,23 +186,33 @@ class SlackBot:
         issues = []
 
         # Parse started issues
-        for node in started_data['issues']['nodes']:
-            issues.append(Issue(
-                title=node['title'],
-                identifier=node['identifier'],
-                assignee_email=node['assignee']['email'],
-                started_at=datetime.fromisoformat(node['startedAt'].replace('Z', '+00:00')),
-            ))
+        for node in started_data["issues"]["nodes"]:
+            issues.append(
+                Issue(
+                    title=node["title"],
+                    identifier=node["identifier"],
+                    assignee_email=node["assignee"]["email"],
+                    started_at=datetime.fromisoformat(
+                        node["startedAt"].replace("Z", "+00:00")
+                    ),
+                )
+            )
 
         # Parse completed issues
-        for node in completed_data['issues']['nodes']:
-            issues.append(Issue(
-                title=node['title'],
-                identifier=node['identifier'],
-                assignee_email=node['assignee']['email'],
-                started_at=datetime.fromisoformat(node['startedAt'].replace('Z', '+00:00')),
-                completed_at=datetime.fromisoformat(node['completedAt'].replace('Z', '+00:00'))
-            ))
+        for node in completed_data["issues"]["nodes"]:
+            issues.append(
+                Issue(
+                    title=node["title"],
+                    identifier=node["identifier"],
+                    assignee_email=node["assignee"]["email"],
+                    started_at=datetime.fromisoformat(
+                        node["startedAt"].replace("Z", "+00:00")
+                    ),
+                    completed_at=datetime.fromisoformat(
+                        node["completedAt"].replace("Z", "+00:00")
+                    ),
+                )
+            )
 
         return issues
 
@@ -212,27 +226,41 @@ class SlackBot:
         message_parts = [header]
         message_parts.append("")
 
-        message_parts.append(f"\n{':camera:' * SECTION_EMOJI_COUNT} *Global snapshot* {':camera:' * SECTION_EMOJI_COUNT}\n")
+        message_parts.append(
+            f"\n{':camera:' * SECTION_EMOJI_COUNT} *Global snapshot* {':camera:' * SECTION_EMOJI_COUNT}\n"
+        )
         message_parts.append("")
 
         issues = self.parse_issues(started_data, completed_data)
         for issue in issues:
-            if issue.completed_at and (now - issue.completed_at).total_seconds() <= 86400:
-                completions_24h[issue.assignee_email] = completions_24h.get(issue.assignee_email, 0) + 1
+            if (
+                issue.completed_at
+                and (now - issue.completed_at).total_seconds() <= 86400
+            ):
+                completions_24h[issue.assignee_email] = (
+                    completions_24h.get(issue.assignee_email, 0) + 1
+                )
             if not issue.completed_at:
                 if issue.assignee_email not in in_progress_by_user:
-                    in_progress_by_user[issue.assignee_email] = {"count": 0, "time": 0.0}
+                    in_progress_by_user[issue.assignee_email] = {
+                        "count": 0,
+                        "time": 0.0,
+                    }
                 in_progress_by_user[issue.assignee_email]["count"] += 1
                 in_progress_by_user[issue.assignee_email]["time"] += issue.duration
 
         # Recent completions.
         if completions_24h:
-            message_parts.append("*Issues completed in last 24h:*")
-            sorted_completions = sorted(completions_24h.items(), key=lambda x: (-x[1], x[0]))
+            message_parts.append("*Issue(s) completed in last 24h:*")
+            sorted_completions = sorted(
+                completions_24h.items(), key=lambda x: (-x[1], x[0])
+            )
             prev_count = None
             for idx, (email, count) in enumerate(sorted_completions, 1):
                 medal = get_medal_for_rank(count, prev_count, idx)
-                message_parts.append(f"{medal} {self._format_user_tag(email)}  {''.join([':white_check_mark:'] * count)}")
+                message_parts.append(
+                    f"{medal} {self._format_user_tag(email)}  {''.join([':white_check_mark:'] * count)}"
+                )
                 prev_count = count
             message_parts.append("")
         else:
@@ -240,19 +268,25 @@ class SlackBot:
 
         # In-progress issues.
         if in_progress_by_user:
-            message_parts.append("*In-progress issues:*")
-            sorted_users = sorted(in_progress_by_user.items(), key=lambda x: x[1]["time"])
+            message_parts.append("*In-progress issue(s):*")
+            sorted_users = sorted(
+                in_progress_by_user.items(), key=lambda x: x[1]["time"]
+            )
             prev_time = None
             for idx, (email, stats) in enumerate(sorted_users, 1):
                 medal = get_medal_for_rank(stats["time"], prev_time, idx)
-                clock_emojis = ':clock4: ' * (int(stats["time"] / 3))
-                message_parts.append(f"{medal} {self._format_user_tag(email)}: {stats['count']} issues ({stats['time']:.1f} days) {clock_emojis}")
+                clock_emojis = ":clock4: " * (int(stats["time"] / 3))
+                message_parts.append(
+                    f"{medal} {self._format_user_tag(email)}: {stats['count']} issues ({stats['time']:.1f} days) {clock_emojis}"
+                )
                 prev_time = stats["time"]
         else:
             message_parts.append("*No issues in progress*\n")
 
         message_parts.append("")
-        message_parts.append(f"\n{':technologist:' * SECTION_EMOJI_COUNT} *By engineer* {':technologist:' * SECTION_EMOJI_COUNT}\n")
+        message_parts.append(
+            f"\n{':technologist:' * SECTION_EMOJI_COUNT} *By engineer* {':technologist:' * SECTION_EMOJI_COUNT}\n"
+        )
         message_parts.append("")
 
         # Group issues by assignee.
@@ -266,34 +300,47 @@ class SlackBot:
         assignee_info = []
         for email, assignee_issues in issues_by_assignee.items():
             completed_count = len([i for i in assignee_issues if i.completed_at])
-            in_progress_duration = sum(i.duration for i in assignee_issues if not i.completed_at)
-            assignee_info.append((email, assignee_issues, completed_count, in_progress_duration))
+            in_progress_duration = sum(
+                i.duration for i in assignee_issues if not i.completed_at
+            )
+            assignee_info.append(
+                (email, assignee_issues, completed_count, in_progress_duration)
+            )
 
         # Sort by completed count descending, then by in_progress_duration ascending
-        for email, assignee_issues, _, _ in sorted(assignee_info,
-            key=lambda x: (-x[2], x[3])):  # -x[2] for descending completed count, x[3] for ascending duration
+        for email, assignee_issues, _, _ in sorted(
+            assignee_info, key=lambda x: (-x[2], x[3])
+        ):  # -x[2] for descending completed count, x[3] for ascending duration
             message_parts.append(f"{self._format_user_tag(email)}:")
 
             completed = [i for i in assignee_issues if i.completed_at]
             completed.sort(key=lambda x: x.duration)
 
             if completed:
-                message_parts.append("• Completed issues:")
+                message_parts.append("• Completed issue(s):")
                 for idx, issue in enumerate(completed, 1):
                     days = issue.duration
-                    duration = f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
-                    message_parts.append(f"   {idx}. {issue.identifier}: {issue.title} (took {duration}) :white_check_mark:")
+                    duration = (
+                        f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
+                    )
+                    message_parts.append(
+                        f"   {idx}. {issue.identifier}: {issue.title} (took {duration}) :white_check_mark:"
+                    )
 
             in_progress = [i for i in assignee_issues if not i.completed_at]
             in_progress.sort(key=lambda x: x.duration, reverse=True)
 
             if in_progress:
-                message_parts.append("• In-progress issues:")
+                message_parts.append("• In-progress issue(s):")
                 for idx, issue in enumerate(in_progress, 1):
                     days = issue.duration
-                    duration = f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
-                    clocks = ':clock4: ' * (int(issue.duration / 2))
-                    message_parts.append(f"   {idx}. {issue.identifier}: {issue.title} (open {duration}) {clocks}")
+                    duration = (
+                        f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
+                    )
+                    clocks = ":clock4: " * (int(issue.duration / 2))
+                    message_parts.append(
+                        f"   {idx}. {issue.identifier}: {issue.title} (open {duration}) {clocks}"
+                    )
 
             message_parts.append("")
             message_parts.append("")
