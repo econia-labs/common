@@ -80,6 +80,10 @@ class SlackBot:
         # Load queries.
         self.load_queries()
 
+        # Get Slack IDs.
+        self.email_to_slack_id = {}
+        self._cache_user_emails()
+
     def _initialize_tokens(self):
         """Initialize Slack and Linear tokens from env or AWS."""
         load_dotenv()
@@ -114,6 +118,23 @@ class SlackBot:
             raise ValueError("No Slack token found")
         if not self.linear_token:
             raise ValueError("No Linear API token found")
+
+    def _cache_user_emails(self):
+        """Cache mapping of email addresses to Slack user IDs."""
+        try:
+            response = self.slack_client.users_list()
+            for user in response["members"]:
+                if user.get("profile") and user["profile"].get("email"):
+                    self.email_to_slack_id[user["profile"]["email"]] = user["id"]
+        except SlackApiError as e:
+            print(f"Error fetching users: {e.response['error']}")
+
+    def _format_user_tag(self, email: str) -> str:
+        """Convert email to Slack user tag if possible, otherwise return email."""
+        slack_id = self.email_to_slack_id.get(email)
+        if slack_id:
+            return f"<@{slack_id}>"
+        return email
 
     def _initialize_gql_client(self) -> Client:
         """Initialize the GraphQL client."""
@@ -206,12 +227,12 @@ class SlackBot:
 
         # Recent completions.
         if completions_24h:
-            message_parts.append("*Issued completed in last 24h:*")
+            message_parts.append("*Issues completed in last 24h:*")
             sorted_completions = sorted(completions_24h.items(), key=lambda x: (-x[1], x[0]))
             prev_count = None
             for idx, (email, count) in enumerate(sorted_completions, 1):
                 medal = get_medal_for_rank(count, prev_count, idx)
-                message_parts.append(f"{medal}*{email}* {''.join([':white_check_mark:'] * count)}")
+                message_parts.append(f"{medal}*{self._format_user_tag(email)}* {''.join([':white_check_mark:'] * count)}")
                 prev_count = count
             message_parts.append("")
         else:
@@ -225,7 +246,7 @@ class SlackBot:
             for idx, (email, stats) in enumerate(sorted_users, 1):
                 medal = get_medal_for_rank(stats["time"], prev_time, idx)
                 clock_emojis = ':clock4: ' * (int(stats["time"] / 3))
-                message_parts.append(f"{medal}*{email}*: {stats['count']} issues ({stats['time']:.1f} days) {clock_emojis}")
+                message_parts.append(f"{medal}*{self._format_user_tag(email)}*: {stats['count']} issues ({stats['time']:.1f} days) {clock_emojis}")
                 prev_time = stats["time"]
         else:
             message_parts.append("*No issues in progress*\n")
@@ -251,7 +272,7 @@ class SlackBot:
         # Sort by completed count descending, then by in_progress_duration ascending
         for email, assignee_issues, _, _ in sorted(assignee_info,
             key=lambda x: (-x[2], x[3])):  # -x[2] for descending completed count, x[3] for ascending duration
-            message_parts.append(f"*{email}*:")
+            message_parts.append(f"*{self._format_user_tag(email)}*:")
 
             completed = [i for i in assignee_issues if i.completed_at]
             completed.sort(key=lambda x: x.duration)
