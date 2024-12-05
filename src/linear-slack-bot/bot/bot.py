@@ -232,7 +232,7 @@ class SlackBot:
             prev_count = None
             for idx, (email, count) in enumerate(sorted_completions, 1):
                 medal = get_medal_for_rank(count, prev_count, idx)
-                message_parts.append(f"{medal}*{self._format_user_tag(email)}* {''.join([':white_check_mark:'] * count)}")
+                message_parts.append(f"{medal} {self._format_user_tag(email)}  {''.join([':white_check_mark:'] * count)}")
                 prev_count = count
             message_parts.append("")
         else:
@@ -246,7 +246,7 @@ class SlackBot:
             for idx, (email, stats) in enumerate(sorted_users, 1):
                 medal = get_medal_for_rank(stats["time"], prev_time, idx)
                 clock_emojis = ':clock4: ' * (int(stats["time"] / 3))
-                message_parts.append(f"{medal} {self._format_user_tag(email)} : {stats['count']} issues ({stats['time']:.1f} days) {clock_emojis}")
+                message_parts.append(f"{medal} {self._format_user_tag(email)}: {stats['count']} issues ({stats['time']:.1f} days) {clock_emojis}")
                 prev_time = stats["time"]
         else:
             message_parts.append("*No issues in progress*\n")
@@ -278,7 +278,7 @@ class SlackBot:
             completed.sort(key=lambda x: x.duration)
 
             if completed:
-                message_parts.append("• *Completed issues:*")
+                message_parts.append("• Completed issues:")
                 for idx, issue in enumerate(completed, 1):
                     days = issue.duration
                     duration = f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
@@ -288,7 +288,7 @@ class SlackBot:
             in_progress.sort(key=lambda x: x.duration, reverse=True)
 
             if in_progress:
-                message_parts.append("• *In-progress issues:*")
+                message_parts.append("• In-progress issues:")
                 for idx, issue in enumerate(in_progress, 1):
                     days = issue.duration
                     duration = f"{days:.1f} days" if days >= 1 else f"{days*24:.1f} hours"
