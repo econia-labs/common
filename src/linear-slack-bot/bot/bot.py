@@ -34,21 +34,17 @@ class SlackBot:
 
                 # Get Slack token if needed
                 if not slack_token:
-                    slack_response = client.get_secret_value(
-                        SecretId=SLACK_SECRET_ID
-                    )
-                    slack_token = json.loads(
-                        slack_response[SECRET_STRING_KEY]
-                    )[SLACK_BOT_TOKEN_ENV]
+                    slack_response = client.get_secret_value(SecretId=SLACK_SECRET_ID)
+                    slack_token = json.loads(slack_response[SECRET_STRING_KEY])[
+                        SLACK_BOT_TOKEN_ENV
+                    ]
 
                 # Get Linear token if needed
                 if not linear_token:
-                    linear_response = client.get_secret_value(
-                        SecretId=LINEAR_SECRET_ID
-                    )
-                    linear_token = json.loads(
-                        linear_response[SECRET_STRING_KEY]
-                    )[LINEAR_API_TOKEN_ENV]
+                    linear_response = client.get_secret_value(SecretId=LINEAR_SECRET_ID)
+                    linear_token = json.loads(linear_response[SECRET_STRING_KEY])[
+                        LINEAR_API_TOKEN_ENV
+                    ]
 
             except Exception as e:
                 print(f"Error getting AWS secrets: {e}")
@@ -69,9 +65,7 @@ class SlackBot:
     def send_message(self, channel="#bot-test", text="hello"):
         """Send a message to Slack."""
         try:
-            response = self.slack_client.chat_postMessage(
-                channel=channel, text=text
-            )
+            response = self.slack_client.chat_postMessage(channel=channel, text=text)
             print(f"Message sent: {response['ts']}")
             return response
         except SlackApiError as e:

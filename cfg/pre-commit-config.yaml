@@ -133,11 +133,12 @@ repos:
   rev: '24.10.0'
 -
   hooks:
+  -
     args:
     # Allow line length from Black, which is not technically PEP8 compliant.
     - '--max-line-length'
     - '88'
-  - id: 'flake8'
+    id: 'flake8'
   repo: 'https://github.com/pycqa/flake8'
   rev: '7.1.1'
 -
