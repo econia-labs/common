@@ -1,12 +1,12 @@
 # cspell:word dotenv
-
-import os
 import json
+import os
+
 import boto3
 import requests
+from dotenv import load_dotenv
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
-from dotenv import load_dotenv
 
 # Constants.
 SLACK_BOT_TOKEN_ENV = "SLACK_BOT_TOKEN"
@@ -37,18 +37,18 @@ class SlackBot:
                     slack_response = client.get_secret_value(
                         SecretId=SLACK_SECRET_ID
                     )
-                    slack_token = json.loads(slack_response[SECRET_STRING_KEY])[
-                        SLACK_BOT_TOKEN_ENV
-                    ]
+                    slack_token = json.loads(
+                        slack_response[SECRET_STRING_KEY]
+                    )[SLACK_BOT_TOKEN_ENV]
 
                 # Get Linear token if needed
                 if not linear_token:
                     linear_response = client.get_secret_value(
                         SecretId=LINEAR_SECRET_ID
                     )
-                    linear_token = json.loads(linear_response[SECRET_STRING_KEY])[
-                        LINEAR_API_TOKEN_ENV
-                    ]
+                    linear_token = json.loads(
+                        linear_response[SECRET_STRING_KEY]
+                    )[LINEAR_API_TOKEN_ENV]
 
             except Exception as e:
                 print(f"Error getting AWS secrets: {e}")
