@@ -1,11 +1,15 @@
+# cspell:word dotenv
 import json
 import os
 from pathlib import Path
-from typing import Optional, Any, Dict
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 import boto3
 from dotenv import load_dotenv
-from gql import Client, gql
+from gql import Client
+from gql import gql
 from gql.transport.requests import RequestsHTTPTransport
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -54,16 +58,20 @@ class SlackBot:
                 client = session.client(self.SECRETS_MANAGER_SERVICE)
 
                 if not self.slack_token:
-                    slack_response = client.get_secret_value(SecretId=self.SLACK_SECRET_ID)
-                    self.slack_token = json.loads(slack_response[self.SECRET_STRING_KEY])[
-                        self.SLACK_BOT_TOKEN_ENV
-                    ]
+                    slack_response = client.get_secret_value(
+                        SecretId=self.SLACK_SECRET_ID
+                    )
+                    self.slack_token = json.loads(
+                        slack_response[self.SECRET_STRING_KEY]
+                    )[self.SLACK_BOT_TOKEN_ENV]
 
                 if not self.linear_token:
-                    linear_response = client.get_secret_value(SecretId=self.LINEAR_SECRET_ID)
-                    self.linear_token = json.loads(linear_response[self.SECRET_STRING_KEY])[
-                        self.LINEAR_API_TOKEN_ENV
-                    ]
+                    linear_response = client.get_secret_value(
+                        SecretId=self.LINEAR_SECRET_ID
+                    )
+                    self.linear_token = json.loads(
+                        linear_response[self.SECRET_STRING_KEY]
+                    )[self.LINEAR_API_TOKEN_ENV]
 
             except Exception as e:
                 print(f"Error getting AWS secrets: {e}")
@@ -76,13 +84,9 @@ class SlackBot:
     def _initialize_gql_client(self) -> Client:
         """Initialize the GraphQL client."""
         transport = RequestsHTTPTransport(
-            url=self.LINEAR_API_ENDPOINT,
-            headers={'Authorization': self.linear_token}
+            url=self.LINEAR_API_ENDPOINT, headers={"Authorization": self.linear_token}
         )
-        return Client(
-            transport=transport,
-            fetch_schema_from_transport=True
-        )
+        return Client(transport=transport, fetch_schema_from_transport=True)
 
     def load_queries(self) -> None:
         """Load all .graphql files from the queries directory."""
@@ -97,7 +101,9 @@ class SlackBot:
             raise KeyError(f"Query '{name}' not found")
         return self._queries[name]
 
-    def execute_query(self, query_name: str, variables: Optional[Dict[str, Any]] = None):
+    def execute_query(
+        self, query_name: str, variables: Optional[Dict[str, Any]] = None
+    ):
         """Execute a named GraphQL query with optional variables."""
         query = gql(self.get_query(query_name))
         return self.gql_client.execute(query, variable_values=variables)
@@ -122,5 +128,3 @@ if __name__ == "__main__":
     bot = SlackBot()
     print("Schema:", json.dumps(bot.execute_query("schema"), indent=2))
     bot.send_message(text="Queries executed successfully!")
-
-
