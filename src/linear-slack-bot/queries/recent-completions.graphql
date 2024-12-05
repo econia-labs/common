@@ -1,0 +1,19 @@
+query RecentlyCompletedIssues {
+  issues(
+    filter: {
+      state: {
+        type: { eq: "completed" }
+      }
+    }
+  ) {
+    nodes {
+      title
+      identifier
+      assignee {
+        email
+      }
+      completedAt
+      startedAt
+    }
+  }
+}

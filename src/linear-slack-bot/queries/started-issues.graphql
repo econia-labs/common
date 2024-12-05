@@ -1,0 +1,18 @@
+query StartedIssues {
+  issues(
+    filter: {
+      state: {
+        type: { eq: "started" }
+      }
+    }
+  ) {
+    nodes {
+      title
+      identifier
+      assignee {
+        email
+      }
+      startedAt
+    }
+  }
+}
