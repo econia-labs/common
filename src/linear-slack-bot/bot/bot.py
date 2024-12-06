@@ -31,6 +31,7 @@ class Issue:
     identifier: str
     assignee_email: str
     started_at: datetime
+    url: Optional[str] = None
     completed_at: Optional[datetime] = None
 
     @property
@@ -179,7 +180,12 @@ class SlackBot:
     def send_message(self, channel: str, text: str):
         """Send a message to Slack."""
         try:
-            response = self.slack_client.chat_postMessage(channel=channel, text=text)
+            response = self.slack_client.chat_postMessage(
+                channel=channel,
+                text=text,
+                unfurl_links=False,
+                unfurl_media=False
+            )
             timestamp = datetime.fromtimestamp(float(response["ts"]), tz=timezone.utc)
             print(f"Message sent to {channel} at {timestamp.isoformat()}")
             return response
@@ -231,6 +237,7 @@ class SlackBot:
                     started_at=datetime.fromisoformat(
                         node["startedAt"].replace("Z", "+00:00")
                     ),
+                    url=node.get("url"),
                 )
             )
 
@@ -392,9 +399,14 @@ class SlackBot:
                         if DAYS_PER_ISSUE_CLOCK > 0
                         else 0
                     )
+                    identifier_text = (
+                        f"<{issue.url}|{issue.identifier}>"
+                        if issue.url
+                        else issue.identifier
+                    )
                     message_parts.append(
                         f"{idx}. "
-                        f"{issue.identifier}: "
+                        f"{identifier_text}: "
                         f"{issue.title} "
                         f"(open {duration}) "
                         f"{clocks}"
