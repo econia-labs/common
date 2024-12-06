@@ -2,7 +2,16 @@
 
 # Slack Linear Bot
 
-A bot that posts Linear task completion metrics to Slack.
+This bot queries Linear issue metrics from the [Linear GraphQL API] and posts
+a summary to Slack.
+
+## Bot permissions
+
+The Slack bot requires the following [permission scopes]:
+
+1. `chat:write`
+1. `users:read`
+1. `users:read.email`
 
 ## Local development
 
@@ -38,7 +47,7 @@ A bot that posts Linear task completion metrics to Slack.
 
 ## Running Locally
 
-Make sure virtual environment is activated, then:
+With the virtual environment activated:
 
 ```sh
 python bot/bot.py
@@ -51,3 +60,6 @@ With virtual environment activated:
 ```sh
 pip freeze > requirements.txt
 ```
+
+[linear graphql api]: https://developers.linear.app/docs/graphql/working-with-the-graphql-api
+[permission scopes]: https://api.slack.com/scopes
