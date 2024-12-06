@@ -181,10 +181,7 @@ class SlackBot:
         """Send a message to Slack."""
         try:
             response = self.slack_client.chat_postMessage(
-                channel=channel,
-                text=text,
-                unfurl_links=False,
-                unfurl_media=False
+                channel=channel, text=text, unfurl_links=False, unfurl_media=False
             )
             timestamp = datetime.fromtimestamp(float(response["ts"]), tz=timezone.utc)
             print(f"Message sent to {channel} at {timestamp.isoformat()}")
