@@ -21,7 +21,9 @@ ARG GIT_REPO
 ARG GIT_TAG
 ARG CLI_BINARY
 
+# Set environment variables to improve build compatibility.
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+ENV RUSTFLAGS="-C linker=lld --cfg tokio_unstable"
 
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1  \
     && apt-get update                                \
@@ -40,7 +42,7 @@ RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1  \
 # Resolve outdated lockfile from upstream tag, build the binary,
 # and strip it to reduce its size.
 RUN cargo update --manifest-path /aptos-core/Cargo.toml  \
-    && RUSTFLAGS="--cfg tokio_unstable" cargo build      \
+    && cargo build                                       \
         --bin aptos                                      \
         --manifest-path /aptos-core/Cargo.toml           \
         --profile cli                                    \
