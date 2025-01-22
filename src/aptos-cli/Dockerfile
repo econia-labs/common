@@ -43,7 +43,6 @@ RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1  \
 RUN cargo build                                 \
         --bin aptos                             \
         --manifest-path /aptos-core/Cargo.toml  \
-        --profile cli                           \
     && strip -s $CLI_BINARY
 
 FROM ubuntu:noble
