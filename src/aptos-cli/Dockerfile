@@ -45,6 +45,7 @@ RUN cargo update --manifest-path /aptos-core/Cargo.toml  \
     && cargo build                                       \
         --bin aptos                                      \
         --manifest-path /aptos-core/Cargo.toml           \
+        --profile cli                                    \
     && strip -s $CLI_BINARY
 
 FROM ubuntu:noble
