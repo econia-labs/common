@@ -39,10 +39,12 @@ RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1  \
         curl=7*                                      \
     && rm -rf /var/lib/apt/lists/*
 
-# Build the binary and strip it to reduce its size.
-RUN cargo build                                 \
-        --bin aptos                             \
-        --manifest-path /aptos-core/Cargo.toml  \
+# Resolve outdated lockfile from upstream tag, build the binary,
+# and strip it to reduce its size.
+RUN cargo update --manifest-path /aptos-core/Cargo.toml  \
+    && cargo build                                       \
+        --bin aptos                                      \
+        --manifest-path /aptos-core/Cargo.toml           \
     && strip -s $CLI_BINARY
 
 FROM ubuntu:noble
