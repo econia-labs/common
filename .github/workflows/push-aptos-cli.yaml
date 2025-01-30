@@ -67,7 +67,7 @@ jobs:
         file: 'src/aptos-cli/Dockerfile'
         push: true
         labels: '${{ steps.metadata.outputs.labels }}'
-        platforms: 'linux/amd64'
+        platforms: 'linux/arm64'
         tags: '${{ steps.metadata.outputs.tags }}'
         build-args: |
           CLI_VERSION=${{ steps.metadata.outputs.version }}
