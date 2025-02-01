@@ -33,9 +33,9 @@ ARG GIT_REPO
 ARG GIT_TAG
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
 WORKDIR /app/aptos-core
-ENV RUSTFLAGS="--cfg tokio_unstable"
-ENV RUSTUP_TOOLCHAIN=stable
-ENV RUST_VERSION_OVERRIDE=stable
+# ENV RUSTFLAGS="--cfg tokio_unstable"
+# ENV RUSTUP_TOOLCHAIN=stable
+# ENV RUST_VERSION_OVERRIDE=stable
 # RUN cargo update
 RUN cargo chef prepare --bin aptos
 
@@ -45,19 +45,20 @@ ARG GIT_REPO
 ARG GIT_TAG
 COPY --from=planner /app/aptos-core/recipe.json aptos-core/recipe.json
 WORKDIR /app/aptos-core
-ENV RUSTFLAGS="--cfg tokio_unstable"
-ENV RUSTUP_TOOLCHAIN=stable
-ENV RUST_VERSION_OVERRIDE=stable
+# ENV RUSTFLAGS="--cfg tokio_unstable"
+# ENV RUSTUP_TOOLCHAIN=stable
+# ENV RUST_VERSION_OVERRIDE=stable
 # RUN cargo update
-RUN cargo chef cook --bin aptos --package aptos --profile cli
+RUN cargo chef cook --bin aptos --profile cli
 
 # Clone the repo one level deeper, then move all its files into working
 # directory for compilation and binary stripping.
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
 RUN cp -r aptos-core/* . && rm -rf aptos-core
-ENV RUSTFLAGS="--cfg tokio_unstable"
-ENV RUSTUP_TOOLCHAIN=stable
-ENV RUST_VERSION_OVERRIDE=stable
+# ENV RUSTFLAGS="--cfg tokio_unstable"
+# ENV RUSTUP_TOOLCHAIN=stable
+# ENV RUST_VERSION_OVERRIDE=stable
+# RUN cargo update
 # RUN cargo update
 RUN cargo build --bin aptos --profile cli
 WORKDIR /
