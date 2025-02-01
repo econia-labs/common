@@ -1,22 +1,9 @@
-# cspell:word TOOLSDIRECTORY
 # cspell:word autoremove
+# cspell:word imagetools
+# cspell:word onlatest
 # cspell:word pipx
-# yamllint disable rule:empty-lines rule:key-ordering
-
+# cspell:word toolsdirectory
 ---
-name: 'Build the aptos-cli Docker image and push to Docker Hub'
-
-'on':
-  push:
-    tags:
-    - 'aptos-cli-v*'
-  workflow_dispatch:
-    inputs:
-      cli_version:
-        description: >-
-          Aptos CLI version to build, for example, 4.0.0
-        required: true
-        type: 'string'
 jobs:
   build-push:
     runs-on: 'ubuntu-latest'
@@ -50,7 +37,17 @@ jobs:
         tags: >
           type=match,pattern=aptos-cli-v(.*),group=1,
           enable=${{ github.event_name == 'push' }}
-
+          type=raw,value=${{ github.event.inputs.cli_version }},
+          enable=${{ github.event_name == 'workflow_dispatch' }}
+    - id: 'arm64-metadata'
+      uses: 'docker/metadata-action@v5'
+      with:
+        flavor: |
+          suffix=-arm64,onlatest=true
+        images: 'econialabs/aptos-cli'
+        tags: >
+          type=match,pattern=aptos-cli-v(.*),group=1,
+          enable=${{ github.event_name == 'push' }}
           type=raw,value=${{ github.event.inputs.cli_version }},
           enable=${{ github.event_name == 'workflow_dispatch' }}
     - uses: 'docker/setup-qemu-action@v3'
@@ -59,17 +56,52 @@ jobs:
       with:
         password: '${{ secrets.DOCKERHUB_TOKEN }}'
         username: '${{ secrets.DOCKERHUB_USERNAME }}'
+    - name: 'Push AMD image to Docker Hub'
     - uses: 'docker/build-push-action@v6'
       with:
+        build-args: |
+          CLI_VERSION=${{ steps.metadata.outputs.version }}
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: '.'
         file: 'src/aptos-cli/Dockerfile'
-        push: true
         labels: '${{ steps.metadata.outputs.labels }}'
-        platforms: '${{ vars.DOCKER_IMAGE_PLATFORMS }}'
+        platforms: 'linux/amd64'
+        push: true
         tags: '${{ steps.metadata.outputs.tags }}'
+    - name: 'Clear Docker cache to free up space for ARM build'
+      run: 'docker system prune -af'
+    - name: 'Push ARM image to Docker Hub'
+      uses: 'docker/build-push-action@v6'
+      with:
         build-args: |
           CLI_VERSION=${{ steps.metadata.outputs.version }}
+        cache-from: 'type=gha'
+        cache-to: 'type=gha,mode=max'
+        context: '.'
+        file: 'src/aptos-cli/Dockerfile'
+        labels: '${{ steps.metadata.outputs.labels }}'
+        platforms: 'linux/arm64'
+        push: true
+        tags: '${{ steps.arm64-metadata.outputs.tags }}'
+    - name: 'Append ARM images to AMD manifest'
+      run: |
+        echo "${{ steps.metadata.outputs.tags }}" | while read -r tag; do
+        if [ ! -z "$tag" ]; then
+        docker buildx imagetools create --append -t "$tag" "${tag}-arm64"
+        fi
+        done
     timeout-minutes: 360
+name: 'Build the aptos-cli Docker image and push to Docker Hub'
+'on':
+  push:
+    tags:
+    - 'aptos-cli-v*'
+  workflow_dispatch:
+    inputs:
+      cli_version:
+        description: >-
+          Aptos CLI version to build, for example, 4.0.0
+        required: true
+        type: 'string'
 ...
