@@ -80,7 +80,7 @@ jobs:
         cache-to: 'type=gha,mode=max'
         context: '.'
         file: 'src/aptos-cli/Dockerfile'
-        labels: '${{ steps.metadata.outputs.labels }}'
+        labels: '${{ steps.arm64-metadata.outputs.labels }}'
         platforms: 'linux/arm64'
         push: true
         tags: '${{ steps.arm64-metadata.outputs.tags }}'
