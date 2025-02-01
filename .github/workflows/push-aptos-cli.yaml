@@ -57,7 +57,7 @@ jobs:
         password: '${{ secrets.DOCKERHUB_TOKEN }}'
         username: '${{ secrets.DOCKERHUB_USERNAME }}'
     - name: 'Push AMD image to Docker Hub'
-    - uses: 'docker/build-push-action@v6'
+      uses: 'docker/build-push-action@v6'
       with:
         build-args: |
           CLI_VERSION=${{ steps.metadata.outputs.version }}
