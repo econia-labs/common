@@ -33,7 +33,9 @@ ARG GIT_REPO
 ARG GIT_TAG
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
 WORKDIR /app/aptos-core
-RUN cargo chef prepare --bin aptos --package aptos --profile cli
+ENV RUSTUP_TOOLCHAIN=stable
+ENV RUST_VERSION_OVERRIDE=stable
+RUN cargo chef prepare --bin aptos
 
 # Cache crate dependencies, compile the binary, strip it to reduce its size.
 FROM base AS builder
@@ -43,6 +45,8 @@ COPY --from=planner /app/aptos-core/recipe.json recipe.json
 RUN cargo chef cook --bin aptos --package aptos --profile cli
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
 ENV RUSTFLAGS="--cfg tokio_unstable"
+ENV RUSTUP_TOOLCHAIN=stable
+ENV RUST_VERSION_OVERRIDE=stable
 RUN cargo build                                \
         --bin aptos                            \
         --manifest-path /aptos-core/Cargo.toml \
