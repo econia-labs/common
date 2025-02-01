@@ -37,6 +37,7 @@ RUN cargo update -p time --precise "0.3.35" && cargo chef prepare --bin aptos
 
 # Cache crate dependencies.
 FROM base AS builder
+ARG CLI_BINARY
 ARG GIT_REPO
 ARG GIT_TAG
 COPY --from=planner /app/aptos-core/recipe.json aptos-core/recipe.json
