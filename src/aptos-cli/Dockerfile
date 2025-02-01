@@ -9,7 +9,7 @@ ARG BUILDER_VERSION=1.1.0
 ARG GIT_REPO=https://github.com/aptos-labs/aptos-core.git
 ARG CLI_VERSION
 ARG GIT_TAG="aptos-cli-v$CLI_VERSION"
-ARG CLI_BINARY=/aptos-core/target/cli/aptos
+ARG CLI_BINARY=app/aptos-core/target/cli/aptos
 
 # Configure base image with buildtime dependencies.
 FROM econialabs/rust-builder:$BUILDER_VERSION AS base
@@ -33,27 +33,35 @@ ARG GIT_REPO
 ARG GIT_TAG
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
 WORKDIR /app/aptos-core
-ENV RUSTUP_TOOLCHAIN=stable
-ENV RUST_VERSION_OVERRIDE=stable
-RUN cargo update && cargo chef prepare --bin aptos
-
-# Cache crate dependencies, compile the binary with updated lockfile, strip it
-# to reduce its size.
-FROM base AS builder
-ARG GIT_REPO
-ARG GIT_TAG
-COPY --from=planner /app/aptos-core/recipe.json recipe.json
-RUN cargo chef cook --bin aptos --package aptos --profile cli
-RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
 ENV RUSTFLAGS="--cfg tokio_unstable"
 ENV RUSTUP_TOOLCHAIN=stable
 ENV RUST_VERSION_OVERRIDE=stable
-RUN cargo update \
-    && cargo build                             \
-        --bin aptos                            \
-        --manifest-path /aptos-core/Cargo.toml \
-        --profile cli                          \
-    && strip -s $CLI_BINARY
+# RUN cargo update
+RUN cargo chef prepare --bin aptos
+
+# Cache crate dependencies.
+FROM base AS builder
+ARG GIT_REPO
+ARG GIT_TAG
+COPY --from=planner /app/aptos-core/recipe.json aptos-core/recipe.json
+WORKDIR /app/aptos-core
+ENV RUSTFLAGS="--cfg tokio_unstable"
+ENV RUSTUP_TOOLCHAIN=stable
+ENV RUST_VERSION_OVERRIDE=stable
+# RUN cargo update
+RUN cargo chef cook --bin aptos --package aptos --profile cli
+
+# Clone the repo one level deeper, then move all its files into working
+# directory for compilation and binary stripping.
+RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
+RUN cp -r aptos-core/* . && rm -rf aptos-core
+ENV RUSTFLAGS="--cfg tokio_unstable"
+ENV RUSTUP_TOOLCHAIN=stable
+ENV RUST_VERSION_OVERRIDE=stable
+# RUN cargo update
+RUN cargo build --bin aptos --profile cli
+WORKDIR /
+RUN strip -s $CLI_BINARY
 
 # Install runtime dependencies, copy binary, set assorted container configs.
 FROM debian:bookworm-slim AS runtime
