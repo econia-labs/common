@@ -37,6 +37,8 @@ WORKDIR /app/aptos-core
 # ENV RUSTUP_TOOLCHAIN=stable
 # ENV RUST_VERSION_OVERRIDE=stable
 # RUN cargo update
+# RUN cargo update -p time --precise "0.3.35"
+RUN cargo update -p time --precise "0.3.35"
 RUN cargo chef prepare --bin aptos
 
 # Cache crate dependencies.
@@ -49,6 +51,7 @@ WORKDIR /app/aptos-core
 # ENV RUSTUP_TOOLCHAIN=stable
 # ENV RUST_VERSION_OVERRIDE=stable
 # RUN cargo update
+# RUN cargo update -p time --precise "0.3.35"
 RUN cargo chef cook --bin aptos --profile cli
 
 # Clone the repo one level deeper, then move all its files into working
@@ -60,6 +63,8 @@ RUN cp -r aptos-core/* . && rm -rf aptos-core
 # ENV RUST_VERSION_OVERRIDE=stable
 # RUN cargo update
 # RUN cargo update
+# RUN cargo update -p time --precise "0.3.35"
+RUN cargo update -p time --precise "0.3.35"
 RUN cargo build --bin aptos --profile cli
 WORKDIR /
 RUN strip -s $CLI_BINARY
