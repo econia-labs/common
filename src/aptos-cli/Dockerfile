@@ -33,8 +33,7 @@ ARG GIT_REPO
 ARG GIT_TAG
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
 WORKDIR /app/aptos-core
-RUN cargo update -p time --precise "0.3.35"
-RUN cargo chef prepare --bin aptos
+RUN cargo update -p time --precise "0.3.35" && cargo chef prepare --bin aptos
 
 # Cache crate dependencies.
 FROM base AS builder
@@ -44,15 +43,15 @@ COPY --from=planner /app/aptos-core/recipe.json aptos-core/recipe.json
 WORKDIR /app/aptos-core
 RUN cargo chef cook --bin aptos --profile cli
 
-# Clone the repo one level deeper, then move all its files into working
-# directory for compilation (with updated known offending dependency) and
-# binary stripping.
-RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
-RUN cp -r aptos-core/* . && rm -rf aptos-core
-RUN cargo update -p time --precise "0.3.35"
+# Clone the repo one level deeper to preserve build outputs directory layout,
+# then move all its files into working directory for compilation (with updated
+# known offending dependency) and eventual binary stripping.
+RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1 \
+    && cp -r aptos-core/* . && rm -rf aptos-core    \
+    && cargo update -p time --precise "0.3.35"
 RUN cargo build --bin aptos --jobs 1 --profile cli
 WORKDIR /
-RUN strip -s $CLI_BINARY
+RUN strip -s "$CLI_BINARY"
 
 # Install runtime dependencies, copy binary, set assorted container configs.
 FROM debian:bookworm-slim AS runtime
