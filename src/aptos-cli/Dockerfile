@@ -50,7 +50,7 @@ RUN cargo chef cook --bin aptos --profile cli
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
 RUN cp -r aptos-core/* . && rm -rf aptos-core
 RUN cargo update -p time --precise "0.3.35"
-RUN cargo build --bin aptos --profile cli
+RUN cargo build --bin aptos --jobs 1 --profile cli
 WORKDIR /
 RUN strip -s $CLI_BINARY
 
