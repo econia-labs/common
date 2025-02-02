@@ -36,7 +36,7 @@ RUN apt-get update \
 # using specified number of parallel jobs, then strip it.
 RUN git clone $GIT_REPO --branch $GIT_TAG --depth 1
 WORKDIR /aptos-core
-RUN cargo update --package time --precise "0.3.35" \
+RUN cargo update --package time \
     && cargo build --bin aptos --jobs $CARGO_BUILD_JOBS --profile cli
 WORKDIR /
 RUN strip -s "$CLI_BINARY"
