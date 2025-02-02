@@ -86,7 +86,7 @@ docker buildx build \
   .
 ```
 
-## Resouce consumption
+## Resource consumption
 
 Since the `aptos` binary has so many dependencies, compilation may fail due to
 resource exhaustion unless adequate measures are taken.
