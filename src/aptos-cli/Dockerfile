@@ -22,7 +22,7 @@ ARG GIT_TAG
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
         libudev-dev=252* \
-        build-essential=12 \
+        build-essential=12* \
         libclang-dev=1:14* \
         libpq-dev=15* \
         libssl-dev=3* \
