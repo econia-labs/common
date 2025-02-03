@@ -53,13 +53,18 @@ jobs:
       with:
         password: '${{ secrets.DOCKERHUB_TOKEN }}'
         username: '${{ secrets.DOCKERHUB_USERNAME }}'
+    - name: 'Strip -arm64 suffix from CLI version if needed'
+      run: |
+        VERSION="${{ steps.metadata.outputs.version }}"
+        if [[ "$VERSION" == *-arm64 ]]; then
+        VERSION="${VERSION%-arm64}"
+        fi
+        echo "CLI_VERSION_CLEANED=$VERSION" >> "$GITHUB_OUTPUT"
     - name: 'Push ${{ matrix.arch }} image to Docker Hub'
       uses: 'docker/build-push-action@v6'
       with:
         build-args: |
-          CLI_VERSION=${{
-          replace(steps.metadata.outputs.version, '-arm64', '')
-          }}
+          CLI_VERSION=${{ steps.clean-version.outputs.CLI_VERSION_CLEANED }}
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: '.'
