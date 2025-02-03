@@ -58,8 +58,7 @@ Since the action strips the `v` when parsing the `ARG CLI_VERSION` value.
 
 ## Multi-architecture support
 
-Currently the GitHub action triggers builds for `amd64`, then once it has
-finished, an `amd64` build.
+Currently the GitHub action triggers builds for `arm64` and `amd64`.
 
 ## Building it yourself locally
 
