@@ -90,7 +90,7 @@ jobs:
       with:
         password: '${{ secrets.DOCKERHUB_TOKEN }}'
         username: '${{ secrets.DOCKERHUB_USERNAME }}'
-    - rune: echo "${{ needs.build.outputs.amd64-tags }}"
+    - run: echo "${{ needs.build.outputs.amd64-tags }}"
 #     - name: 'Append ARM images to AMD manifest, remove old ARM images'
 #       run: |
 #         echo "${{ needs.build.outputs.amd64-tags }}" | while read -r tag; do
