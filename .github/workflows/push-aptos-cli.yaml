@@ -34,10 +34,9 @@ jobs:
       uses: 'docker/metadata-action@v5'
       with:
         images: 'econialabs/aptos-cli'
-        tags: >
+        tags: >-
           type=match,pattern=aptos-cli-v(.*),group=1,
-          enable=${{ github.event_name == 'push' }}
-
+          enable=${{ github.event_name == 'push' }}\n
           type=raw,value=${{ github.event.inputs.cli_version }},
           enable=${{ github.event_name == 'workflow_dispatch' }}
     - id: 'arm64-metadata'
@@ -46,10 +45,9 @@ jobs:
         flavor: |
           suffix=-arm64,onlatest=true
         images: 'econialabs/aptos-cli'
-        tags: >
+        tags: >-
           type=match,pattern=aptos-cli-v(.*),group=1,
-          enable=${{ github.event_name == 'push' }}
-
+          enable=${{ github.event_name == 'push' }}\n
           type=raw,value=${{ github.event.inputs.cli_version }},
           enable=${{ github.event_name == 'workflow_dispatch' }}
     - uses: 'docker/setup-qemu-action@v3'
