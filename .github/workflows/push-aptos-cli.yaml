@@ -65,7 +65,6 @@ jobs:
         cache-to: 'type=gha,mode=max'
         context: '.'
         file: 'src/aptos-cli/Dockerfile'
-        labels: '${{ steps.metadata.outputs.labels }}'
         platforms: 'linux/amd64'
         push: true
         tags: '${{ steps.metadata.outputs.tags }}'
@@ -75,12 +74,11 @@ jobs:
       uses: 'docker/build-push-action@v6'
       with:
         build-args: |
-          CLI_VERSION=${{ steps.metadata.outputs.version }}
+          CLI_VERSION=${{ steps.arm-metadata.outputs.version }}
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: '.'
         file: 'src/aptos-cli/Dockerfile'
-        labels: '${{ steps.arm64-metadata.outputs.labels }}'
         platforms: 'linux/arm64'
         push: true
         tags: '${{ steps.arm64-metadata.outputs.tags }}'
