@@ -37,6 +37,7 @@ jobs:
         tags: >
           type=match,pattern=aptos-cli-v(.*),group=1,
           enable=${{ github.event_name == 'push' }}
+
           type=raw,value=${{ github.event.inputs.cli_version }},
           enable=${{ github.event_name == 'workflow_dispatch' }}
     - id: 'arm64-metadata'
@@ -48,6 +49,7 @@ jobs:
         tags: >
           type=match,pattern=aptos-cli-v(.*),group=1,
           enable=${{ github.event_name == 'push' }}
+
           type=raw,value=${{ github.event.inputs.cli_version }},
           enable=${{ github.event_name == 'workflow_dispatch' }}
     - uses: 'docker/setup-qemu-action@v3'
