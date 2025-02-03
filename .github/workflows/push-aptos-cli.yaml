@@ -5,6 +5,13 @@
 # cspell:word toolsdirectory
 ---
 jobs:
+  amd-test:
+    runs-on: 'ubuntu-latest'
+    - run: 'echo "Hello, AMD!"'
+  arm-test:
+    runs-on: 'ubuntu-24.04-arm'
+    steps:
+    - run: 'echo "Hello, ARM!"'
   build:
     outputs:
       amd64-tags: |
