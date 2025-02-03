@@ -90,14 +90,27 @@ jobs:
       with:
         password: '${{ secrets.DOCKERHUB_TOKEN }}'
         username: '${{ secrets.DOCKERHUB_USERNAME }}'
-    - name: 'Append ARM images to AMD manifest, remove old ARM images'
+    - id: 'base-url'
       run: |
-        echo "${{ needs.build.outputs.amd64-tags }}" | while read -r tag; do
-        if [ ! -z "$tag" ]; then
-        docker buildx imagetools create --append -t "$tag" "$tag-arm64"
-        docker rmi "docker.io/$tag-arm64"
-        fi
-        done
+        DOCKER_ORG="econialabs"
+        REPO_NAME="aptos-cli"
+        BASE_URL="https://hub.docker.com/v2/repositories/\
+          ${DOCKER_ORG}/\
+          ${REPO_NAME}/\
+          tags"
+        BASE_URL=$(echo "$BASE_URL" | tr -d ' ')
+        echo "url=$BASE_URL" >> "$GITHUB_OUTPUT"
+    - run: "echo ${{ steps.base-url.outputs.url }}"
+#     - name: 'Append ARM images to AMD manifest, remove old ARM images'
+#       run: |
+#         echo "${{ needs.build.outputs.amd64-tags }}" | while read -r tag; do
+#         if [ ! -z "$tag" ]; then
+#         docker buildx imagetools create --append -t "$tag" "$tag-arm64"
+#         curl -X DELETE \
+#         -H "Authorization: JWT ${{ secrets.DOCKERHUB_TOKEN }}" \
+#         "${{ steps.base-url.outputs.url }}/$tag-arm64/"
+#         fi
+#         done
 name: 'Build the aptos-cli Docker image and push to Docker Hub'
 'on':
   push:
