@@ -27,7 +27,7 @@ RUN aptos --version
 # > aptos 6.0.2
 ```
 
-## Building the image and pushing it to the `econialabs` Docker hub
+## Building the image and pushing it to the `econialabs` Docker Hub registry
 
 To build a Docker image with a specific version of the Aptos CLI, simply push
 the corresponding version tag to GitHub to trigger the GitHub workflow that
