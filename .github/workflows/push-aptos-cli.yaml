@@ -7,7 +7,8 @@
 jobs:
   build:
     outputs:
-      tags: ${{ matrix.arch == 'amd64' && steps.metadata.outputs.tags || '' }}
+      tags: |
+        ${{ matrix.arch == 'amd64' && steps.metadata.outputs.tags || '' }}
     runs-on: '${{ matrix.runner }}'
     steps:
 #    - uses: 'actions/checkout@v4'
