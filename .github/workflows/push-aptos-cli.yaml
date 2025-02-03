@@ -74,8 +74,8 @@ jobs:
       uses: 'docker/build-push-action@v6'
       with:
         build-args: |
-          CLI_VERSION=${{ steps.arm64-metadata.outputs.version }}
           CARGO_BUILD_JOBS=3
+          CLI_VERSION=${{ steps.arm64-metadata.outputs.version }}
         cache-from: 'type=gha'
         cache-to: 'type=gha,mode=max'
         context: '.'
