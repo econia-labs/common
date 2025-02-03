@@ -53,7 +53,8 @@ jobs:
       with:
         password: '${{ secrets.DOCKERHUB_TOKEN }}'
         username: '${{ secrets.DOCKERHUB_USERNAME }}'
-    - name: 'Strip -arm64 suffix from CLI version if needed'
+    - id: 'clean-version'
+      name: 'Strip -arm64 suffix from CLI version if needed'
       run: |
         VERSION="${{ steps.metadata.outputs.version }}"
         if [[ "$VERSION" == *-arm64 ]]; then
