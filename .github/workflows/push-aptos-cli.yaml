@@ -7,7 +7,7 @@
 jobs:
   build:
     outputs:
-      amd64-tags: >
+      amd64-tags: >-
         ${{ matrix.arch == 'amd64' && steps.metadata.outputs.tags || '' }}
     runs-on: '${{ matrix.runner }}'
     steps:
