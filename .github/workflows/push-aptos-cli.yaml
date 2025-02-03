@@ -7,7 +7,7 @@
 jobs:
   build:
     outputs:
-      tags: >
+      amd64-tags: >
         ${{ matrix.arch == 'amd64' && steps.metadata.outputs.tags || '' }}
     runs-on: '${{ matrix.runner }}'
     steps:
@@ -90,7 +90,7 @@ jobs:
       with:
         password: '${{ secrets.DOCKERHUB_TOKEN }}'
         username: '${{ secrets.DOCKERHUB_USERNAME }}'
-    - run: echo "${{ needs.build.outputs.tags }}"
+    - run: echo "${{ needs.build.outputs.amd64-tags }}"
 #     - name: 'Append ARM images to AMD manifest, remove old ARM images'
 #       run: |
 #         echo "${{ needs.build.outputs.amd64-tags }}" | while read -r tag; do
