@@ -96,8 +96,8 @@ jobs:
       run: |
         echo "${{ needs.build.outputs.amd64-tags }}" | while read -r tag; do
         if [ ! -z "$tag" ]; then
-        docker buildx imagetools create --append -t "$tag" "${tag}-arm64"
-        docker rmi "docker.io/${tag}-arm64"
+        docker buildx imagetools create --append -t "$tag" "$tag-arm64"
+        docker rmi "docker.io/$tag-arm64"
         fi
         done
 name: 'Build the aptos-cli Docker image and push to Docker Hub'
