@@ -49,7 +49,7 @@ RUN apt-get update \
         ca-certificates=2023* \
         curl=7* \
         git=1:2.39* \
-        jq=1.6* \
+        jq=1.7* \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=builder $CLI_BINARY /usr/local/bin
 
