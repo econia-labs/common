@@ -55,10 +55,19 @@ RUN apt-get update \
 # target architecture for `curl`, since `jq-1.7` is not available in the debian
 # `apt` packages.
 # hadolint ignore=DL4006
-RUN BASE_URL="https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux" \
-    && curl -L -o /usr/local/bin/jq "${BASE_URL}-${TARGETARCH}" \
+RUN set -x \
+    && BASE_URL="https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux" \
+    && case "${TARGETARCH}" in \
+         "amd64") JQ_ARCH="amd64" ;; \
+         "arm64") JQ_ARCH="arm64" ;; \
+         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
+       esac \
+    && FULL_URL="${BASE_URL}-${JQ_ARCH}" \
+    && echo "Attempting to download from: $FULL_URL" \
+    && curl -L -f -o /usr/local/bin/jq "$FULL_URL" \
     && chmod +x /usr/local/bin/jq \
-    && jq --version | grep 'jq-1.7'
+    && echo "File type: $(file /usr/local/bin/jq)" \
+    && /usr/local/bin/jq --version | grep 'jq-1.7'
 
 COPY --from=builder $CLI_BINARY /usr/local/bin
 
