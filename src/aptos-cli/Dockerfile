@@ -48,15 +48,16 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y \
         ca-certificates=2023* \
         curl=7* \
-        git=1:2.39*
+        git=1:2.39* \
+    && rm -rf /var/lib/apt/lists/*
 
 # Store the jq release page base URL in a variable and interpolate the proper
 # target architecture for `curl`, since `jq-1.7` is not available in the debian
 # `apt` packages.
+# hadolint ignore=DL4006
 RUN BASE_URL="https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux" \
     && curl -L -o /usr/local/bin/jq "${BASE_URL}-${TARGETARCH}" \
     && chmod +x /usr/local/bin/jq \
-    && rm -rf /var/lib/apt/lists/* \
     && jq --version | grep 'jq-1.7'
 
 COPY --from=builder $CLI_BINARY /usr/local/bin
