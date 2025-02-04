@@ -49,9 +49,20 @@ RUN apt-get update \
         ca-certificates=2023* \
         curl=7* \
         git=1:2.39* \
-        jq=1.7* \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=builder $CLI_BINARY /usr/local/bin
+
+# Conditional download based on architecture, since version 1.7 isn't available
+# in apt packages for arm
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+        echo "Downloading jq for arm64"; \
+        curl -L -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux-arm64; \
+    else \
+        echo "Installing jq via apt for amd64"; \
+        apt-get install --no-install-recommends -y jq=1.7*; \
+    fi \
+    && chmod +x /usr/local/bin/jq \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy over healthcheck script, make it executable so it can be run.
 WORKDIR /
