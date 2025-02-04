@@ -48,21 +48,18 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y \
         ca-certificates=2023* \
         curl=7* \
-        git=1:2.39* \
-    && rm -rf /var/lib/apt/lists/*
-COPY --from=builder $CLI_BINARY /usr/local/bin
+        git=1:2.39*
 
-# Conditional download based on architecture, since version 1.7 isn't available
-# in apt packages for arm
-RUN if [ "$TARGETARCH" = "arm64" ]; then \
-        echo "Downloading jq for arm64"; \
-        curl -L -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux-arm64; \
-    else \
-        echo "Installing jq via apt for amd64"; \
-        apt-get install --no-install-recommends -y jq=1.7*; \
-    fi \
+# Store the jq release page base URL in a variable and interpolate the proper
+# target architecture for `curl`, since `jq-1.7` is not available in the debian
+# `apt` packages.
+RUN BASE_URL="https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux" \
+    && curl -L -o /usr/local/bin/jq "${BASE_URL}-${TARGETARCH}" \
     && chmod +x /usr/local/bin/jq \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && jq --version | grep 'jq-1.7'
+
+COPY --from=builder $CLI_BINARY /usr/local/bin
 
 # Copy over healthcheck script, make it executable so it can be run.
 WORKDIR /
