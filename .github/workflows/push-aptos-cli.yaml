@@ -1,6 +1,5 @@
 # cspell:word autoremove
 # cspell:word imagetools
-# cspell:word onlatest
 # cspell:word pipx
 # cspell:word toolsdirectory
 ---
@@ -46,7 +45,8 @@ jobs:
         sudo apt autoremove -y
         df -h /
     # yamllint enable rule:indentation
-    - name: 'Push ${{ matrix.arch }} image to Docker Hub'
+    - id: 'build'
+      name: 'Push ${{ matrix.arch }} image to Docker Hub'
       uses: 'docker/build-push-action@v6'
       with:
         build-args: 'CLI_VERSION=${{ needs.metadata.outputs.version }}'
