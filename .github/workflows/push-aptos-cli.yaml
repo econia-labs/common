@@ -11,7 +11,7 @@ env:
   GIT_TAG_PREFIX: 'aptos-cli'
 jobs:
   metadata:
-    ouputs:
+    outputs:
       json: '${{ steps.metadata.outputs.json }}'
       version: '${{ steps.metadata.outputs.version }}'
     runs-on: 'ubuntu-latest'
