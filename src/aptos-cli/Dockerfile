@@ -3,7 +3,7 @@
 # cspell:word libpq
 # cspell:word libdw
 # cspell:word localnet
-# cspell:word rustflags
+# cspell:word esac
 
 ARG BUILDER_VERSION=1.1.0
 # Default to compile using as many logical CPUs as possible.
@@ -49,8 +49,23 @@ RUN apt-get update \
         ca-certificates=2023* \
         curl=7* \
         git=1:2.39* \
-        jq=1.6* \
     && rm -rf /var/lib/apt/lists/*
+
+# Store the jq release page base URL in a variable and interpolate the proper
+# target architecture for `curl`, since `jq-1.7` is not available in the debian
+# `apt` packages.
+# hadolint ignore=DL4006
+RUN BASE_URL="https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux" \
+    && ARCH=$(uname -m) \
+    && case "${ARCH}" in \
+         "x86_64") JQ_ARCH="amd64" ;; \
+         "aarch64") JQ_ARCH="arm64" ;; \
+         *) echo "Unsupported architecture: ${ARCH}" && exit 1 ;; \
+       esac \
+    && curl -L -o /usr/local/bin/jq "${BASE_URL}-${JQ_ARCH}" \
+    && chmod +x /usr/local/bin/jq \
+    && jq --version | grep 'jq-1.7'
+
 COPY --from=builder $CLI_BINARY /usr/local/bin
 
 # Copy over healthcheck script, make it executable so it can be run.
