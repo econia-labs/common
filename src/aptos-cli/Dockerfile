@@ -3,7 +3,6 @@
 # cspell:word libpq
 # cspell:word libdw
 # cspell:word localnet
-# cspell:word rustflags
 # cspell:word esac
 
 ARG BUILDER_VERSION=1.1.0
