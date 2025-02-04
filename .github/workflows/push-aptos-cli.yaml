@@ -1,17 +1,29 @@
 # cspell:word autoremove
 # cspell:word imagetools
-# cspell:word onlatest
 # cspell:word pipx
 # cspell:word toolsdirectory
 ---
+env:
+  BUILD_CONTEXT: '.'
+  BUILD_FILE: 'src/aptos-cli/Dockerfile'
+  DOCKER_REPO: 'econialabs/aptos-cli'
+  GIT_TAG_PREFIX: 'aptos-cli'
 jobs:
   build:
+    needs: 'metadata'
     outputs:
-      amd64-tags: >-
-        ${{ matrix.arch == 'amd64' && steps.metadata.outputs.tags || '' }}
+      digest-amd64: >-
+        ${{ matrix.arch == 'amd64' && steps.build.outputs.digest || '' }}
+      digest-arm64: >-
+        ${{ matrix.arch == 'arm64' && steps.build.outputs.digest || '' }}
     runs-on: '${{ matrix.runner }}'
     steps:
     - uses: 'actions/checkout@v4'
+    - uses: 'docker/setup-buildx-action@v3'
+    - uses: 'docker/login-action@v3'
+      with:
+        password: '${{ secrets.DOCKERHUB_TOKEN }}'
+        username: '${{ secrets.DOCKERHUB_USERNAME }}'
     - name: 'Remove unused packages to free up runner disk space'
       # yamllint disable rule:indentation
       run: |
@@ -33,12 +45,59 @@ jobs:
         sudo apt autoremove -y
         df -h /
     # yamllint enable rule:indentation
+    - id: 'build'
+      name: 'Push ${{ matrix.arch }} image to Docker Hub'
+      uses: 'docker/build-push-action@v6'
+      with:
+        build-args: 'CLI_VERSION=${{ needs.metadata.outputs.version }}'
+        cache-from: 'type=gha'
+        cache-to: 'type=gha,mode=max'
+        context: '${{ env.BUILD_CONTEXT }}'
+        file: '${{ env.BUILD_FILE }}'
+        outputs: 'name=${{ env.DOCKER_REPO }},push-by-digest=true,type=image'
+        platforms: 'linux/${{ matrix.arch }}'
+        push: true
+    strategy:
+      matrix:
+        include:
+        - arch: 'amd64'
+          runner: 'ubuntu-latest'
+        - arch: 'arm64'
+          runner: 'ubuntu-24.04-arm'
+  create-manifest:
+    needs:
+    - 'build'
+    - 'metadata'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'docker/setup-buildx-action@v3'
+    - uses: 'docker/login-action@v3'
+      with:
+        password: '${{ secrets.DOCKERHUB_TOKEN }}'
+        username: '${{ secrets.DOCKERHUB_USERNAME }}'
     - id: 'metadata'
       uses: 'docker/metadata-action@v5'
       with:
-        flavor: |
-          ${{ matrix.flavor }}
-        images: 'econialabs/aptos-cli'
+        images: '${{ env.DOCKER_REPO }}'
+        tags: 'type=match,pattern=${{ env.GIT_TAG_PREFIX }}-v(.*),group=1'
+    - name: 'Create multi-architecture image manifest on Docker Hub'
+      run: |
+        TAG_ARGS=$(jq -cr '.tags | map("-t " + .) | join(" ")' \
+        <<< '${{ needs.metadata.outputs.json }}')
+        docker buildx imagetools create ${TAG_ARGS} \
+        ${{ env.DOCKER_REPO }}@${{ needs.build.outputs.digest-amd64 }} \
+        ${{ env.DOCKER_REPO }}@${{ needs.build.outputs.digest-arm64 }}
+  metadata:
+    outputs:
+      json: '${{ steps.metadata.outputs.json }}'
+      version: '${{ steps.metadata.outputs.version }}'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - id: 'metadata'
+      name: 'Extract metadata from git tag or workflow_dispatch input'
+      uses: 'docker/metadata-action@v5'
+      with:
+        images: '${{ env.DOCKER_REPO }}'
         # yamllint disable rule:empty-lines
         tags: >
           type=match,pattern=aptos-cli-v(.*),group=1,
@@ -46,76 +105,8 @@ jobs:
 
           type=raw,value=${{ github.event.inputs.cli_version }},
           enable=${{ github.event_name == 'workflow_dispatch' }}
-      # yamllint enable rule:empty-lines
-    - uses: 'docker/setup-buildx-action@v3'
-    - uses: 'docker/login-action@v3'
-      with:
-        password: '${{ secrets.DOCKERHUB_TOKEN }}'
-        username: '${{ secrets.DOCKERHUB_USERNAME }}'
-    - id: 'clean-version'
-      name: 'Strip -arm64 suffix from CLI version if needed'
-      run: |
-        VERSION="${{ steps.metadata.outputs.version }}"
-        if [[ "$VERSION" == *-arm64 ]]; then
-        VERSION="${VERSION%-arm64}"
-        fi
-        echo "CLI_VERSION_CLEANED=$VERSION" >> "$GITHUB_OUTPUT"
-    - name: 'Push ${{ matrix.arch }} image to Docker Hub'
-      uses: 'docker/build-push-action@v6'
-      with:
-        build-args: |
-          CLI_VERSION=${{ steps.clean-version.outputs.CLI_VERSION_CLEANED }}
-        cache-from: 'type=gha'
-        cache-to: 'type=gha,mode=max'
-        context: '.'
-        file: 'src/aptos-cli/Dockerfile'
-        platforms: 'linux/${{ matrix.arch }}'
-        push: true
-        tags: '${{ steps.metadata.outputs.tags }}'
-    strategy:
-      matrix:
-        include:
-        - arch: 'amd64'
-          flavor: null
-          runner: 'ubuntu-latest'
-        - arch: 'arm64'
-          flavor: |
-            suffix=-arm64,onlatest=true
-          runner: 'ubuntu-24.04-arm'
-  update-manifest:
-    needs: 'build'
-    runs-on: 'ubuntu-latest'
-    steps:
-    - uses: 'docker/login-action@v3'
-      with:
-        password: '${{ secrets.DOCKERHUB_TOKEN }}'
-        username: '${{ secrets.DOCKERHUB_USERNAME }}'
-    - id: 'base-url'
-      # Use `tr` to remove whitespace from the constructed URL before saving
-      # the output for later use.
-      run: |
-        DOCKER_ORG="econialabs"
-        REPO_NAME="aptos-cli"
-        BASE_URL="https://hub.docker.com/v2/repositories/\
-        ${DOCKER_ORG}/\
-        ${REPO_NAME}/\
-        tags"
-        BASE_URL=$(echo "$BASE_URL" | tr -d ' ')
-        echo "url=$BASE_URL" >> "$GITHUB_OUTPUT"
-    - name: 'Append ARM images to AMD manifest, remove old ARM images'
-      # Loop over all the AMD64 tags and append the ARM64 tags to the manifest,
-      # then delete the old ARM64 tags from Docker Hub.
-      run: |
-        echo "${{ needs.build.outputs.amd64-tags }}" | while read -r tag; do
-        if [ ! -z "$tag" ]; then
-        docker buildx imagetools create --append -t "$tag" "$tag-arm64"
-        VERSION=$(echo "$tag" | cut -d':' -f2)
-        curl -X DELETE \
-        -H "Authorization: JWT ${{ secrets.DOCKERHUB_TOKEN }}" \
-        "${{ steps.base-url.outputs.url }}/${VERSION}-arm64/"
-        fi
-        done
-name: 'Build the aptos-cli Docker image and push to Docker Hub'
+# yamllint enable rule:empty-lines
+name: 'Push multi-platform aptos-cli image to Docker Hub'
 'on':
   push:
     tags:
@@ -124,7 +115,7 @@ name: 'Build the aptos-cli Docker image and push to Docker Hub'
     inputs:
       cli_version:
         description: >-
-          Aptos CLI version to build, for example, 4.0.0
+          Aptos CLI version to build, for example, 6.0.2
         required: true
         type: 'string'
 ...
