@@ -10,25 +10,6 @@ env:
   DOCKER_REPO: 'econialabs/aptos-cli'
   GIT_TAG_PREFIX: 'aptos-cli'
 jobs:
-  metadata:
-    outputs:
-      json: '${{ steps.metadata.outputs.json }}'
-      version: '${{ steps.metadata.outputs.version }}'
-    runs-on: 'ubuntu-latest'
-    steps:
-    - id: 'metadata'
-      name: 'Extract metadata from git tag or workflow_dispatch input'
-      uses: 'docker/metadata-action@v5'
-      with:
-        images: '${{ env.DOCKER_REPO }}'
-        # yamllint disable rule:empty-lines
-        tags: >
-          type=match,pattern=aptos-cli-v(.*),group=1,
-          enable=${{ github.event_name == 'push' }}
-
-          type=raw,value=${{ github.event.inputs.cli_version }},
-          enable=${{ github.event_name == 'workflow_dispatch' }}
-  # yamllint enable rule:empty-lines
   build:
     needs: 'metadata'
     outputs:
@@ -102,11 +83,29 @@ jobs:
     - name: 'Create multi-architecture image manifest on Docker Hub'
       run: |
         TAG_ARGS=$(jq -cr '.tags | map("-t " + .) | join(" ")' \
-          <<< '${{ needs.metadata.outputs.json }}')
-        docker buildx imagetools create \
-          ${TAG_ARGS} \
-          ${{ env.DOCKER_REPO }}@${{ needs.build.outputs.digest-amd64 }} \
-          ${{ env.DOCKER_REPO }}@${{ needs.build.outputs.digest-arm64 }}
+        <<< '${{ needs.metadata.outputs.json }}')
+        docker buildx imagetools create ${TAG_ARGS} \
+        ${{ env.DOCKER_REPO }}@${{ needs.build.outputs.digest-amd64 }} \
+        ${{ env.DOCKER_REPO }}@${{ needs.build.outputs.digest-arm64 }}
+  metadata:
+    outputs:
+      json: '${{ steps.metadata.outputs.json }}'
+      version: '${{ steps.metadata.outputs.version }}'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - id: 'metadata'
+      name: 'Extract metadata from git tag or workflow_dispatch input'
+      uses: 'docker/metadata-action@v5'
+      with:
+        images: '${{ env.DOCKER_REPO }}'
+        # yamllint disable rule:empty-lines
+        tags: >
+          type=match,pattern=aptos-cli-v(.*),group=1,
+          enable=${{ github.event_name == 'push' }}
+
+          type=raw,value=${{ github.event.inputs.cli_version }},
+          enable=${{ github.event_name == 'workflow_dispatch' }}
+# yamllint enable rule:empty-lines
 name: 'Push multi-platform aptos-cli image to Docker Hub'
 'on':
   push:
