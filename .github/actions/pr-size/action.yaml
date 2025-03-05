@@ -24,7 +24,7 @@ runs:
   - env:
       GITHUB_EVENT_NAME: ${{ github.event_name }}
     name: 'Check if run from merge group'
-    run: '${{ github.action_path }}/sh/check-if-in-merge-group.sh'
+    run: 'sh ${{ github.action_path }}/sh/check-if-in-merge-group.sh'
     shell: 'sh'
   using: 'composite'
 ...
