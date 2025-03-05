@@ -6,7 +6,13 @@ inputs:
     description: 'GitHub token for API access.'
     required: true
   max_lines_added:
-    description: 'Maximum lines that can be added without requiring override.'
+    description: 'Maximum lines that can be added before requiring override.'
+    required: true
+  max_lines_removed:
+    description: 'Maximum lines that can be removed before requiring override.'
+    required: true
+  n_override_approvals:
+    description: 'Number of approvals required for override.'
     required: true
 name: 'Check PR size'
 runs:
@@ -16,6 +22,10 @@ runs:
       fetch-depth: 0
       token: '${{ inputs.github_token }}'
   - run: 'echo ${{ inputs.max_lines_added }}'
+    shell: 'sh'
+  - run: 'echo ${{ inputs.max_lines_removed }}'
+    shell: 'sh'
+  - run: 'echo ${{ inputs.n_override_approvals }}'
     shell: 'sh'
   using: 'composite'
 ...
