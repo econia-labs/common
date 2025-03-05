@@ -19,7 +19,7 @@ runs:
       fetch-depth: 0
   - env:
       GITHUB_EVENT_NAME: '${{ github.event_name }}'
-    id: 'check-if-in-merge-group'
+    name: 'Check if in merge group'
     run: 'sh ${{ github.action_path }}/sh/check-if-in-merge-group.sh'
     shell: 'sh'
   - env:
@@ -57,7 +57,6 @@ runs:
       N_LINES_ADDED: '${{ steps.get-n-insertions.outputs.insertions }}'
       N_LINES_REMOVED: '${{ steps.get-n-deletions.outputs.deletions }}'
       N_OVERRIDE_APPROVALS: '${{ inputs.n_override_approvals }}'
-    id: 'check-size-versus-approvals'
     name: 'Check size versus approvals'
     run: 'sh ${{ github.action_path }}/sh/check-size-versus-approvals.sh'
     shell: 'sh'
