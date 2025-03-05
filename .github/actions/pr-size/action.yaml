@@ -21,11 +21,7 @@ runs:
     with:
       fetch-depth: 0
       token: '${{ inputs.github_token }}'
-  - run: 'echo ${{ inputs.max_lines_added }}'
-    shell: 'sh'
-  - run: 'echo ${{ inputs.max_lines_removed }}'
-    shell: 'sh'
-  - run: 'echo ${{ inputs.n_override_approvals }}'
+  - run: 'if [ "${{ github.event_name }}" = "pull_request" ]; then exit 1; fi'
     shell: 'sh'
   using: 'composite'
 ...
