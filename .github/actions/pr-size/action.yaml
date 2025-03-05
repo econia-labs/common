@@ -19,7 +19,7 @@ runs:
       fetch-depth: 0
   - env:
       GITHUB_EVENT_NAME: '${{ github.event_name }}'
-    name: 'Check if in merge group'
+    name: 'check-if-in-merge-group'
     run: 'sh ${{ github.action_path }}/sh/check-if-in-merge-group.sh'
     shell: 'sh'
   - env:
@@ -36,12 +36,12 @@ runs:
   - env:
       BASE_BRANCH: '${{ steps.get-base-branch.outputs.base_branch }}'
     id: 'get-n-insertions'
-    run: 'sh ${{ github.action_path }}/sh/get-n-lines-added.sh'
+    run: 'sh ${{ github.action_path }}/sh/get-n-insertions.sh'
     shell: 'sh'
   - env:
       BASE_BRANCH: '${{ steps.get-base-branch.outputs.base_branch }}'
     id: 'get-n-deletions'
-    run: 'sh ${{ github.action_path }}/sh/get-n-lines-removed.sh'
+    run: 'sh ${{ github.action_path }}/sh/get-n-deletions.sh'
     shell: 'sh'
   - env:
       GH_TOKEN: '${{ github.token }}'
@@ -57,7 +57,7 @@ runs:
       N_LINES_ADDED: '${{ steps.get-n-insertions.outputs.insertions }}'
       N_LINES_REMOVED: '${{ steps.get-n-deletions.outputs.deletions }}'
       N_OVERRIDE_APPROVALS: '${{ inputs.n_override_approvals }}'
-    name: 'Check size versus approvals'
+    name: 'check-size-versus-approvals'
     run: 'sh ${{ github.action_path }}/sh/check-size-versus-approvals.sh'
     shell: 'sh'
   using: 'composite'
