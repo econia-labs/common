@@ -18,7 +18,7 @@ runs:
       MAX_LINES_ADDED: '${{ inputs.max_lines_added }}'
       MAX_LINES_REMOVED: '${{ inputs.max_lines_removed }}'
       N_OVERRIDE_APPROVALS: '${{ inputs.n_override_approvals }}'
-    name: 'validate-inputs'
+    id: 'validate-inputs'
     run: 'sh ${{ github.action_path }}/sh/validate-inputs.sh'
     shell: 'sh'
   - uses: 'actions/checkout@v4'
@@ -68,3 +68,4 @@ runs:
     run: 'sh ${{ github.action_path }}/sh/check-size-versus-approvals.sh'
     shell: 'sh'
   using: 'composite'
+...
