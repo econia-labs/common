@@ -83,7 +83,7 @@ jobs:
             --json reviews | \
             jq '
               .reviews
-              | group_by(.user.login)
+              | group_by(.author.login)
               | map(last)
               | map(select(.state == "APPROVED"))
               | length
