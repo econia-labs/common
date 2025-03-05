@@ -1,4 +1,4 @@
 #!/bin/sh
-if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+if [ "$GITHUB_EVENT_NAME" = "merge_group" ]; then
   exit 1
 fi
