@@ -27,7 +27,7 @@ if [ "$NEEDS_OVERRIDE" = "true" ]; then
 		echo ""
 		if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
 			echo "  If the PR author hasn't updated this PR since enough"
-			echo "  approvals were left, you must manually trigger a re-run"
+			echo "  approvals were left, you must manually trigger a re-run."
 		fi
 		exit 1
 	fi
