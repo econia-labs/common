@@ -1,3 +1,4 @@
+#!/bin/sh
 echo "$N_LINES_ADDED lines added (max $MAX_LINES_ADDED)"
 echo "$N_LINES_REMOVED lines removed (max $MAX_LINES_REMOVED)"
 NEEDS_OVERRIDE="false"

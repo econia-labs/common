@@ -1,3 +1,4 @@
+#!/bin/sh
 git fetch origin $BASE_BRANCH
 DELETIONS=$(
 	git diff --stat origin/$BASE_BRANCH |

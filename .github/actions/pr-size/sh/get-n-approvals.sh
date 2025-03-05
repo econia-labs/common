@@ -1,3 +1,4 @@
+#!/bin/sh
 APPROVALS=$(
 	gh pr view $PR_NUMBER \
 		--json reviews |
