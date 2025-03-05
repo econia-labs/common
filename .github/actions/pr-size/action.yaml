@@ -35,13 +35,29 @@ runs:
     shell: 'sh'
   - env:
       BASE_BRANCH: '${{ steps.get-base-branch.outputs.base_branch }}'
-    id: 'get-n-lines-added'
+    id: 'get-n-insertions'
     run: 'sh ${{ github.action_path }}/sh/get-n-lines-added.sh'
     shell: 'sh'
   - env:
       BASE_BRANCH: '${{ steps.get-base-branch.outputs.base_branch }}'
-    id: 'get-n-lines-removed'
+    id: 'get-n-deletions'
     run: 'sh ${{ github.action_path }}/sh/get-n-lines-removed.sh'
+    shell: 'sh'
+  - env:
+      PR_NUMBER: '${{ steps.get-pr-number.outputs.number }}'
+    id: 'get-n-approvals'
+    run: 'sh ${{ github.action_path }}/sh/get-n-approvals.sh'
+    shell: 'sh'
+  - env:
+      GITHUB_EVENT_NAME: '${{ github.event_name }}'
+      MAX_LINES_ADDED: '${{ inputs.max_lines_added }}'
+      MAX_LINES_REMOVED: '${{ inputs.max_lines_removed }}'
+      N_APPROVALS: '${{ steps.get-n-approvals.outputs.n_approvals }}'
+      N_LINES_ADDED: '${{ steps.get-n-insertions.outputs.insertions }}'
+      N_LINES_REMOVED: '${{ steps.get-n-deletions.outputs.deletions }}'
+      N_OVERRIDE_APPROVALS: '${{ inputs.n_override_approvals }}'
+    id: 'check-size-versus-approvals'
+    run: 'sh ${{ github.action_path }}/sh/check-size-versus-approvals.sh'
     shell: 'sh'
   using: 'composite'
 ...
