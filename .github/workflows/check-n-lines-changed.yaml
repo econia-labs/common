@@ -114,6 +114,14 @@ jobs:
             echo "✅ Changes exceeded limits but have required approvals"
           else
             echo "❌ Too many changes. Need $OVERRIDE_N_APPROVALS approvals"
+            echo ""
+            echo "⚠️  IMPORTANT: GitHub counts comments and resolved discussions as reviews."
+            echo "   If a reviewer approved but later added comments or resolved discussions,"
+            echo "   their last action counts as their current review state."
+            echo ""
+            echo "   For this PR to pass, ensure $OVERRIDE_N_APPROVALS reviewers have explicitly"
+            echo "   approved and have not left comments afterward."
+            echo ""
             if [ "${{ github.event_name }}" = "pull_request" ]; then
               echo "If the PR author hasn't updated this PR since enough"
               echo "approvals were left, you must manually trigger a re-run"
