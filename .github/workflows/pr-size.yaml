@@ -7,7 +7,9 @@ jobs:
       with:
         github_token: '${{ secrets.GITHUB_TOKEN }}'
         max_lines_added: '${{ vars.PR_SIZE_MAX_LINES_ADDED }}'
-name: 'Check PR Size'
+        max_lines_removed: '${{ vars.PR_SIZE_MAX_LINES_REMOVED }}'
+        n_override_approvals: '${{ vars.PR_SIZE_N_OVERRIDE_APPROVALS }}'
+name: 'PR Size'
 'on':
   pull_request: null
   pull_request_review: null

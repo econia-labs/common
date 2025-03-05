@@ -14,7 +14,7 @@ inputs:
   n_override_approvals:
     description: 'Number of approvals required for override.'
     required: true
-name: 'Check PR size'
+name: 'PR size'
 runs:
   steps:
   - uses: 'actions/checkout@v4'
