@@ -14,5 +14,4 @@ name: 'PR Size'
   merge_group: null
   pull_request: null
   pull_request_review: null
-  workflow_dispatch: null
 ...
