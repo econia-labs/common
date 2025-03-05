@@ -16,5 +16,6 @@ runs:
       fetch-depth: 0
       token: '${{ inputs.github_token }}'
   - run: 'echo ${{ inputs.max_lines_added }}'
+    shell: 'sh'
   using: 'composite'
 ...
