@@ -6,7 +6,6 @@ jobs:
     - if: '${{ github.event_name != ''merge_group'' }}'
       uses: 'econia-labs/common/.github/actions/pr-size@ECO-2962'
       with:
-        github_token: '${{ secrets.GITHUB_TOKEN }}'
         max_lines_added: '${{ vars.PR_SIZE_MAX_LINES_ADDED }}'
         max_lines_removed: '${{ vars.PR_SIZE_MAX_LINES_REMOVED }}'
         n_override_approvals: '${{ vars.PR_SIZE_N_OVERRIDE_APPROVALS }}'
