@@ -1,6 +1,7 @@
 ---
 jobs:
   pr-size:
+    name: 'PR Size'
     runs-on: 'ubuntu-latest'
     steps:
     - if: '${{ github.event_name != ''merge_group'' }}'
