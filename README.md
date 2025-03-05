@@ -1,4 +1,6 @@
-# Econia Labs Cloud Infrastructure
+# Econia Labs Common Repository
+
+This repository contains common contents used across multiple projects.
 
 [![pre-commit shield]][pre-commit repo]
 
