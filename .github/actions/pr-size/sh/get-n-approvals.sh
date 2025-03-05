@@ -11,4 +11,4 @@ APPROVALS=$(
     '
 )
 echo "Number of approvals: $APPROVALS"
-echo "approvals=$APPROVALS" >>$GITHUB_OUTPUT
+echo "n_approvals=$APPROVALS" >>$GITHUB_OUTPUT

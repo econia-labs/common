@@ -22,12 +22,12 @@ if [ "$NEEDS_OVERRIDE" = "true" ]; then
 		echo ""
 		echo "  For this check to pass, ensure $N_OVERRIDE_APPROVALS reviewers"
 		echo "  have explicitly approved and have not since left comments or"
-		echo "  resolved discussions since approving. Note they can always"
+		echo "  resolved discussions after approving. Note they can always"
 		echo "  just re-approve to fix this."
 		echo ""
 		if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-			echo "If the PR author hasn't updated this PR since enough"
-			echo "approvals were left, you must manually trigger a re-run"
+			echo "  If the PR author hasn't updated this PR since enough"
+			echo "  approvals were left, you must manually trigger a re-run"
 		fi
 		exit 1
 	fi
