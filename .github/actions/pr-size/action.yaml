@@ -9,7 +9,7 @@ inputs:
     description: 'Maximum lines that can be added without requiring override.'
     required: true
 name: 'Check PR size'
-run:
+runs:
   steps:
   - uses: 'actions/checkout@v4'
     with:
