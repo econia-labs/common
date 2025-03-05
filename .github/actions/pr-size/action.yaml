@@ -44,6 +44,7 @@ runs:
     run: 'sh ${{ github.action_path }}/sh/get-n-lines-removed.sh'
     shell: 'sh'
   - env:
+      GH_TOKEN: ${{ github.token }}
       PR_NUMBER: '${{ steps.get-pr-number.outputs.number }}'
     id: 'get-n-approvals'
     run: 'sh ${{ github.action_path }}/sh/get-n-approvals.sh'
