@@ -1,18 +1,18 @@
 ---
 author: 'Econia Labs'
-description: 'Require extra approvals for PRs with many lines added/removed.'
+description: 'Require extra approvals for PRs with many lines added/removed'
 inputs:
   github_token:
-    description: 'GitHub token for API access.'
+    description: 'GitHub token for API access'
     required: true
   max_lines_added:
-    description: 'Maximum lines that can be added before requiring override.'
+    description: 'Maximum lines that can be added before requiring override'
     required: true
   max_lines_removed:
-    description: 'Maximum lines that can be removed before requiring override.'
+    description: 'Maximum lines that can be removed before requiring override'
     required: true
   n_override_approvals:
-    description: 'Number of approvals required for override.'
+    description: 'Number of approvals required for override'
     required: true
 name: 'PR size'
 runs:
@@ -22,6 +22,9 @@ runs:
       fetch-depth: 0
       token: '${{ inputs.github_token }}'
   - run: 'if [ "${{ github.event_name }}" = "pull_request" ]; then exit 1; fi'
-    shell: 'sh'
+    name: 'Check if run from merge group'
+    env:
+      GITHUB_EVENT_NAME: ${{ github.event_name }}
+    run: '${{ github.action_path }}/sh/check-if-in-merge-group.sh'
   using: 'composite'
 ...
