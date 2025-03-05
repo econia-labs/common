@@ -58,6 +58,7 @@ runs:
       N_LINES_REMOVED: '${{ steps.get-n-deletions.outputs.deletions }}'
       N_OVERRIDE_APPROVALS: '${{ inputs.n_override_approvals }}'
     id: 'check-size-versus-approvals'
+    name: 'Check size versus approvals'
     run: 'sh ${{ github.action_path }}/sh/check-size-versus-approvals.sh'
     shell: 'sh'
   using: 'composite'
