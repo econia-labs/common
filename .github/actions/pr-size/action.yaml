@@ -1,0 +1,20 @@
+---
+author: 'Econia Labs'
+description: 'Require extra approvals for PRs with many lines added/removed.'
+inputs:
+  github_token:
+    description: 'GitHub token for API access.'
+    required: true
+  max_lines_added:
+    description: 'Maximum lines that can be added without requiring override.'
+    required: true
+name: 'Check PR size'
+run:
+  steps:
+  - uses: 'actions/checkout@v4'
+    with:
+      fetch-depth: 0
+      token: '${{ inputs.github_token }}'
+  - run: 'echo ${{ inputs.max_lines_added }}'
+  using: 'composite'
+...
