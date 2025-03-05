@@ -21,10 +21,9 @@ runs:
     with:
       fetch-depth: 0
       token: '${{ inputs.github_token }}'
-  - run: 'if [ "${{ github.event_name }}" = "pull_request" ]; then exit 1; fi'
-    name: 'Check if run from merge group'
-    env:
+  - env:
       GITHUB_EVENT_NAME: ${{ github.event_name }}
+    name: 'Check if run from merge group'
     run: '${{ github.action_path }}/sh/check-if-in-merge-group.sh'
   using: 'composite'
 ...
