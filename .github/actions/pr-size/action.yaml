@@ -28,6 +28,7 @@ runs:
     run: 'sh ${{ github.action_path }}/sh/get-pr-number.sh'
     shell: 'sh'
   - env:
+      GH_TOKEN: ${{ github.token }}
       PR_NUMBER: '${{ steps.get-pr-number.outputs.number }}'
     id: 'get-base-branch'
     run: 'sh ${{ github.action_path }}/sh/get-base-branch.sh'
