@@ -16,6 +16,11 @@ runs:
     uses: 'actions/setup-python@v5'
     with:
       python-version: '3.13'
+  - env:
+      CODEOWNERS_PATH: '.github/CODEOWNERS'
+    id: 'verify-codeowners-exists'
+    run: 'sh ${{ github.action_path }}/sh/verify-codeowners-exists.sh'
+    shell: 'sh'
   - name: 'Sort CODEOWNERS using pre-commit'
     uses: 'pre-commit/action@v3.0.1'
     with:
@@ -23,11 +28,6 @@ runs:
         --config ${{ github.action_path }}/cfg/pre-commit-config.yaml
         --files .github/CODEOWNERS
         --verbose
-  - env:
-      CODEOWNERS_PATH: '.github/CODEOWNERS'
-    id: 'verify-codeowners-exists'
-    run: 'sh ${{ github.action_path }}/sh/verify-codeowners-exists.sh'
-    shell: 'sh'
   - uses: 'mszostok/codeowners-validator@v0.7.4'
     with:
       experimental_checks: 'avoid-shadowing,notowned'
