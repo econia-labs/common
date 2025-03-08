@@ -1,8 +1,10 @@
+alnoki
 aptos
 awslogs
 awsvpc
 buildx
 chainguard
+codeowners
 dockerhub
 econia
 econialabs
