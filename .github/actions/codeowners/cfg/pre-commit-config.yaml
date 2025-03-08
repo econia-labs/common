@@ -1,6 +1,8 @@
+---
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
-  hooks:
-  - id: file-contents-sorter
+- hooks:
+  - id: 'file-contents-sorter'
   - files: '.github/CODEOWNERS'
+  repo: 'https://github.com/pre-commit/pre-commit-hooks'
+  rev: 'v5.0.0'
+...
