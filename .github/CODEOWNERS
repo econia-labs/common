@@ -1,8 +1,8 @@
-.github/ @alnoki
-.gitignore @alnoki
-CONTRIBUTING.MD     @alnoki
-LICENSE.MD          @alnoki
-README.md           @alnoki
-cfg/ @alnoki
-doc/ @alnoki
-src/ @alnoki
+.github/        @alnoki
+.gitignore      @alnoki
+CONTRIBUTING.MD @alnoki
+LICENSE.MD      @alnoki
+README.md       @alnoki
+cfg/            @alnoki
+doc/            @alnoki
+src/            @alnoki
