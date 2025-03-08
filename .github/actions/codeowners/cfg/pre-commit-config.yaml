@@ -1,7 +1,9 @@
 ---
 repos:
 - hooks:
-  - files: '.github/CODEOWNERS'
+  - args:
+    - '--check-only'
+    files: '.github/CODEOWNERS'
     id: 'file-contents-sorter'
   repo: 'https://github.com/pre-commit/pre-commit-hooks'
   rev: 'v5.0.0'
