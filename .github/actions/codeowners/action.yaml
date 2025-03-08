@@ -32,11 +32,9 @@ runs:
   - name: 'Sort CODEOWNERS using pre-commit'
     uses: 'pre-commit/action@v3.0.1'
     with:
-      extra_args:
-      - '--config'
-      - '${{ github.action_path }}/cfg/pre-commit-config.yaml'
-      - '--files'
-      - '.github/CODEOWNERS'
-      - '--verbose'
+      extra_args: >-
+        --config ${{ github.action_path }}/cfg/pre-commit-config.yaml
+        --files .github/CODEOWNERS
+        --verbose
   using: 'composite'
 ...
