@@ -6,7 +6,7 @@ jobs:
     steps:
     - uses: 'econia-labs/common/.github/actions/codeowners@ECO-2997'
       with:
-        github_access_token: '${{ secrets.CODEOWNERS_VALIDATOR_GITHUB_ACCESS_TOKEN }}'
+        github_access_token: '${{ secrets.CODEOWNER_VALIDATOR_GITHUB_ACCESS_TOKEN }}'
 name: 'Code owners'
 'on':
   merge_group: null
