@@ -2,7 +2,7 @@
 .gitignore      @alnoki
 CONTRIBUTING.MD @alnoki
 LICENSE.MD      @alnoki
-README.md       @alnoki
 cfg/            @alnoki
 doc/            @alnoki
 src/            @alnoki
+README.md       @alnoki
