@@ -1,0 +1,40 @@
+# cspell:word archetypically
+# cspell:word mszostok
+# cspell:word notowned
+---
+author: 'Econia Labs'
+description: 'Validate code owners'
+inputs:
+  github_access_token:
+    description: 'GitHub personal (classic) access token with read:org scope'
+    required: true
+name: 'Code owners'
+runs:
+  steps:
+  - uses: 'actions/checkout@v4'
+  - name: 'Set up Python to enable pre-commit'
+    uses: 'actions/setup-python@v5'
+    with:
+      python-version: '3.13'
+  - env:
+      CODEOWNERS_PATH: '.github/CODEOWNERS'
+    id: 'verify-codeowners-exists'
+    run: 'sh ${{ github.action_path }}/sh/verify-codeowners-exists.sh'
+    shell: 'sh'
+  - name: 'Sort CODEOWNERS using pre-commit'
+    uses: 'pre-commit/action@v3.0.1'
+    with:
+      extra_args: >-
+        --config ${{ github.action_path }}/cfg/pre-commit-config.yaml
+        --files .github/CODEOWNERS
+        --verbose
+  - uses: 'mszostok/codeowners-validator@v0.7.4'
+    with:
+      experimental_checks: 'avoid-shadowing,notowned'
+      github_access_token: '${{ inputs.github_access_token }}'
+  - uses: 'Archetypically/format-codeowners@v1'
+    with:
+      file-path: '.github/CODEOWNERS'
+      remove-empty-lines: 'true'
+  using: 'composite'
+...
