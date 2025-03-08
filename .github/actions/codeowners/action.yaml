@@ -12,6 +12,17 @@ name: 'Code owners'
 runs:
   steps:
   - uses: 'actions/checkout@v4'
+  - name: 'Set up Python to enable pre-commit'
+    uses: 'actions/setup-python@v5'
+    with:
+      python-version: '3.13'
+  - name: 'Sort CODEOWNERS using pre-commit'
+    uses: 'pre-commit/action@v3.0.1'
+    with:
+      extra_args: >-
+        --config ${{ github.action_path }}/cfg/pre-commit-config.yaml
+        --files .github/CODEOWNERS
+        --verbose
   - env:
       CODEOWNERS_PATH: '.github/CODEOWNERS'
     id: 'verify-codeowners-exists'
@@ -25,16 +36,5 @@ runs:
     with:
       file-path: '.github/CODEOWNERS'
       remove-empty-lines: 'true'
-  - name: 'Set up Python to enable pre-commit'
-    uses: 'actions/setup-python@v5'
-    with:
-      python-version: '3.13'
-  - name: 'Sort CODEOWNERS using pre-commit'
-    uses: 'pre-commit/action@v3.0.1'
-    with:
-      extra_args: >-
-        --config ${{ github.action_path }}/cfg/pre-commit-config.yaml
-        --files .github/CODEOWNERS
-        --verbose
   using: 'composite'
 ...
