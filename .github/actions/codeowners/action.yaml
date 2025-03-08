@@ -1,0 +1,26 @@
+---
+author: 'Econia Labs'
+description: 'Validate code owners'
+inputs:
+  github_access_token:
+    description: 'GitHub personal (classic) access token with read:org scope'
+    required: true
+name: 'Code owners'
+runs:
+  steps:
+  - uses: 'actions/checkout@v4'
+  - env:
+      CODEOWNERS_PATH: '.github/CODEOWNERS'
+    id: 'verify-codeowners-exists'
+    run: 'sh ${{ github.action_path }}/sh/verify-codeowners-exists.sh'
+    shell: 'sh'
+  - uses: 'mszostok/codeowners-validator@v0.7.4'
+    with:
+      experimental_checks: 'avoid-shadowing,notowned'
+      github_access_token: '${{ inputs.github_access_token }}'
+  - uses: 'Archetypically/format-codeowners@v1'
+    with:
+      file-path: '.github/CODEOWNERS'
+      remove-empty-lines: 'true'
+  using: 'composite'
+...
