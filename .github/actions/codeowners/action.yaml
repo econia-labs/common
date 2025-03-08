@@ -14,9 +14,7 @@ runs:
     id: 'verify-codeowners-exists'
     run: 'sh ${{ github.action_path }}/sh/verify-codeowners-exists.sh'
     shell: 'sh'
-  - env:
-      GH_TOKEN: '${{ github.token }}'
-    uses: 'mszostok/codeowners-validator@v0.7.4'
+  - uses: 'mszostok/codeowners-validator@v0.7.4'
     with:
       experimental_checks: 'avoid-shadowing,notowned'
       github_access_token: '${{ inputs.github_access_token }}'
