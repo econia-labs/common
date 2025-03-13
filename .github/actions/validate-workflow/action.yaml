@@ -1,13 +1,13 @@
 ---
 inputs:
-  action_path:
-    description: 'Path to the action that is calling this action'
+  calling_action_path:
+    description: 'GitHub action path for the action that is calling this one'
     required: true
 runs:
   steps:
   - env:
-      ACTION_PATH: '${{ inputs.action_path }}'
-    run: 'echo "Action path: $ACTION_PATH"'
+      CALLING_ACTION_PATH: '${{ inputs.calling_action_path }}'
+    run: 'sh ${{ github.action_path }}/sh/validate-workflow.sh'
     shell: 'sh'
   using: 'composite'
 ...
