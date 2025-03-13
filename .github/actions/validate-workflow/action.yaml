@@ -1,7 +1,7 @@
 ---
 runs:
   steps:
-  - run: 'echo "foo"'
+  - run: 'echo "Action path: ${{ github.action_path }}"'
     shell: 'sh'
   using: 'composite'
 ...
