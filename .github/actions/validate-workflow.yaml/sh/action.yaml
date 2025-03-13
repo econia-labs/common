@@ -1,0 +1,7 @@
+---
+runs:
+  steps:
+  - run: 'echo "foo"'
+    shell: 'sh'
+  using: 'composite'
+...
