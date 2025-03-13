@@ -30,7 +30,7 @@ WORKFLOW_PATH=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 1)
 REPO_PATH=$(echo "$WORKFLOW_PATH" | grep -o '/[^/]*/[^/]*/[^/]*$')
 
 # Extract the final directory name from the called action path.
-ACTION_NAME=$(basename "$CALLING_ACTION_PATH")
+ACTION_NAME=$(basename "$CALLED_ACTION_PATH")
 
 # Construct the expected path in repo for the calling workflow.
 EXPECTED_REPO_PATH="/.github/workflows/$ACTION_NAME.yaml"
