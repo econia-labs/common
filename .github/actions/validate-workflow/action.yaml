@@ -1,7 +1,13 @@
 ---
+inputs:
+  action_path:
+    description: 'Path to the action that is calling this action'
+    required: true
 runs:
   steps:
-  - run: 'echo "Action path: ${{ github.action_path }}"'
+  - env:
+      ACTION_PATH: '${{ inputs.action_path }}'
+  - run: 'echo "Action path: $ACTION_PATH"'
     shell: 'sh'
   using: 'composite'
 ...
