@@ -6,11 +6,13 @@ if [ -z "$CALLED_ACTION_PATH" ]; then
 	exit 1
 fi
 
-# Ensure the called action path is a directory containing a workflow template.
+# Ensure the called action path is a directory.
 if [ ! -d "$CALLED_ACTION_PATH" ]; then
 	echo "::error::Called action path not a directory: $CALLED_ACTION_PATH"
 	exit 1
 fi
+
+# Ensure the called action path contains a workflow template.
 WORKFLOW_TEMPLATE_FILE="$CALLED_ACTION_PATH/workflow-template.yaml"
 if [ ! -f "$WORKFLOW_TEMPLATE_FILE" ]; then
 	echo "::error::No workflow-template.yaml file in called action path"
@@ -23,7 +25,7 @@ if [ -z "$CALLING_WORKFLOW_REF" ]; then
 	exit 1
 fi
 
-# Extract the workflow path from the workflow ref.
+# Extract the full workflow path from the workflow ref.
 WORKFLOW_PATH=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 1)
 
 # Extract the last three directories from the calling workflow path,
@@ -33,7 +35,7 @@ REPO_PATH=$(echo "$WORKFLOW_PATH" | grep -o '/[^/]*/[^/]*/[^/]*$')
 # Extract the final directory name from the called action path.
 ACTION_NAME=$(basename "$CALLED_ACTION_PATH")
 
-# Construct the expected path in repo for the calling workflow.
+# Construct the expected path in the repo for the calling workflow.
 EXPECTED_REPO_PATH="/.github/workflows/$ACTION_NAME.yaml"
 
 # Ensure the calling workflow path matches the expected path.
