@@ -1,15 +1,15 @@
 ---
 inputs:
-  calling_action_path:
-    description: 'GitHub action path for the action that is calling this one'
+  called_action_path:
+    description: 'GitHub action path for the action called by the workflow'
     required: true
   calling_workflow_ref:
-    description: 'GitHub workflow ref for the action that is calling this one'
+    description: 'GitHub workflow ref for the calling workflow'
     required: true
 runs:
   steps:
   - env:
-      CALLING_ACTION_PATH: '${{ inputs.calling_action_path }}'
+      CALLED_ACTION_PATH: '${{ inputs.called_action_path }}'
       CALLING_WORKFLOW_REF: '${{ inputs.calling_workflow_ref }}'
     run: 'sh ${{ github.action_path }}/sh/validate-workflow.sh'
     shell: 'sh'
