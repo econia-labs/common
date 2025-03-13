@@ -7,7 +7,7 @@ runs:
   steps:
   - env:
       ACTION_PATH: '${{ inputs.action_path }}'
-  - run: 'echo "Action path: $ACTION_PATH"'
+    run: 'echo "Action path: $ACTION_PATH"'
     shell: 'sh'
   using: 'composite'
 ...
