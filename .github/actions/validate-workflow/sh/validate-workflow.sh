@@ -27,15 +27,16 @@ WORKFLOW_PATH=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 1)
 
 # Extract the last three directories from the calling workflow path,
 # representing the workflow's location in the repository.
-PATH_IN_REPO=$(echo "$WORKFLOW_PATH" | grep -o '/[^/]*/[^/]*/[^/]*$')
+REPO_PATH=$(echo "$WORKFLOW_PATH" | grep -o '/[^/]*/[^/]*/[^/]*$')
 
 # Extract the final directory name from the called action path.
 ACTION_NAME=$(basename "$CALLING_ACTION_PATH")
 
 # Construct the expected path in repo for the calling workflow.
-EXPECTED_PATH_IN_REPO="/.github/workflows/$ACTION_NAME.yaml"
+EXPECTED_REPO_PATH="/.github/workflows/$ACTION_NAME.yaml"
 
-if [ "$PATH_IN_REPO" != "$EXPECTED_PATTERN" ]; then
-  echo "::error::Workflow path is $PATH_IN_REPO, expected $EXPECTED_PATTERN"
+# Ensure the calling workflow path matches the expected path.
+if [ "$REPO_PATH" != "$EXPECTED_REPO_PATH" ]; then
+  echo "::error::Workflow path is $REPO_PATH, expected $EXPECTED_REPO_PATH"
   exit 1
 fi
