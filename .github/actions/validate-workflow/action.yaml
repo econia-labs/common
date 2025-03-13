@@ -10,7 +10,7 @@ runs:
   steps:
   - env:
       CALLING_ACTION_PATH: '${{ inputs.calling_action_path }}'
-      CALLING_WORKFLOW_FILE: '${{ inputs.calling_workflow_file }}'
+      CALLING_WORKFLOW_REF: '${{ inputs.calling_workflow_ref }}'
     run: 'sh ${{ github.action_path }}/sh/validate-workflow.sh'
     shell: 'sh'
   using: 'composite'
