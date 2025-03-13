@@ -6,6 +6,9 @@ inputs:
   calling_workflow_ref:
     description: 'GitHub workflow ref for the calling workflow'
     required: true
+  github_workspace:
+    description: 'GitHub workspace path for the calling workflow'
+    required: true
 runs:
   steps:
   - env:
