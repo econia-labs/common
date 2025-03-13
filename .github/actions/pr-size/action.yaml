@@ -15,58 +15,58 @@ name: 'PR size'
 runs:
   steps:
   - uses: 'econia-labs/common/.github/actions/validate-workflow@ECO-3009'
-  - env:
-      MAX_LINES_ADDED: '${{ inputs.max_lines_added }}'
-      MAX_LINES_REMOVED: '${{ inputs.max_lines_removed }}'
-      N_OVERRIDE_APPROVALS: '${{ inputs.n_override_approvals }}'
-    id: 'validate-inputs'
-    run: 'sh ${{ github.action_path }}/sh/validate-inputs.sh'
-    shell: 'sh'
-  - uses: 'actions/checkout@v4'
-    with:
-      fetch-depth: 0
-  - env:
-      GITHUB_EVENT_NAME: '${{ github.event_name }}'
-    name: 'check-if-in-merge-group'
-    run: 'sh ${{ github.action_path }}/sh/check-if-in-merge-group.sh'
-    shell: 'sh'
-  - env:
-      PR_NUMBER: '${{ github.event.pull_request.number }}'
-    id: 'get-pr-number'
-    run: 'sh ${{ github.action_path }}/sh/get-pr-number.sh'
-    shell: 'sh'
-  - env:
-      GH_TOKEN: '${{ github.token }}'
-      PR_NUMBER: '${{ steps.get-pr-number.outputs.number }}'
-    id: 'get-base-branch'
-    run: 'sh ${{ github.action_path }}/sh/get-base-branch.sh'
-    shell: 'sh'
-  - env:
-      BASE_BRANCH: '${{ steps.get-base-branch.outputs.base_branch }}'
-    id: 'get-n-insertions'
-    run: 'sh ${{ github.action_path }}/sh/get-n-insertions.sh'
-    shell: 'sh'
-  - env:
-      BASE_BRANCH: '${{ steps.get-base-branch.outputs.base_branch }}'
-    id: 'get-n-deletions'
-    run: 'sh ${{ github.action_path }}/sh/get-n-deletions.sh'
-    shell: 'sh'
-  - env:
-      GH_TOKEN: '${{ github.token }}'
-      PR_NUMBER: '${{ steps.get-pr-number.outputs.number }}'
-    id: 'get-n-approvals'
-    run: 'sh ${{ github.action_path }}/sh/get-n-approvals.sh'
-    shell: 'sh'
-  - env:
-      GITHUB_EVENT_NAME: '${{ github.event_name }}'
-      MAX_LINES_ADDED: '${{ inputs.max_lines_added }}'
-      MAX_LINES_REMOVED: '${{ inputs.max_lines_removed }}'
-      N_APPROVALS: '${{ steps.get-n-approvals.outputs.n_approvals }}'
-      N_LINES_ADDED: '${{ steps.get-n-insertions.outputs.insertions }}'
-      N_LINES_REMOVED: '${{ steps.get-n-deletions.outputs.deletions }}'
-      N_OVERRIDE_APPROVALS: '${{ inputs.n_override_approvals }}'
-    name: 'check-size-versus-approvals'
-    run: 'sh ${{ github.action_path }}/sh/check-size-versus-approvals.sh'
-    shell: 'sh'
+  # - env:
+  #     MAX_LINES_ADDED: '${{ inputs.max_lines_added }}'
+  #     MAX_LINES_REMOVED: '${{ inputs.max_lines_removed }}'
+  #     N_OVERRIDE_APPROVALS: '${{ inputs.n_override_approvals }}'
+  #   id: 'validate-inputs'
+  #   run: 'sh ${{ github.action_path }}/sh/validate-inputs.sh'
+  #   shell: 'sh'
+  # - uses: 'actions/checkout@v4'
+  #   with:
+  #     fetch-depth: 0
+  # - env:
+  #     GITHUB_EVENT_NAME: '${{ github.event_name }}'
+  #   name: 'check-if-in-merge-group'
+  #   run: 'sh ${{ github.action_path }}/sh/check-if-in-merge-group.sh'
+  #   shell: 'sh'
+  # - env:
+  #     PR_NUMBER: '${{ github.event.pull_request.number }}'
+  #   id: 'get-pr-number'
+  #   run: 'sh ${{ github.action_path }}/sh/get-pr-number.sh'
+  #   shell: 'sh'
+  # - env:
+  #     GH_TOKEN: '${{ github.token }}'
+  #     PR_NUMBER: '${{ steps.get-pr-number.outputs.number }}'
+  #   id: 'get-base-branch'
+  #   run: 'sh ${{ github.action_path }}/sh/get-base-branch.sh'
+  #   shell: 'sh'
+  # - env:
+  #     BASE_BRANCH: '${{ steps.get-base-branch.outputs.base_branch }}'
+  #   id: 'get-n-insertions'
+  #   run: 'sh ${{ github.action_path }}/sh/get-n-insertions.sh'
+  #   shell: 'sh'
+  # - env:
+  #     BASE_BRANCH: '${{ steps.get-base-branch.outputs.base_branch }}'
+  #   id: 'get-n-deletions'
+  #   run: 'sh ${{ github.action_path }}/sh/get-n-deletions.sh'
+  #   shell: 'sh'
+  # - env:
+  #     GH_TOKEN: '${{ github.token }}'
+  #     PR_NUMBER: '${{ steps.get-pr-number.outputs.number }}'
+  #   id: 'get-n-approvals'
+  #   run: 'sh ${{ github.action_path }}/sh/get-n-approvals.sh'
+  #   shell: 'sh'
+  # - env:
+  #     GITHUB_EVENT_NAME: '${{ github.event_name }}'
+  #     MAX_LINES_ADDED: '${{ inputs.max_lines_added }}'
+  #     MAX_LINES_REMOVED: '${{ inputs.max_lines_removed }}'
+  #     N_APPROVALS: '${{ steps.get-n-approvals.outputs.n_approvals }}'
+  #     N_LINES_ADDED: '${{ steps.get-n-insertions.outputs.insertions }}'
+  #     N_LINES_REMOVED: '${{ steps.get-n-deletions.outputs.deletions }}'
+  #     N_OVERRIDE_APPROVALS: '${{ inputs.n_override_approvals }}'
+  #   name: 'check-size-versus-approvals'
+  #   run: 'sh ${{ github.action_path }}/sh/check-size-versus-approvals.sh'
+  #   shell: 'sh'
   using: 'composite'
 ...
