@@ -16,3 +16,10 @@ if [ ! -f "$CALLING_ACTION_PATH/workflow-template.yaml" ]; then
     exit 1
 fi
 
+# Ensure calling workflow file is set.
+if [ -z "$CALLING_WORKFLOW_FILE" ]; then
+  echo "::error::Calling workflow file is not set"
+  exit 1
+fi
+echo "$CALLING_WORKFLOW_FILE"
+

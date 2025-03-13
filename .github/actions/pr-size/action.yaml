@@ -17,6 +17,7 @@ runs:
   - uses: 'econia-labs/common/.github/actions/validate-workflow@ECO-3009'
     with:
       calling_action_path: '${{ github.action_path }}'
+      calling_workflow_file: '${{ github.workflow }}'
   # - env:
   #     MAX_LINES_ADDED: '${{ inputs.max_lines_added }}'
   #     MAX_LINES_REMOVED: '${{ inputs.max_lines_removed }}'

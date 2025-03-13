@@ -3,10 +3,14 @@ inputs:
   calling_action_path:
     description: 'GitHub action path for the action that is calling this one'
     required: true
+  calling_workflow_file:
+    description: 'GitHub workflow file for the action that is calling this one'
+    required: true
 runs:
   steps:
   - env:
       CALLING_ACTION_PATH: '${{ inputs.calling_action_path }}'
+      CALLING_WORKFLOW_FILE: '${{ inputs.calling_workflow_file }}'
     run: 'sh ${{ github.action_path }}/sh/validate-workflow.sh'
     shell: 'sh'
   using: 'composite'
