@@ -42,6 +42,12 @@ if [ "$REPO_PATH" != "$EXPECTED_REPO_PATH" ]; then
 	exit 1
 fi
 
+# Ensure GitHub workspace is set.
+if [ -z "$GITHUB_WORKSPACE" ]; then
+	echo "::error::GitHub workspace is not set"
+	exit 1
+fi
+
 # Construct the full path to the calling workflow on the runner.
 WORKFLOW_FILE="${GITHUB_WORKSPACE}${REPO_PATH}"
 
