@@ -2,24 +2,25 @@
 
 # Ensure called action path is set.
 if [ -z "$CALLED_ACTION_PATH" ]; then
-  echo "::error::Called action path is not set"
-  exit 1
+	echo "::error::Called action path is not set"
+	exit 1
 fi
 
 # Ensure the called action path is a directory containing a workflow template.
 if [ ! -d "$CALLED_ACTION_PATH" ]; then
-    echo "::error::Called action path not a directory: $CALLED_ACTION_PATH"
-    exit 1
+	echo "::error::Called action path not a directory: $CALLED_ACTION_PATH"
+	exit 1
 fi
-if [ ! -f "$CALLED_ACTION_PATH/workflow-template.yaml" ]; then
-    echo "::error::No `workflow-template.yaml` found in called action path"
-    exit 1
+WORKFLOW_TEMPLATE_FILE="$CALLED_ACTION_PATH/workflow-template.yaml"
+if [ ! -f "$WORKFLOW_TEMPLATE_FILE" ]; then
+	echo "::error::No workflow-template.yaml file in called action path"
+	exit 1
 fi
 
 # Ensure calling workflow ref is set.
 if [ -z "$CALLING_WORKFLOW_REF" ]; then
-  echo "::error::Calling workflow ref is not set"
-  exit 1
+	echo "::error::Calling workflow ref is not set"
+	exit 1
 fi
 
 # Extract the workflow path from the workflow ref.
@@ -37,6 +38,22 @@ EXPECTED_REPO_PATH="/.github/workflows/$ACTION_NAME.yaml"
 
 # Ensure the calling workflow path matches the expected path.
 if [ "$REPO_PATH" != "$EXPECTED_REPO_PATH" ]; then
-  echo "::error::Workflow path is $REPO_PATH, expected $EXPECTED_REPO_PATH"
-  exit 1
+	echo "::error::Workflow path is $REPO_PATH, expected $EXPECTED_REPO_PATH"
+	exit 1
+fi
+
+# Construct the full path to the calling workflow on the runner.
+WORKFLOW_FILE="${GITHUB_WORKSPACE}${REPO_PATH}"
+
+# Ensure the workflow file exists.
+if [ ! -f "$WORKFLOW_FILE" ]; then
+	echo "::error::Workflow file not found: $WORKFLOW_FILE"
+	exit 1
+fi
+
+# Ensure workflow file matches workflow template.
+if !diff -q "$WORKFLOW_FILE" "$WORKFLOW_TEMPLATE_FILE" >/dev/null; then
+	echo "::error::Calling workflow does not match workflow template"
+	diff "$WORKFLOW_FILE" "$WORKFLOW_TEMPLATE_FILE"
+	exit 1
 fi
