@@ -3,8 +3,8 @@ inputs:
   calling_action_path:
     description: 'GitHub action path for the action that is calling this one'
     required: true
-  calling_workflow_file:
-    description: 'GitHub workflow file for the action that is calling this one'
+  calling_workflow_ref:
+    description: 'GitHub workflow ref for the action that is calling this one'
     required: true
 runs:
   steps:
