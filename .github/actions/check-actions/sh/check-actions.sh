@@ -21,6 +21,7 @@ for ACTION_PATH in */; do
 	# Verify there are no sub-directories other than cfg and sh.
 	for DIR in */; do
 		if [ "$DIR" != "cfg/" ] && [ "$DIR" != "sh/" ]; then
+            echo "::error::$ACTION_PATH"
 			echo "::error::Unexpected directory $DIR"
 			exit 1
 		fi
