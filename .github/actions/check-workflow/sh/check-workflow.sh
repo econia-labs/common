@@ -9,7 +9,6 @@ if [ "$WORKFLOW_PATH" != "$EXPECTED_PATH" ]; then
 	echo "::error::Workflow at $WORKFLOW_PATH, expected $EXPECTED_PATH"
 	exit 1
 fi
-echo "Workflow path: $WORKFLOW_PATH"
 
 # Construct the workflow template path.
 WORKFLOW_TEMPLATE_PATH="$ACTION_PATH/workflow-template.yaml"
