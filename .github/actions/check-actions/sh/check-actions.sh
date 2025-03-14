@@ -14,14 +14,14 @@ print_exemption_instructions() {
 cd .github/actions
 
 # Iterate over all action directories.
-for ACTION_PATH in */; do
+for ACTION_DIR in */; do
 	# Change location to action directory.
-	cd "$ACTION_PATH"
+	cd "$ACTION_DIR"
 
 	# Verify there are no sub-directories other than cfg and sh.
 	for DIR in */; do
 		if [ "$DIR" != "cfg/" ] && [ "$DIR" != "sh/" ]; then
-            echo "::error::$ACTION_PATH"
+            echo "::error::$ACTION_DIR"
 			echo "::error::Unexpected directory $DIR"
 			exit 1
 		fi
@@ -44,7 +44,7 @@ for ACTION_PATH in */; do
 		# Check if the string `# check-workflow: exempt` is present in the
 		# `action.yaml` file.
 		if ! grep -q "# check-workflow: exempt" action.yaml; then
-			ACTION="${ACTION_PATH}action.yaml"
+			ACTION="${ACTION_DIR}action.yaml"
 			echo "::error::$ACTION missing check-workflow as first step"
 			print_exemption_instructions
 			exit 1
@@ -57,7 +57,7 @@ for ACTION_PATH in */; do
 		# Check if the string `# check-workflow: exempt` is present in the
 		# `action.yaml` file.
 		if ! grep -q "# check-workflow: exempt" action.yaml; then
-			echo "::error::${ACTION_PATH}workflow-template.yaml missing"
+			echo "::error::${ACTION_DIR}workflow-template.yaml missing"
 			print_exemption_instructions
 			exit 1
 		fi
