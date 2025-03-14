@@ -48,14 +48,14 @@ ACTION_NAME=$(basename "$CALLED_ACTION_PATH")
 EXPECTED_FILE_PATH=".github/workflows/$ACTION_NAME.yaml"
 
 # Ensure the calling workflow path matches the expected path.
-if [ "$FILE_PATH" != "$EXPECTED_FILE_PATH"]; then
+if [ "$FILE_PATH" != "$EXPECTED_FILE_PATH" ]; then
 	echo "::error::Workflow path is $FILE_PATH, expected $EXPECTED_FILE_PATH"
 	exit 1
 fi
 echo "Calling workflow file path: $FILE_PATH"
 
 # Ensure workflow file matches workflow template.
-if !diff -q "$CALLING_WORKFLOW" "$WORKFLOW_TEMPLATE_FILE" >/dev/null; then
+if ! diff -q "$CALLING_WORKFLOW" "$WORKFLOW_TEMPLATE_FILE" >/dev/null; then
 	echo "::error::Calling workflow does not match workflow template"
 	diff "$CALLING_WORKFLOW" "$WORKFLOW_TEMPLATE_FILE"
 	exit 1
