@@ -15,9 +15,9 @@ name: 'PR size'
 runs:
   steps:
   - uses: 'econia-labs/common/.github/actions/validate-workflow@ECO-3009'
-    with:
-      called_action_path: '${{ github.action_path }}'
-      calling_workflow_ref: '${{ github.workflow_ref }}'
+  #  with:
+  #    called_action_path: '${{ github.action_path }}'
+  #    calling_workflow_ref: '${{ github.workflow_ref }}'
   # - env:
   #     MAX_LINES_ADDED: '${{ inputs.max_lines_added }}'
   #     MAX_LINES_REMOVED: '${{ inputs.max_lines_removed }}'

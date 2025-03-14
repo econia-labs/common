@@ -1,22 +1,16 @@
 ---
-inputs:
-  called_action_path:
-    description: 'GitHub action path for the action called by the workflow'
-    required: true
-  calling_workflow_ref:
-    description: 'GitHub workflow ref for the calling workflow'
-    required: true
-  github_workspace:
-    description: 'GitHub workspace path for the calling workflow'
-    required: true
+#inputs:
+#  action_path:
+#    description: 'github.action_path context'
+#    required: true
+#  workflow_ref:
+#    description: 'github.workflow_ref context'
+#    required: true
 runs:
   steps:
   - env:
-      CALLED_ACTION_PATH: '${{ inputs.called_action_path }}'
-      CALLING_WORKFLOW_REF: '${{ inputs.calling_workflow_ref }}'
-    run: 'sh ${{ github.action_path }}/sh/validate-workflow.sh'
-    name: 'Foo'
-    id: 'foo'
+      WORKFLOW_REF: '${{ github.workflow_ref }}'
+    run: 'sh ${{ github.action_path }}/sh/get-workflow-path.sh'
     shell: 'sh'
   using: 'composite'
 ...

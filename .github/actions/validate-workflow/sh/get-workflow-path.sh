@@ -1,0 +1,1 @@
+echo $WORKFLOW_REF
