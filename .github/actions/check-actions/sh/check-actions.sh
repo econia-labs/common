@@ -4,6 +4,13 @@ set -e
 # Get the syntax required to properly call `check-workflow` action.
 CHECK_WORKFLOW_STEP=$(yq eval '.[0]' $ACTION_PATH/cfg/check-workflow-step.yaml)
 
+# Function to print exemption instructions
+print_exemption_instructions() {
+    echo "::error::If this action is not directly called by a workflow, you "
+    echo "::error::can skip this check by adding <# check-workflow: exempt> "
+    echo "::error::to the action.yaml file."
+}
+
 # Change location to GitHub actions directory.
 cd .github/actions
 
@@ -38,17 +45,21 @@ for ACTION_PATH in */; do
         # `action.yaml` file.
         if ! grep -q "# check-workflow: exempt" action.yaml; then
             echo "::error::$ACTION_PATH first step is not check-workflow"
-            echo "::error::If this action is not directly called by a workflow"
-            echo "::error::you can silence this check by including the comment"
-            echo "::error::<# check-workflow: exempt> in action.yaml"
+            print_exemption_instructions
             exit 1
         fi
     fi
 
     # Ensure there is a template workflow file.
     if [ ! -f "workflow-template.yaml" ]; then
-        echo "::error::$ACTION_PATH missing workflow-template.yaml"
-        exit 1
+
+        # Check if the string `# check-workflow: exempt` is present in the
+        # `action.yaml` file.
+        if ! grep -q "# check-workflow: exempt" action.yaml; then
+            echo "::error::$ACTION_PATH missing workflow-template.yaml"
+            print_exemption_instructions
+            exit 1
+        fi
     fi
 
 	# Change location back to GitHub actions directory.
