@@ -27,11 +27,25 @@ for ACTION_PATH in */; do
         exit 1
     fi
 
-    # If there is a workflow-template.yaml file, ensure workflow checker used.
+    # Use yq to get the first element of the runs.steps array.
+    FIRST_STEP=$(yq eval '.runs.steps[0]' action.yaml)
+
+    # If there is a workflow-template.yaml file, ensure check-workflow is the
+    # first step.
     if [ -f "workflow-template.yaml" ]; then
-        # Use yq to get the first element of the runs.steps array.
-        FIRST_STEP=$(yq eval '.runs.steps[0]' action.yaml)
-        echo "First step: $FIRST_STEP"
+        if [ "$FIRST_STEP" != "$CHECK_WORKFLOW_STEP" ]; then
+            echo "::error::First step is not check-workflow action"
+            exit 1
+        fi
+    fi
+
+    # If the first step is check-workflow, ensure there is a
+    # workflow-template.yaml file.
+    if [ "$FIRST_STEP" = "$CHECK_WORKFLOW_STEP" ]; then
+        if [ ! -f "workflow-template.yaml" ]; then
+            echo "::error::Missing workflow-template.yaml"
+            exit 1
+        fi
     fi
 
     # Change location back to GitHub actions directory.
