@@ -1,3 +1,6 @@
+#!/bin/sh
+set -e
+
 # Get the name of the action that the workflow is calling.
 ACTION_NAME=$(basename "$ACTION_PATH")
 
