@@ -43,7 +43,7 @@ for ACTION_PATH in */; do
     # workflow-template.yaml file.
     if [ "$FIRST_STEP" = "$CHECK_WORKFLOW_STEP" ]; then
         if [ ! -f "workflow-template.yaml" ]; then
-            echo "::error::Missing workflow-template.yaml"
+            echo "::error::$ACTION_PATH missing workflow-template.yaml"
             exit 1
         fi
     fi
