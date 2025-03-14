@@ -33,6 +33,7 @@ for ACTION_PATH in */; do
     if [ "$FIRST_STEP" != "$CHECK_WORKFLOW_STEP" ]; then
         echo "::error::$ACTION_PATH first step is not check-workflow"
         exit 1
+    fi
 
     # Ensure there is a template workflow file.
     if [ ! -f "workflow-template.yaml" ]; then
