@@ -16,6 +16,8 @@ runs:
       CALLING_WORKFLOW_REF: '${{ inputs.calling_workflow_ref }}'
       GITHUB_WORKSPACE: '${{ inputs.github_workspace }}'
     run: 'sh ${{ github.action_path }}/sh/validate-workflow.sh'
+    name: 'Foo'
+    id: 'foo'
     shell: 'sh'
   using: 'composite'
 ...
