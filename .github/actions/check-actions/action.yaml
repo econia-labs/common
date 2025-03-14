@@ -1,0 +1,13 @@
+---
+runs:
+  steps:
+  - uses: actions/checkout@v4
+    with:
+      sparse-checkout: |
+        .github/actions
+  - env:
+      GITHUB_WORKSPACE: '${{ github.workspace }}'
+    run: 'sh ${{ github.action_path }}/sh/check-actions.sh'
+    shell: 'sh'
+  using: 'composite'
+...
