@@ -11,6 +11,7 @@ if [ ! -d "$CALLED_ACTION_PATH" ]; then
 	echo "::error::Called action path not a directory: $CALLED_ACTION_PATH"
 	exit 1
 fi
+echo "::notice::Called action path: $CALLED_ACTION_PATH"
 
 # Ensure the called action path contains a workflow template.
 WORKFLOW_TEMPLATE_FILE="$CALLED_ACTION_PATH/workflow-template.yaml"
@@ -18,19 +19,22 @@ if [ ! -f "$WORKFLOW_TEMPLATE_FILE" ]; then
 	echo "::error::No workflow-template.yaml file in called action path"
 	exit 1
 fi
+echo "::notice::Workflow template file: $WORKFLOW_TEMPLATE_FILE"
 
 # Ensure calling workflow ref is set.
 if [ -z "$CALLING_WORKFLOW_REF" ]; then
 	echo "::error::Calling workflow ref is not set"
 	exit 1
 fi
+echo "::notice::Calling workflow ref: $CALLING_WORKFLOW_REF"
 
-# Extract the full workflow path from the workflow ref.
-WORKFLOW_PATH=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 1)
+# Extract the full calling workflow path from the workflow ref.
+CALLING_WORKFLOW_PATH=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 1)
+echo "::notice::Calling workflow path: $CALLING_WORKFLOW_PATH"
 
 # Extract the last three directories from the calling workflow path,
 # representing the workflow's location in the repository.
-REPO_PATH=$(echo "$WORKFLOW_PATH" | grep -o '/[^/]*/[^/]*/[^/]*$')
+REPO_PATH=$(echo "$CALLING_WORKFLOW_PATH" | grep -o '/[^/]*/[^/]*/[^/]*$')
 
 # Extract the final directory name from the called action path.
 ACTION_NAME=$(basename "$CALLED_ACTION_PATH")
@@ -43,15 +47,18 @@ if [ "$REPO_PATH" != "$EXPECTED_REPO_PATH" ]; then
 	echo "::error::Workflow path is $REPO_PATH, expected $EXPECTED_REPO_PATH"
 	exit 1
 fi
+echo "::notice::Calling workflow repo path: $REPO_PATH"
 
 # Ensure GitHub workspace is set.
 if [ -z "$GITHUB_WORKSPACE" ]; then
 	echo "::error::GitHub workspace is not set"
 	exit 1
 fi
+echo "::notice::GitHub workspace: $GITHUB_WORKSPACE"
 
 # Construct the full path to the calling workflow on the runner.
 WORKFLOW_FILE="${GITHUB_WORKSPACE}${REPO_PATH}"
+echo "::notice::Workflow file: $WORKFLOW_FILE"
 
 # Ensure the workflow file exists.
 if [ ! -f "$WORKFLOW_FILE" ]; then
