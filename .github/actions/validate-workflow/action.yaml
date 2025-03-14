@@ -9,5 +9,9 @@ runs:
     with:
       sparse-checkout: '${{ steps.get-workflow-path.outputs.workflow_path }}'
       sparse-checkout-cone-mode: false
+  - env:
+      GITHUB_WORKSPACE: '${{ github.workspace }}'
+    run: 'sh ${{ github.action_path }}/sh/check-workflow.sh'
+    shell: 'sh'
   using: 'composite'
 ...

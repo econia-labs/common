@@ -1,0 +1,2 @@
+cd $GITHUB_WORKSPACE
+ls -al
