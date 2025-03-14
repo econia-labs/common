@@ -58,6 +58,9 @@ echo "GitHub workspace: $GITHUB_WORKSPACE"
 echo "GitHub workspace contents:"
 ls -l "$GITHUB_WORKSPACE"
 
+echo "Searching for pr-size.yaml on the runner..."
+find /home/runner -name "pr-size.yaml" -type f
+
 # Construct the full path to the calling workflow on the runner.
 WORKFLOW_FILE="${GITHUB_WORKSPACE}${REPO_PATH}"
 
