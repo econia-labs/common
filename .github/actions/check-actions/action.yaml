@@ -6,6 +6,7 @@ runs:
       sparse-checkout: |
         .github/actions
   - env:
+      ACTION_PATH: '${{ github.action_path }}'
     run: 'sh ${{ github.action_path }}/sh/check-actions.sh'
     shell: 'sh'
   using: 'composite'
