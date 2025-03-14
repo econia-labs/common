@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # Ensure called action path is set.
 if [ -z "$CALLED_ACTION_PATH" ]; then
@@ -28,51 +29,30 @@ if [ -z "$CALLING_WORKFLOW_REF" ]; then
 fi
 echo "Calling workflow ref: $CALLING_WORKFLOW_REF"
 
-# Extract the full calling workflow path from the workflow ref.
-CALLING_WORKFLOW_PATH=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 1)
-echo "Calling workflow path: $CALLING_WORKFLOW_PATH"
-
-# Extract the last three directories from the calling workflow path,
-# representing the workflow's location in the repository.
-REPO_PATH=$(echo "$CALLING_WORKFLOW_PATH" | grep -o '/[^/]*/[^/]*/[^/]*$')
+# Download the calling workflow file from the ref.
+REPO=$(echo "$CALLING_WORKFLOW_REF" | cut -d "/" -f 1-2)
+FILE_PATH=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 1 | cut -d "/" -f 3-)
+REF=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 2)
+CALLING_WORKFLOW=downloaded_workflow.yaml
+curl -sL -o $CALLING_WORKFLOW \
+    "https://raw.githubusercontent.com/$REPO/$REF/$FILE_PATH"
 
 # Extract the final directory name from the called action path.
 ACTION_NAME=$(basename "$CALLED_ACTION_PATH")
 
-# Construct the expected path in the repo for the calling workflow.
-EXPECTED_REPO_PATH="/.github/workflows/$ACTION_NAME.yaml"
+# Construct the expected file path in the repo for the calling workflow.
+EXPECTED_FILE_PATH=".github/workflows/$ACTION_NAME.yaml"
 
 # Ensure the calling workflow path matches the expected path.
-if [ "$REPO_PATH" != "$EXPECTED_REPO_PATH" ]; then
-	echo "::error::Workflow path is $REPO_PATH, expected $EXPECTED_REPO_PATH"
+if [ "$FILE_PATH" != "$EXPECTED_FILE_PATH "]; then
+	echo "::error::Workflow path is $FILE_PATH, expected $EXPECTED_FILE_PATH"
 	exit 1
 fi
-echo "Calling workflow repo path: $REPO_PATH"
-
-# Ensure GitHub workspace is set.
-if [ -z "$GITHUB_WORKSPACE" ]; then
-	echo "::error::GitHub workspace is not set"
-	exit 1
-fi
-echo "GitHub workspace: $GITHUB_WORKSPACE"
-echo "GitHub workspace contents:"
-ls -l "$GITHUB_WORKSPACE"
-
-echo "Searching for pr-size.yaml on the runner..."
-find /home/runner -name "pr-size.yaml" -type f
-
-# Construct the full path to the calling workflow on the runner.
-WORKFLOW_FILE="${GITHUB_WORKSPACE}${REPO_PATH}"
-
-# Ensure the workflow file exists.
-if [ ! -f "$WORKFLOW_FILE" ]; then
-	echo "::error::Workflow file not found: $WORKFLOW_FILE"
-	exit 1
-fi
+echo "Calling workflow file path: $FILE_PATH"
 
 # Ensure workflow file matches workflow template.
-if !diff -q "$WORKFLOW_FILE" "$WORKFLOW_TEMPLATE_FILE" >/dev/null; then
+if !diff -q "$CALLING_WORKFLOW" "$WORKFLOW_TEMPLATE_FILE" >/dev/null; then
 	echo "::error::Calling workflow does not match workflow template"
-	diff "$WORKFLOW_FILE" "$WORKFLOW_TEMPLATE_FILE"
+	diff "$CALLING_WORKFLOW" "$WORKFLOW_TEMPLATE_FILE"
 	exit 1
 fi
