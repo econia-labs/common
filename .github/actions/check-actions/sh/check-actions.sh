@@ -2,7 +2,7 @@
 set -e
 
 # Use yq to parse
-CHECK_WORKFLOW_STEP=$(yq eval '.[0]' cfg/check-workflow-step.yaml)
+CHECK_WORKFLOW_STEP=$(yq eval '.[0]' $ACTION_PATH/cfg/check-workflow-step.yaml)
 echo "Check workflow step: $CHECK_WORKFLOW_STEP"
 
 # Change location to GitHub actions directory.
