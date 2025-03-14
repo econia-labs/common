@@ -23,9 +23,11 @@ for ACTION_PATH in */; do
         exit 1
     fi
 
-    # If there is a workflow-template.yaml file, print the dirname.
+    # If there is a workflow-template.yaml file, ensure workflow checker used.
     if [ -f "workflow-template.yaml" ]; then
-        echo "Workflow template found in $ACTION_PATH"
+        # Use yq to get the first element of the runs.steps array.
+        FIRST_STEP=$(yq eval '.runs.steps[0]' action.yaml)
+        echo "First step: $FIRST_STEP"
     fi
 
     # Change location back to GitHub actions directory.
