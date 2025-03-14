@@ -5,5 +5,9 @@ runs:
       WORKFLOW_REF: '${{ github.workflow_ref }}'
     run: 'sh ${{ github.action_path }}/sh/get-workflow-path.sh'
     shell: 'sh'
+  - uses: actions/checkout@v4
+    with:
+      sparse-checkout: '${{ steps.get-workflow-path.outputs.workflow_path }}'
+      sparse-checkout-cone-mode: false
   using: 'composite'
 ...
