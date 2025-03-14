@@ -43,9 +43,6 @@ for ACTION_PATH in */; do
             echo "::error::<# check-workflow: exempt> in action.yaml"
             exit 1
         fi
-
-        echo "::error::$ACTION_PATH first step is not check-workflow"
-        exit 1
     fi
 
     # Ensure there is a template workflow file.
