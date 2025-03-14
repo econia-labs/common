@@ -5,8 +5,6 @@ inputs:
     description: 'github.action_path context for the action the workflow calls'
 runs:
   steps:
-  - run: 'echo "::group::Check workflow"'
-    shell: 'sh'
   - env:
       WORKFLOW_REF: '${{ github.workflow_ref }}'
     id: 'get-workflow-path'
@@ -22,8 +20,6 @@ runs:
       GITHUB_WORKSPACE: '${{ github.workspace }}'
       WORKFLOW_PATH: '${{ steps.get-workflow-path.outputs.workflow_path }}'
     run: 'sh ${{ github.action_path }}/sh/check-workflow.sh'
-    shell: 'sh'
-  - run: 'echo "::endgroup::"'
     shell: 'sh'
   using: 'composite'
 ...
