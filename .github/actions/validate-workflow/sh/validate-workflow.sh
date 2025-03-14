@@ -34,8 +34,12 @@ REPO=$(echo "$CALLING_WORKFLOW_REF" | cut -d "/" -f 1-2)
 FILE_PATH=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 1 | cut -d "/" -f 3-)
 REF=$(echo "$CALLING_WORKFLOW_REF" | cut -d "@" -f 2)
 CALLING_WORKFLOW=downloaded_workflow.yaml
-curl -sL -o $CALLING_WORKFLOW \
-    "https://raw.githubusercontent.com/$REPO/$REF/$FILE_PATH"
+URL="https://raw.githubusercontent.com/$REPO/$REF/$FILE_PATH"
+curl -sSL -o $CALLING_WORKFLOW $URL
+if [ ! -s "$CALLING_WORKFLOW" ]; then
+    echo "::error::Failed to download workflow file from $URL"
+    exit 1
+fi
 
 # Extract the final directory name from the called action path.
 ACTION_NAME=$(basename "$CALLED_ACTION_PATH")
@@ -44,7 +48,7 @@ ACTION_NAME=$(basename "$CALLED_ACTION_PATH")
 EXPECTED_FILE_PATH=".github/workflows/$ACTION_NAME.yaml"
 
 # Ensure the calling workflow path matches the expected path.
-if [ "$FILE_PATH" != "$EXPECTED_FILE_PATH "]; then
+if [ "$FILE_PATH" != "$EXPECTED_FILE_PATH"]; then
 	echo "::error::Workflow path is $FILE_PATH, expected $EXPECTED_FILE_PATH"
 	exit 1
 fi
