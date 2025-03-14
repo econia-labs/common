@@ -1,4 +1,4 @@
-# Get the name of the action from the action path.
+# Get the name of the action that the workflow is calling.
 ACTION_NAME=$(basename "$ACTION_PATH")
 
 # Construct the expected workflow path.
@@ -24,4 +24,4 @@ if ! diff -q "$WORKFLOW_LOCAL_PATH" "$WORKFLOW_TEMPLATE_PATH" >/dev/null; then
 	exit 1
 fi
 
-echo "✅ Valid workflow limits"
+echo "✅ Valid workflow"
