@@ -1,11 +1,4 @@
 ---
-#inputs:
-#  action_path:
-#    description: 'github.action_path context'
-#    required: true
-#  workflow_ref:
-#    description: 'github.workflow_ref context'
-#    required: true
 runs:
   steps:
   - env:
