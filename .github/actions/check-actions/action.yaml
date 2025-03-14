@@ -4,7 +4,7 @@ runs:
   - uses: 'econia-labs/common/.github/actions/check-workflow@ECO-3009'
     with:
       action_path: '${{ github.action_path }}'
-  - uses: actions/checkout@v4
+  - uses: 'actions/checkout@v4'
     with:
       sparse-checkout: |
         .github/actions

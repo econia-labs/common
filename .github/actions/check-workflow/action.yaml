@@ -1,8 +1,8 @@
 ---
 inputs:
   action_path:
-    required: true
     description: 'github.action_path context for the action the workflow calls'
+    required: true
 runs:
   steps:
   - env:
@@ -10,7 +10,7 @@ runs:
     id: 'get-workflow-path'
     run: 'sh ${{ github.action_path }}/sh/get-workflow-path.sh'
     shell: 'sh'
-  - uses: actions/checkout@v4
+  - uses: 'actions/checkout@v4'
     with:
       sparse-checkout: |
         ${{ steps.get-workflow-path.outputs.workflow_path }}
