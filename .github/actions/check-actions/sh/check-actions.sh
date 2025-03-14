@@ -34,7 +34,7 @@ for ACTION_PATH in */; do
     # first step.
     if [ -f "workflow-template.yaml" ]; then
         if [ "$FIRST_STEP" != "$CHECK_WORKFLOW_STEP" ]; then
-            echo "::error::First step is not check-workflow action"
+            echo "::error::$ACTION_PATH first step is not check-workflow"
             exit 1
         fi
     fi
