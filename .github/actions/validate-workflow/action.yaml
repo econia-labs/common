@@ -3,6 +3,7 @@ runs:
   steps:
   - env:
       WORKFLOW_REF: '${{ github.workflow_ref }}'
+    id: 'get-workflow-path'
     run: 'sh ${{ github.action_path }}/sh/get-workflow-path.sh'
     shell: 'sh'
   - uses: actions/checkout@v4
