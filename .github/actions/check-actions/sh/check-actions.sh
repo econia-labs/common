@@ -50,7 +50,7 @@ for ACTION_DIR in */; do
 
 	# Unless the action is exempt, verify the first step is check-workflow and
 	# there is a workflow-template.yaml file.
-	if ! grep -q $ESCAPE_PATTERN action.yaml; then
+	if ! grep -q -F "$ESCAPE_PATTERN" action.yaml; then
 
 		# Get the first element of the `runs.steps` array in `action.yaml`.
 		FIRST_STEP=$(yq eval '.runs.steps[0]' action.yaml)
