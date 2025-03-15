@@ -1,0 +1,5 @@
+---
+- uses: 'econia-labs/common/.github/actions/check-workflow@ECO-3009'
+  with:
+    action_path: '${{ github.action_path }}'
+...
