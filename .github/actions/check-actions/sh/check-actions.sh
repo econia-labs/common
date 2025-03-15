@@ -23,8 +23,8 @@ cd "$ACTIONS_DIRECTORY"
 
 # Check if there are any action directories.
 if [ -z "$(ls -d */ 2>/dev/null)" ]; then
-    echo "::error::No action directories found in $ACTIONS_DIRECTORY"
-    exit 1
+	echo "::error::No action directories found in $ACTIONS_DIRECTORY"
+	exit 1
 fi
 
 # Iterate over all action directories.
@@ -39,7 +39,7 @@ for ACTION_DIR in */; do
 	fi
 
 	# If there are sub-directories, verify there are none besides cfg and sh.
-    if [ -n "$(ls -d */ 2>/dev/null)" ]; then
+	if [ -n "$(ls -d */ 2>/dev/null)" ]; then
 		for SUBDIR in */; do
 			if [ "$SUBDIR" != "cfg/" ] && [ "$SUBDIR" != "sh/" ]; then
 				echo "::error::Unexpected directory ${ACTION_DIR}${SUBDIR}"
