@@ -1,31 +1,36 @@
 #!/bin/sh
 set -e
 
-# Get the syntax required to properly call `check-workflow` action.
-CHECK_WORKFLOW_STEP=$(yq eval '.[0]' $ACTION_PATH/cfg/check-workflow-step.yaml)
-
-# Function to print exemption instructions
+# Function to print exemption instructions.
 print_exemption_instructions() {
 	echo "If this action is not directly called by a workflow, you can skip "
 	echo "this check by adding <# check-workflow: exempt> to action.yaml."
 }
 
-# Change location to GitHub actions directory.
-cd .github/actions
+# Set the escape pattern for exempting actions from the check-workflow step.
+ESCAPE_PATTERN="# check-workflow: exempt"
+
+# Get the syntax required to properly call `check-workflow` action as a step.
+CHECK_WORKFLOW_STEP=$(yq eval '.[0]' $ACTION_PATH/cfg/check-workflow-step.yaml)
+
+# Check if repository even has an actions directory.
+ACTIONS_DIRECTORY=.github/actions
+if [ ! -d "$ACTIONS_DIRECTORY" ]; then
+	echo "::error::No actions directory found"
+	exit 1
+fi
+cd "$ACTIONS_DIRECTORY"
+
+# Check if there are any action directories.
+if [ ! "$(ls -A)" ]; then
+	echo "::error::No actions found"
+	exit 1
+fi
 
 # Iterate over all action directories.
 for ACTION_DIR in */; do
 	# Change location to action directory.
 	cd "$ACTION_DIR"
-
-	# Verify there are no sub-directories other than cfg and sh.
-	for DIR in */; do
-		if [ "$DIR" != "cfg/" ] && [ "$DIR" != "sh/" ]; then
-            echo "::error::$ACTION_DIR"
-			echo "::error::Unexpected directory $DIR"
-			exit 1
-		fi
-	done
 
 	# Verify there is an action.yaml file.
 	if [ ! -f "action.yaml" ]; then
@@ -33,34 +38,39 @@ for ACTION_DIR in */; do
 		exit 1
 	fi
 
-	# Get the first element of the `runs.steps` array in `action.yaml`.
-	FIRST_STEP=$(yq eval '.runs.steps[0]' action.yaml)
+	# If there are sub-directories, verify there are none besides cfg and sh.
+	if [ ! "$(ls -A)" ]; then
+		for DIR in */; do
+			if [ "$DIR" != "cfg/" ] && [ "$DIR" != "sh/" ]; then
+				echo "::error::$ACTION_DIR"
+				echo "::error::Unexpected directory $DIR"
+				exit 1
+			fi
+		done
+	fi
 
-	# Ensure the first step in `action.yaml` is the `check-workflow` action
-	# unless explicitly overridden, for example if the action is not designed
-	# to be called by a workflow.
-	if [ "$FIRST_STEP" != "$CHECK_WORKFLOW_STEP" ]; then
+	# Unless the action is exempt, verify the first step is check-workflow and
+	# there is a workflow-template.yaml file.
+	if ! grep -q $ESCAPE_PATTERN action.yaml; then
 
-		# Check if the string `# check-workflow: exempt` is present in the
-		# `action.yaml` file.
-		if ! grep -q "# check-workflow: exempt" action.yaml; then
+		# Get the first element of the `runs.steps` array in `action.yaml`.
+		FIRST_STEP=$(yq eval '.runs.steps[0]' action.yaml)
+
+		# Ensure the first step in `action.yaml` is the `check-workflow`.
+		if [ "$FIRST_STEP" != "$CHECK_WORKFLOW_STEP" ]; then
 			ACTION="${ACTION_DIR}action.yaml"
 			echo "::error::$ACTION missing check-workflow as first step"
 			print_exemption_instructions
 			exit 1
 		fi
-	fi
 
-	# Ensure there is a template workflow file.
-	if [ ! -f "workflow-template.yaml" ]; then
-
-		# Check if the string `# check-workflow: exempt` is present in the
-		# `action.yaml` file.
-		if ! grep -q "# check-workflow: exempt" action.yaml; then
+		# Ensure there is a template workflow file.
+		if [ ! -f "workflow-template.yaml" ]; then
 			echo "::error::${ACTION_DIR}workflow-template.yaml missing"
 			print_exemption_instructions
 			exit 1
 		fi
+
 	fi
 
 	# Change location back to GitHub actions directory.
