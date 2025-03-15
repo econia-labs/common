@@ -14,7 +14,7 @@ inputs:
 name: 'PR size'
 runs:
   steps:
-  - uses: 'econia-labs/common/.github/actions/check-workflow@ECO-3009'
+  - uses: 'econia-labs/common/.github/actions/check-workflo@ECO-3009'
     with:
       action_path: '${{ github.action_path }}'
   - env:
