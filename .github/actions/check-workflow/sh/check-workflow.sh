@@ -21,7 +21,7 @@ WORKFLOW_LOCAL_PATH="$GITHUB_WORKSPACE/$WORKFLOW_PATH"
 
 # Ensure workflow matches workflow template.
 if ! diff -q "$WORKFLOW_LOCAL_PATH" "$WORKFLOW_TEMPLATE_PATH" >/dev/null; then
-	echo "::error::Workflow does not match workflow template"
+	echo "::error::$WORKFLOW_PATH does not match template, see diff below:"
 	diff "$WORKFLOW_LOCAL_PATH" "$WORKFLOW_TEMPLATE_PATH"
 	exit 1
 fi
