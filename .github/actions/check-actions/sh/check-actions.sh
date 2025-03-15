@@ -14,7 +14,7 @@ ESCAPE_PATTERN="# check-workflow: exempt"
 CHECK_WORKFLOW_STEP=$(yq eval '.[0]' $ACTION_PATH/cfg/check-workflow-step.yaml)
 
 # Check if repository even has an actions directory.
-ACTIONS_DIRECTORY=.github/actions
+ACTIONS_DIRECTORY=.github/actions-foo
 if [ ! -d "$ACTIONS_DIRECTORY" ]; then
 	echo "::error::Missing $ACTIONS_DIRECTORY"
 	exit 1
