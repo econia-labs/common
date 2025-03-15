@@ -16,14 +16,14 @@ CHECK_WORKFLOW_STEP=$(yq eval '.[0]' $ACTION_PATH/cfg/check-workflow-step.yaml)
 # Check if repository even has an actions directory.
 ACTIONS_DIRECTORY=.github/actions
 if [ ! -d "$ACTIONS_DIRECTORY" ]; then
-	echo "::error::No actions directory found"
+	echo "::error::Missing $ACTIONS_DIRECTORY"
 	exit 1
 fi
 cd "$ACTIONS_DIRECTORY"
 
 # Check if there are any action directories.
 if [ ! "$(ls -A)" ]; then
-	echo "::error::No actions found"
+	echo "::error::No actions found in $ACTIONS_DIRECTORY"
 	exit 1
 fi
 
@@ -34,16 +34,15 @@ for ACTION_DIR in */; do
 
 	# Verify there is an action.yaml file.
 	if [ ! -f "action.yaml" ]; then
-		echo "::error::Missing action.yaml"
+		echo "::error::Missing ${ACTION_DIR}action.yaml"
 		exit 1
 	fi
 
 	# If there are sub-directories, verify there are none besides cfg and sh.
 	if [ ! "$(ls -A)" ]; then
-		for DIR in */; do
-			if [ "$DIR" != "cfg/" ] && [ "$DIR" != "sh/" ]; then
-				echo "::error::$ACTION_DIR"
-				echo "::error::Unexpected directory $DIR"
+		for SUBDIR in */; do
+			if [ "$SUBDIR" != "cfg/" ] && [ "$SUBDIR" != "sh/" ]; then
+				echo "::error::Unexpected directory ${ACTION_DIR}${SUBDIR}"
 				exit 1
 			fi
 		done
