@@ -11,7 +11,7 @@ inputs:
 name: 'Code owners'
 runs:
   steps:
-  - uses: 'econia-labs/common/.github/actions/check-workflow@ECO-3009'
+  - uses: 'econia-labs/common/.github/actions-foo/check-workflow@ECO-3009'
     with:
       action_path: '${{ github.action_path }}'
   - uses: 'actions/checkout@v4'
