@@ -16,8 +16,8 @@ fi
 # Construct the workflow template path.
 WORKFLOW_TEMPLATE_PATH="$ACTION_PATH/workflow-template.yaml"
 
-# Get the workflow path inside the GitHub workspace.
-WORKFLOW_LOCAL_PATH="$GITHUB_WORKSPACE/$WORKFLOW_PATH"
+# Get workflow path inside the GitHub workspace for the checked out workflow.
+WORKFLOW_LOCAL_PATH="$CHECKOUT_WORKSPACE/$WORKFLOW_PATH"
 
 # Ensure workflow matches workflow template.
 if ! diff -q "$WORKFLOW_LOCAL_PATH" "$WORKFLOW_TEMPLATE_PATH" >/dev/null; then
