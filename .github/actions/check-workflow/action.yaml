@@ -13,12 +13,13 @@ runs:
     shell: 'sh'
   - uses: 'actions/checkout@v4'
     with:
+      path: 'check-workflow'
       sparse-checkout: |
         ${{ steps.get-workflow-path.outputs.workflow_path }}
       sparse-checkout-cone-mode: false
   - env:
       ACTION_PATH: '${{ inputs.action_path }}'
-      GITHUB_WORKSPACE: '${{ github.workspace }}'
+      CHECKOUT_WORKSPACE: '${{ github.workspace }}/check-workflow'
       WORKFLOW_PATH: '${{ steps.get-workflow-path.outputs.workflow_path }}'
     run: 'sh ${{ github.action_path }}/sh/check-workflow.sh'
     shell: 'sh'
