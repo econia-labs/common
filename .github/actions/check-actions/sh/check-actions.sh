@@ -4,9 +4,9 @@ set -e
 # Function to print exemption instructions.
 print_exemption_instructions() {
 	echo "If you do not want this action to verify that it is called by a"
-    echo "canonical workflow defined in a template file, you can exempt this"
-    echo "step of the check by adding the following to action.yaml:"
-    echo "# check-workflow: exempt"
+	echo "canonical workflow defined in a template file, you can exempt this"
+	echo "step of the check by adding the following to action.yaml:"
+	echo "# check-workflow: exempt"
 }
 
 # Set the escape pattern for exempting actions from the check-workflow step.
