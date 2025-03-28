@@ -14,6 +14,9 @@ inputs:
 name: 'PR size'
 runs:
   steps:
+  - uses: 'econia-labs/common/.github/actions/check-workflow@main'
+    with:
+      action_path: '${{ github.action_path }}'
   - env:
       MAX_LINES_ADDED: '${{ inputs.max_lines_added }}'
       MAX_LINES_REMOVED: '${{ inputs.max_lines_removed }}'

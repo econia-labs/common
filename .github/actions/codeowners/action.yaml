@@ -11,6 +11,9 @@ inputs:
 name: 'Code owners'
 runs:
   steps:
+  - uses: 'econia-labs/common/.github/actions/check-workflow@main'
+    with:
+      action_path: '${{ github.action_path }}'
   - uses: 'actions/checkout@v4'
   - name: 'Set up Python to enable pre-commit'
     uses: 'actions/setup-python@v5'

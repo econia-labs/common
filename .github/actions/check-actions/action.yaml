@@ -1,0 +1,16 @@
+---
+runs:
+  steps:
+  - uses: 'econia-labs/common/.github/actions/check-workflow@main'
+    with:
+      action_path: '${{ github.action_path }}'
+  - uses: 'actions/checkout@v4'
+    with:
+      sparse-checkout: |
+        .github/actions
+  - env:
+      ACTION_PATH: '${{ github.action_path }}'
+    run: 'sh ${{ github.action_path }}/sh/check-actions.sh'
+    shell: 'sh'
+  using: 'composite'
+...
