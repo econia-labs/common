@@ -74,7 +74,7 @@ A simple `bash` script for this process might be something like:
 git_root=$(git rev-parse --show-toplevel)
 
 username=YOUR_DOCKERHUB_USERNAME
-version=v6.0.2
+version=6.0.2
 
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
