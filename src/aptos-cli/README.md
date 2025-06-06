@@ -78,7 +78,7 @@ version=v6.0.2
 
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  --build-arg GIT_TAG=aptos-cli-$version \
+  --build-arg GIT_TAG=aptos-cli-v$version \
   -t $username/aptos-cli:$version \
   -f $git_root/src/aptos-cli/Dockerfile \
   --push \
